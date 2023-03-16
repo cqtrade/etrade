@@ -5,11 +5,11 @@ const trade = require('./tradebb/index')
 const notification = require('./notification.js')
 
 
-positions.engine();
+// positions.engine();
 
 // positionCheck.engine();
 
-// server.bootServer();
+server.bootServer();
 
 // const atr = 200;
 

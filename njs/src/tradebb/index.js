@@ -236,6 +236,10 @@ async function signalHandler(sig) {
     try {
         console.log('signalHandler', sig);
 
+        if (!(sig && sig === Object(sig) && sig.ticker)) {
+            return;
+        }
+
         const position = await reqs.getPosition(sig.ticker, 'USDT');
 
         console.log('position', position)
