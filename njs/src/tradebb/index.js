@@ -218,7 +218,7 @@ async function signalHandler(sig) {
 
         const position = await reqs.getPosition(sig.ticker, 'USDT');
 
-        console.log('position', position)
+        // console.log('position', position)
 
         const side = position.side;
 
@@ -264,7 +264,7 @@ async function signalHandler(sig) {
 
         }
     } catch (error) {
-        console.log('ERROR signalHandler', error)
+        log.error(`ERROR signalHandler ${error.message}`)
     }
 }
 
