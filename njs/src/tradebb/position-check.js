@@ -1,4 +1,5 @@
-const { ContractClient } = require('bybit-api');
+const { ContractClient } = require('bybit-api')
+const log = require('../log.js')
 
 const key = process.env.API_KEY;
 const secret = process.env.API_SECRET;
@@ -8,8 +9,6 @@ const client = new ContractClient({
   secret,
   strict_param_validation: true,
 });
-
-
 
 const sleep = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -256,7 +255,7 @@ const getPositions = async (settleCoin) => {
       await sleep(333);
     }
   } catch (e) {
-    console.error('request failed: ', e);
+    console.error('getPositions request failed: ' + e.message);
     throw e;
   }
 };
@@ -268,7 +267,7 @@ const flow = async () => {
   try {
     await getPositions('USDT');
   } catch (e) {
-    console.error('request failed: ', e);
+    console.error('flow request failed: ' + e.message);
     throw e;
   }
 
@@ -288,7 +287,7 @@ function engine() {
         engine();
       })
       .catch(e => {
-        console.log('flow failed: ', e);
+        log.error('engine flow failed: ' + e.message);
         engine();
       });
   }, interval);

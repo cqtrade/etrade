@@ -5,7 +5,8 @@
             [ring.util.response :as ring-resp]
             [clj-http.client :as client]
             [clojure.core.async :as async]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [rsignals.engine.long :as engine.long]))
 
 
 (defn post-request-with-body-json
@@ -34,23 +35,22 @@
   (prn (getTimeInUTC))
   (let [url (if (System/getenv "APP_DOCKER")
               "http://njs:3000/signal"
-              "http://0.0.0.0:3000/signal")]
+              "http://0.0.0.0:3000/signal")
+        data (engine.long/get-signals)]
     (post-request-with-body-json
      url
-     {:data "test data"})))
+     data)))
 
 (defn start-worker
   []
-  (Thread/sleep 5000)
+  (Thread/sleep 10000)
   (async/thread (engine))
   (when @run-engine (recur)))
 
 (comment
+  (async/thread (engine))
 
   (async/thread (start-worker))
-
-
-
 
 
   (reset! run-engine false)

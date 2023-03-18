@@ -25,7 +25,7 @@
 (def conf-crossr [-1])
 
 (defn indicators
-  [{:keys [tdfi-p rex-p rex-sp conf-p]} coll]
+  [{:keys [tdfi-p rex-p rex-sp conf-p tpcoef slcoef risk]} coll]
   (let [closes (mapv :close coll)
         tdfis (ta/tdfi tdfi-p closes)
         rexs (ta/rex-sma rex-p coll)
@@ -38,7 +38,11 @@
                  :rex rex
                  :rex-sig rex-sig
                  :conf conf
-                 :atr atr}))
+                 :atr atr
+                 :atrtp (* atr tpcoef)
+                 :atrsl (* atr slcoef)
+                 :risk risk
+                 :ticker (:market d)}))
      coll
      tdfis
      rexs
@@ -157,33 +161,72 @@
 
              exit-buy (and
                        (< rex0 rex-sig0)
-                       (> rex1 rex-sig1))]
-         (merge curr {:buy buy :exit-buy exit-buy}))))
+                       (> rex1 rex-sig1))
+             sig (cond
+                   buy 1
+                   exit-buy -2
+                   :else 0)]
+         (merge curr {:buy buy
+                      :exit-buy exit-buy
+                      :sig sig}))))
    coll))
 
 (defn e-indies [t-args xs-prepped]
   (let [xs-indicators (doall (map #(indicators t-args %) xs-prepped))]
-    (doall (map #(strategy t-args %) xs-indicators))))
+    (doall
+     (map
+      #(let [xs (strategy t-args %)]
+         xs)
+      xs-indicators))))
 
 (defn signals
   [xs]
   (let [xs-prepped (prep-datasets xs)]
     (prn (- (count (first xs-prepped)) skip-bars))
-    (doall (map #(e-indies % xs-prepped) [{:tdfi-p 10
-                                          :rex-p 10
-                                          :rex-sp 10
-                                          :conf-p 10
-                                          :tdfi-level 0.31
-                                          :conf-cross -1}]))))
+    (doall (pmap #(e-indies % xs-prepped) [{:tdfi-p 12
+                                            :tdfi-level 0.21
+                                            :rex-p 18
+                                            :rex-sp 16
+                                            :conf-p 10
+                                            :conf-cross -1
+                                            :tpcoef 0.5
+                                            :slcoef 2.0
+                                            :risk 1}]))))
+
+(defn get-signals
+  []
+  (let [d [(ohlc/ohcl-bybit-v5 "BTCUSDT" "240")
+           (ohlc/ohcl-bybit-v5 "ETHUSDT" "240")
+           (ohlc/ohcl-bybit-v5 "SOLUSDT" "240")
+           (ohlc/ohcl-bybit-v5 "DOGEUSDT" "240")
+           (ohlc/ohcl-bybit-v5 "ADAUSDT" "240")
+           (ohlc/ohcl-bybit-v5 "BNBUSDT" "240")]
+        sigs (signals d)]
+    (->> sigs
+         (mapv
+          (fn [x]
+            (mapv last x))))))
 
 (comment
+  ; request data from bybit api with treshold 1000;
+  (ohlc/ohcl-bybit-v5 "BTCUSDT" "240")
 
-  (let [d [(ohlc/ohcl-bybit-v5 "BTCUSDT" "240")]
-        s (signals d)]
+
+  (let [d [(ohlc/ohcl-bybit-v5 "BTCUSDT" "240")
+           (ohlc/ohcl-bybit-v5 "ETHUSDT" "240")
+           (ohlc/ohcl-bybit-v5 "SOLUSDT" "240")
+           (ohlc/ohcl-bybit-v5 "DOGEUSDT" "240")
+           (ohlc/ohcl-bybit-v5 "ADAUSDT" "240")
+           (ohlc/ohcl-bybit-v5 "BNBUSDT" "240")]
+        sigs (signals d)
+        s (->> sigs
+               (mapv (fn [x]
+                       (mapv last x))))]
 
     (clojure.pprint/pprint  s)
-    ;; (count d)
+;;     (clojure.pprint/pprint  sigs)
     )
 
+  (get-signals)
 
   1)

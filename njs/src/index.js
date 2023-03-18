@@ -2,7 +2,7 @@ const positions = require('./tradebb/positions.js')
 const positionCheck = require('./tradebb/position-check.js')
 const server = require('./server.js')
 const trade = require('./tradebb/index')
-const notification = require('./notification.js')
+const log = require('./log.js')
 
 
 // positions.engine();
@@ -25,4 +25,4 @@ server.bootServer();
 //         console.log('e', e);
 //     });
 
-// notification.discord('Silly', 'Hello world');
+// log.discord('Silly', 'Hello world');

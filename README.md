@@ -15,3 +15,9 @@ docker compose down &&  docker compose build &&  docker compose up -d && docker 
 
 cd rsignals && lein uberjar && cd .. && docker compose down &&  docker compose build &&  docker compose up
 ```
+
+## Deploy
+
+```
+docker compose build && docker compose down && docker compose up -d 
+```
