@@ -280,7 +280,7 @@ function engine() {
     console.log('Tick', `:${minute}`);
   }
 
-  const interval = 33;
+  const interval = 333;
   setTimeout(() => {
     flow()
       .then(() => {

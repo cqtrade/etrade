@@ -8,7 +8,6 @@ const server = require('./server.js')
 // positions.engine();
 
 positionCheck.engine();
-
 server.bootServer();
 
 // const atr = 200;
