@@ -1,23 +1,21 @@
-```
- cd rsignals && lein uberjar && cd ..
+# etrade
 
- docker compose up -d
- docker compose down
+Trading bot. Consists of signal service and trading bot.
+
+```sh
  docker compose build
+ docker compose down
  docker compose up
+```
 
-
+```sh
 docker logs etrade-njs-1 -f
 
-
-docker compose down &&  docker compose build &&  docker compose up -d && docker logs etrade-njs-1 -f
-
-
-cd rsignals && lein uberjar && cd .. && docker compose down &&  docker compose build &&  docker compose up
+docker logs etrade-rsignals-1
 ```
 
 ## Deploy
 
-```
-docker compose build && docker compose down && docker compose up -d 
+```sh
+docker compose build && docker compose down && docker compose up -d
 ```

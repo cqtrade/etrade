@@ -43,7 +43,7 @@
 
 (defn start-worker
   []
-  (Thread/sleep 10000)
+  (Thread/sleep (* 1000 60 5))
   (async/thread (engine))
   (when @run-engine (recur)))
 

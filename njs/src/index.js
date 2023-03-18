@@ -1,13 +1,13 @@
-const positions = require('./tradebb/positions.js')
+// const positions = require('./tradebb/trailingpositionssl.js')
 const positionCheck = require('./tradebb/position-check.js')
 const server = require('./server.js')
-const trade = require('./tradebb/index')
-const log = require('./log.js')
+// const trade = require('./tradebb/index')
+// const log = require('./log.js')
 
 
 // positions.engine();
 
-// positionCheck.engine();
+positionCheck.engine();
 
 server.bootServer();
 

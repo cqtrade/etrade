@@ -1,33 +1,6 @@
 const reqs = require('./reqs.js')
 const log = require('../log.js')
 
-const exampleBuy = {
-    "sig": 1,
-    "ticker": "BTCUSDT",
-    "atrtp": "AtrTp",
-    "atrsl": "AtrSl",
-    "risk": 1,
-    "exchange": "BB"
-}
-
-const exampleBuyExit = {
-    "sig": -2,
-    "ticker": "BTCUSDT",
-    "atrtp": "AtrTp",
-    "atrsl": "AtrSl",
-    "risk": 1,
-    "exchange": "BB"
-}
-
-const exampleSell = {
-    "sig": -1,
-    "ticker": "BTCUSDT",
-    "atrtp": "AtrTp",
-    "atrsl": "AtrSl",
-    "risk": 1,
-    "exchange": "BB"
-}
-
 function calculatePositionSize(
     risk,
     atrSl,
@@ -83,25 +56,25 @@ async function sell(sig) {
     const lastPrice = Number(ticker.value.lastPrice);
     const tickSize = instrument.value.priceFilter.tickSize;
 
-    log.debug('lastPrice', lastPrice)
-    log.debug('tickSize', tickSize)
-    log.debug('atrsl', sig.atrsl)
-    log.debug('atrtp', sig.atrtp)
+    console.log('lastPrice', lastPrice)
+    console.log('tickSize', tickSize)
+    console.log('atrsl', sig.atrsl)
+    console.log('atrtp', sig.atrtp)
     const tp = lastPrice - sig.atrtp;
     const sl = lastPrice + sig.atrsl;
-    log.debug('tp', tp)
-    log.debug('sl', sl)
+    console.log('tp', tp)
+    console.log('sl', sl)
     const slPrice = reqs.setPricePrecisionByTickSize(sl, tickSize);
     const tpPrice = reqs.setPricePrecisionByTickSize(tp, tickSize);
 
-    log.debug('slPrice', slPrice)
-    log.debug('tpPrice', tpPrice)
+    console.log('slPrice', slPrice)
+    console.log('tpPrice', tpPrice)
 
     const equityUSD = 1000;
     const risk = 10;
     const atrSl = sig.atrsl;
 
-    log.debug('instrument.value', instrument.value)
+    console.log('instrument.value', instrument.value)
 
     let posSize = calculatePositionSize(
         risk,
@@ -115,19 +88,19 @@ async function sell(sig) {
 
     posSize = calcStepSize(posSize, qtyStep)
 
-    log.debug('posSize', posSize)
+    console.log('posSize', posSize)
     if (posSize < (3 * qtyMin)) {
         posSize = (3 * qtyMin);
     }
 
-    log.debug('posSize', posSize)
+    console.log('posSize', posSize)
 
     let tpSize = calcStepSize(posSize / 3, qtyStep);
     if (tpSize < qtyMin) {
         tpSize = qtyMin;
     }
 
-    log.debug('tpSize', tpSize)
+    console.log('tpSize', tpSize)
     const res = await reqs.submitOrder({
         side: "Sell",
         symbol: sig.ticker,
@@ -138,7 +111,7 @@ async function sell(sig) {
         slTriggerBy: "LastPrice",
     });
 
-    //log.debug(res, res)
+    //console.log(res, res)
 
     const res2 = await reqs.submitOrder({
         side: "Buy",
@@ -162,25 +135,25 @@ async function buy(sig) {
     const lastPrice = Number(ticker.value.lastPrice);
     const tickSize = instrument.value.priceFilter.tickSize;
 
-    //log.debug('lastPrice', lastPrice)
-    //log.debug('tickSize', tickSize)
-    //log.debug('atrsl', sig.atrsl)
-    //log.debug('atrtp', sig.atrtp)
+    //console.log('lastPrice', lastPrice)
+    //console.log('tickSize', tickSize)
+    //console.log('atrsl', sig.atrsl)
+    //console.log('atrtp', sig.atrtp)
     const tp = lastPrice + sig.atrtp;
     const sl = lastPrice - sig.atrsl;
-    //log.debug('tp', tp)
-    //log.debug('sl', sl)
+    //console.log('tp', tp)
+    //console.log('sl', sl)
     const slPrice = reqs.setPricePrecisionByTickSize(sl, tickSize);
     const tpPrice = reqs.setPricePrecisionByTickSize(tp, tickSize);
 
-    //log.debug('slPrice', slPrice)
-    //log.debug('tpPrice', tpPrice)
+    //console.log('slPrice', slPrice)
+    //console.log('tpPrice', tpPrice)
 
     const equityUSD = Number(process.env.EQUITY);
     const risk = sig.risk;
     const atrSl = sig.atrsl;
 
-    log.debug('instrument.value', instrument.value)
+    console.log('instrument.value', instrument.value)
 
     let posSize = calculatePositionSize(
         risk,
@@ -194,19 +167,19 @@ async function buy(sig) {
 
     posSize = calcStepSize(posSize, qtyStep)
 
-    log.debug('posSize', posSize)
+    console.log('posSize', posSize)
     if (posSize < (3 * qtyMin)) {
         posSize = (3 * qtyMin);
     }
 
-    log.debug('posSize', posSize)
+    console.log('posSize', posSize)
 
     let tpSize = calcStepSize(posSize / 3, qtyStep);
     if (tpSize < qtyMin) {
         tpSize = qtyMin;
     }
 
-    log.debug('tpSize', tpSize)
+    console.log('tpSize', tpSize)
     const res = await reqs.submitOrder({
         side: "Buy",
         symbol: sig.ticker,
@@ -217,7 +190,7 @@ async function buy(sig) {
         slTriggerBy: "LastPrice",
     });
 
-    //log.debug(res, res)
+    //console.log(res, res)
 
     const res2 = await reqs.submitOrder({
         side: "Sell",
@@ -235,51 +208,63 @@ async function buy(sig) {
 // in check positions move sl only if no tp and profit pnl is at least 0.25
 async function signalHandler(sig) {
     try {
-        log.debug('signalHandler', sig);
+        log.debug('signalHandler' + JSON.stringify(sig));
 
         if (!(sig && sig === Object(sig) && sig.ticker)) {
             return;
         }
 
-        log.debug(`signalHandler ${sig.ticker} ${sig.sig}`);
+        console.log(`signalHandler ${sig.ticker} ${sig.sig}`);
 
         const position = await reqs.getPosition(sig.ticker, 'USDT');
 
-        log.debug('position', position)
+        console.log('position', position)
 
         const side = position.side;
 
         if (sig.sig === 1 && side === 'None') {
 
-            log.debug('buy', sig.ticker);
-            await buy(sig);
+            console.log('buy', sig.ticker);
+            return await buy(sig);
 
-        } else if (sig.sig === -1 && side === 'None') {
+        }
 
-            log.debug('sell', sig.ticker);
-            await sell(sig);
+        if (sig.sig === -1 && side === 'None') {
 
-        } else if (sig.sig === -2 && side === 'Buy') {
+            console.log('sell', sig.ticker);
+            return await sell(sig);
 
-            log.debug('buy exit', sig.ticker);
-            await exitPosition(sig, position);
+        }
 
-        } else if (sig.sig === 2 && side === 'Sell') {
+        if (sig.sig === -2 && side === 'Buy') {
 
-            log.debug('sell exit', sig.ticker);
-            await exitPosition(sig, position);
+            console.log('buy exit', sig.ticker);
+            return await exitPosition(sig, position);
 
-        } else if (sig.sig === 1 && side === 'Sell') {
+        }
 
-            log.debug('exit sell and buy', sig.ticker);
+        if (sig.sig === 2 && side === 'Sell') {
 
-        } else if (sig.sig === -1 && side === 'Buy') {
+            console.log('sell exit', sig.ticker);
+            return await exitPosition(sig, position);
 
-            log.debug('exit buy and sell', sig.ticker);
+        }
+
+        if (sig.sig === 1 && side === 'Sell') {
+
+            console.log('exit sell and buy', sig.ticker);
+            return
+
+        }
+
+        if (sig.sig === -1 && side === 'Buy') {
+
+            console.log('exit buy and sell', sig.ticker);
+            return
 
         }
     } catch (error) {
-        log.debug('ERROR signalHandler', error)
+        console.log('ERROR signalHandler', error)
     }
 }
 
