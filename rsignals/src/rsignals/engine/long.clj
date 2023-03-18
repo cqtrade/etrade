@@ -205,7 +205,8 @@
     (->> sigs
          (mapv
           (fn [x]
-            (mapv last x))))))
+            (mapv last x)))
+         flatten)))
 
 (comment
   ; request data from bybit api with treshold 1000;
