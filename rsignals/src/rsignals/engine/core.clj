@@ -32,40 +32,55 @@
 
 (defn engine
   []
-  (prn (getTimeInUTC))
-  (let [url (if (System/getenv "APP_DOCKER")
-              "http://njs:3000/signal"
-              "http://0.0.0.0:3000/signal")
-        data (engine.long/get-signals)]
-    (post-request-with-body-json
-     url
-     data)))
+  (try
+    (prn (getTimeInUTC))
+    (let [url (if (System/getenv "APP_DOCKER")
+                "http://njs:3000/signal"
+                "http://0.0.0.0:3000/signal")
+          data (engine.long/get-signals)]
+      (post-request-with-body-json
+       url
+       data))
+    (catch Exception e
+      (str "Exception engine: " (.getMessage e)))))
+
+(def the-times #{"235851"
+                 "035851"
+                 "35851"
+                 "075851"
+                 "75851"
+                 "115851"
+                 "155851"
+                 "195851"})
 
 (defn start-worker
   []
-  (Thread/sleep (* 1000 60 5))
-  (async/thread (engine))
+  (Thread/sleep 1000)
+  (let [t (getTimeInUTC)
+        c (str (:h t) (:m t) (:s t))
+        hour-time? (the-times c)]
+    (if hour-time?
+      (async/thread (engine))
+      (prn c)))
   (when @run-engine (recur)))
 
 (comment
-  (async/thread (engine))
 
-  (async/thread (start-worker))
-
-
-  (reset! run-engine false)
-
-  (prn @run-engine)
-
-  (TimeZone/getTimeZone "GMT")
-
-  (System/currentTimeMillis)
-  (quot (System/currentTimeMillis) 1000)
-
-  (.format (java.text.SimpleDateFormat. "MM/dd/yyyy hh") (new java.util.Date))
+  (the-times "154141")
+  (let [t (getTimeInUTC)
+        c (str (:h t) (:m t) (:s t))
+        hour? (the-times c)]
+    hour?)
 
   (getTimeInUTC)
-
+  (async/thread (engine))
+  (async/thread (start-worker))
+  (reset! run-engine false)
+  (prn @run-engine)
+  (TimeZone/getTimeZone "GMT")
+  (System/currentTimeMillis)
+  (quot (System/currentTimeMillis) 1000)
+  (.format (java.text.SimpleDateFormat. "MM/dd/yyyy hh") (new java.util.Date))
 
   1)
 
