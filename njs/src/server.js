@@ -1,5 +1,7 @@
 const fastify = require('fastify');
 const trade = require('./tradebb/index')
+const log = require('./log.js')
+const utils = require('./utils.js')
 
 const server = fastify();
 
@@ -12,11 +14,20 @@ server.post(
     async (request, reply) => {
         reply.code(201).send({ status: 'OK' });
         setTimeout(() => {
-            trade
-                .signalHandler(request.body)
-                .catch((e) => {
-                    console.log('e', e);
-                });
+            (async () => {
+                try {
+                    console.log('request.body', request.body);
+                    if (request.body instanceof Array) {
+                        for (const sig of request.body) {
+                            await trade.signalHandler(sig);
+                            await utils.sleep(1000);
+                        }
+                        return;
+                    }
+                } catch (e) {
+                    log.error('signal handler error ' + e.message);
+                }
+            })().catch();
         }, 0);
     });
 

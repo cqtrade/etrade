@@ -1,8 +1,8 @@
-(ns rsignals.ohlc
+(ns rsignals.engine.ohlc
   (:require
    [clj-http.client :as client]
    [cheshire.core :as json]
-   [rsignals.ta :as ta]))
+   [rsignals.engine.ta :as ta]))
 
 (def bound-values {"1h" 37
                    "4h" 10
@@ -13,7 +13,7 @@
   (mapv
    (fn [d atr tdfi-l]
      (let [tdfi-l (when tdfi-l (float tdfi-l))]
-      (merge d {:atr atr :tdfi-l tdfi-l})))
+       (merge d {:atr atr :tdfi-l tdfi-l})))
    xs
    (ta/atr 14 (vec xs))
    (ta/tdfi 11 (mapv :close xs))))
@@ -144,7 +144,7 @@
                   :data)]
     (prep-data ticker interval coll)))
 
-(defn get-ohcl-from-bybit-v2
+(defn ohcl-bybit-v5
   "Kline interval. 1,3,5,15,30,60,120,240,360,720,D,M,W"
   [ticker interval]
   (let [url (format
@@ -167,17 +167,5 @@
                       :volume (Double/parseDouble volume)
                       :market ticker
                       :resolution interval
-                      :exchange "BB"}))
-                  with-indicators)]
+                      :exchange "BB"})))]
     coll))
-
-(comment
-
-  (let [d (get-ohcl-from-bybit-v2 "BTCUSD" "240")]
-    (clojure.pprint/pprint d)
-    (count d))
-
-
-  1)
-
-; create loop 

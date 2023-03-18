@@ -1,15 +1,15 @@
-const positions = require('./tradebb/positions.js')
+// const positions = require('./tradebb/trailingpositionssl.js')
 const positionCheck = require('./tradebb/position-check.js')
 const server = require('./server.js')
-const trade = require('./tradebb/index')
-const notification = require('./notification.js')
+// const trade = require('./tradebb/index')
+// const log = require('./log.js')
 
 
-positions.engine();
+// positions.engine();
 
-// positionCheck.engine();
+positionCheck.engine();
 
-// server.bootServer();
+server.bootServer();
 
 // const atr = 200;
 
@@ -25,4 +25,4 @@ positions.engine();
 //         console.log('e', e);
 //     });
 
-// notification.discord('Silly', 'Hello world');
+// log.discord('Silly', 'Hello world');

@@ -1,31 +1,5 @@
-const reqs = require('./reqs.js');
-
-const exampleBuy = {
-    "sig": 1,
-    "ticker": "BTCUSDT",
-    "atrtp": "AtrTp",
-    "atrsl": "AtrSl",
-    "risk": 1,
-    "exchange": "BB"
-}
-
-const exampleBuyExit = {
-    "sig": -2,
-    "ticker": "BTCUSDT",
-    "atrtp": "AtrTp",
-    "atrsl": "AtrSl",
-    "risk": 1,
-    "exchange": "BB"
-}
-
-const exampleSell = {
-    "sig": -1,
-    "ticker": "BTCUSDT",
-    "atrtp": "AtrTp",
-    "atrsl": "AtrSl",
-    "risk": 1,
-    "exchange": "BB"
-}
+const reqs = require('./reqs.js')
+const log = require('../log.js')
 
 function calculatePositionSize(
     risk,
@@ -137,7 +111,7 @@ async function sell(sig) {
         slTriggerBy: "LastPrice",
     });
 
-    // console.log(res, res)
+    //console.log(res, res)
 
     const res2 = await reqs.submitOrder({
         side: "Buy",
@@ -161,22 +135,22 @@ async function buy(sig) {
     const lastPrice = Number(ticker.value.lastPrice);
     const tickSize = instrument.value.priceFilter.tickSize;
 
-    console.log('lastPrice', lastPrice)
-    console.log('tickSize', tickSize)
-    console.log('atrsl', sig.atrsl)
-    console.log('atrtp', sig.atrtp)
+    //console.log('lastPrice', lastPrice)
+    //console.log('tickSize', tickSize)
+    //console.log('atrsl', sig.atrsl)
+    //console.log('atrtp', sig.atrtp)
     const tp = lastPrice + sig.atrtp;
     const sl = lastPrice - sig.atrsl;
-    console.log('tp', tp)
-    console.log('sl', sl)
+    //console.log('tp', tp)
+    //console.log('sl', sl)
     const slPrice = reqs.setPricePrecisionByTickSize(sl, tickSize);
     const tpPrice = reqs.setPricePrecisionByTickSize(tp, tickSize);
 
-    console.log('slPrice', slPrice)
-    console.log('tpPrice', tpPrice)
+    //console.log('slPrice', slPrice)
+    //console.log('tpPrice', tpPrice)
 
-    const equityUSD = 1000;
-    const risk = 10;
+    const equityUSD = Number(process.env.EQUITY);
+    const risk = sig.risk;
     const atrSl = sig.atrsl;
 
     console.log('instrument.value', instrument.value)
@@ -216,7 +190,7 @@ async function buy(sig) {
         slTriggerBy: "LastPrice",
     });
 
-    // console.log(res, res)
+    //console.log(res, res)
 
     const res2 = await reqs.submitOrder({
         side: "Sell",
@@ -234,7 +208,13 @@ async function buy(sig) {
 // in check positions move sl only if no tp and profit pnl is at least 0.25
 async function signalHandler(sig) {
     try {
-        console.log('signalHandler', sig);
+        log.debug('signalHandler' + JSON.stringify(sig));
+
+        if (!(sig && sig === Object(sig) && sig.ticker)) {
+            return;
+        }
+
+        console.log(`signalHandler ${sig.ticker} ${sig.sig}`);
 
         const position = await reqs.getPosition(sig.ticker, 'USDT');
 
@@ -245,30 +225,42 @@ async function signalHandler(sig) {
         if (sig.sig === 1 && side === 'None') {
 
             console.log('buy', sig.ticker);
-            await buy(sig);
+            return await buy(sig);
 
-        } else if (sig.sig === -1 && side === 'None') {
+        }
+
+        if (sig.sig === -1 && side === 'None') {
 
             console.log('sell', sig.ticker);
-            await sell(sig);
+            return await sell(sig);
 
-        } else if (sig.sig === -2 && side === 'Buy') {
+        }
+
+        if (sig.sig === -2 && side === 'Buy') {
 
             console.log('buy exit', sig.ticker);
-            await exitPosition(sig, position);
+            return await exitPosition(sig, position);
 
-        } else if (sig.sig === 2 && side === 'Sell') {
+        }
+
+        if (sig.sig === 2 && side === 'Sell') {
 
             console.log('sell exit', sig.ticker);
-            await exitPosition(sig, position);
+            return await exitPosition(sig, position);
 
-        } else if (sig.sig === 1 && side === 'Sell') {
+        }
+
+        if (sig.sig === 1 && side === 'Sell') {
 
             console.log('exit sell and buy', sig.ticker);
+            return
 
-        } else if (sig.sig === -1 && side === 'Buy') {
+        }
+
+        if (sig.sig === -1 && side === 'Buy') {
 
             console.log('exit buy and sell', sig.ticker);
+            return
 
         }
     } catch (error) {

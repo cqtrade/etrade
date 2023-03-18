@@ -1,7 +1,7 @@
-(ns rsignals.ta
+(ns rsignals.engine.ta
   (:require
    [incanter.stats :as stats]
-   [rsignals.dstats :as dstats]))
+   [rsignals.engine.dstats :as dstats]))
 
 
 (defn take-last-x

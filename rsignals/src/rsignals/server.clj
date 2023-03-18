@@ -2,6 +2,8 @@
   (:gen-class) ; for -main method in uberjar
   (:require [io.pedestal.http :as server]
             [io.pedestal.http.route :as route]
+            [rsignals.engine.core :as engine]
+            [clojure.core.async :as async]
             [rsignals.service :as service]))
 
 ;; This is an adapted service map, that can be started and stopped
@@ -33,7 +35,7 @@
   "The entry-point for 'lein run'"
   [& args]
   (println "\nStart worker thread...")
-  (service/start-worker)
+  (async/thread (engine/start-worker))
   (println "\nCreating your server...")
   (server/start runnable-service))
 
