@@ -16,13 +16,7 @@
          vals
          (mapv #(vec (sort-by :time %))))))
 
-(def skip-bars 150)
-(def tdfi-levelr [0.31])
-(def tdfi-pr [10])
-(def rex-pr [10])
-(def rex-spr [10])
-(def conf-pr [10])
-(def conf-crossr [-1])
+(def skip-bars 75)
 
 (defn indicators
   [{:keys [tdfi-p rex-p rex-sp conf-p tpcoef slcoef risk]} coll]
@@ -182,7 +176,6 @@
 (defn signals
   [t-args xss]
   (let [xss-prepped (prep-datasets xss)]
-    (prn (- (count (first xss-prepped)) skip-bars))
     (doall (pmap #(e-indies % xss-prepped) [t-args]))))
 
 (defn get-signals
@@ -197,35 +190,3 @@
          (signals t-args)
          (mapv (fn [x] (mapv last x)))
          flatten)))
-
-(comment
-  ; request data from bybit api with treshold 1000;
-  (ohlc/ohcl-bybit-v5 "BTCUSDT" "240")
-
-
-  (let [xss [(ohlc/ohcl-bybit-v5 "BTCUSDT" "240")
-             (ohlc/ohcl-bybit-v5 "ETHUSDT" "240")
-             (ohlc/ohcl-bybit-v5 "SOLUSDT" "240")
-             (ohlc/ohcl-bybit-v5 "DOGEUSDT" "240")
-             (ohlc/ohcl-bybit-v5 "ADAUSDT" "240")
-             (ohlc/ohcl-bybit-v5 "BNBUSDT" "240")]
-        t-args {:tdfi-p 12
-                :tdfi-level 0.21
-                :rex-p 18
-                :rex-sp 16
-                :conf-p 10
-                :conf-cross -1
-                :tpcoef 0.5
-                :slcoef 2.0
-                :risk 1}
-        sigs (signals t-args xss)
-        s (->> xss
-               (signals t-args)
-               (mapv (fn [x]
-                       (mapv last x))))]
-
-    (clojure.pprint/pprint  s)
-;;     (clojure.pprint/pprint  sigs)
-    )
-
-  1)
