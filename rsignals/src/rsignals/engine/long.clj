@@ -180,32 +180,22 @@
       xs-indicators))))
 
 (defn signals
-  [xs]
-  (let [xs-prepped (prep-datasets xs)]
-    (prn (- (count (first xs-prepped)) skip-bars))
-    (doall (pmap #(e-indies % xs-prepped) [{:tdfi-p 12
-                                            :tdfi-level 0.21
-                                            :rex-p 18
-                                            :rex-sp 16
-                                            :conf-p 10
-                                            :conf-cross -1
-                                            :tpcoef 0.5
-                                            :slcoef 2.0
-                                            :risk 1}]))))
+  [t-args xss]
+  (let [xss-prepped (prep-datasets xss)]
+    (prn (- (count (first xss-prepped)) skip-bars))
+    (doall (pmap #(e-indies % xss-prepped) [t-args]))))
 
 (defn get-signals
-  []
-  (let [d [(ohlc/ohcl-bybit-v5 "BTCUSDT" "240")
-           (ohlc/ohcl-bybit-v5 "ETHUSDT" "240")
-           (ohlc/ohcl-bybit-v5 "SOLUSDT" "240")
-           (ohlc/ohcl-bybit-v5 "DOGEUSDT" "240")
-           (ohlc/ohcl-bybit-v5 "ADAUSDT" "240")
-           (ohlc/ohcl-bybit-v5 "BNBUSDT" "240")]
-        sigs (signals d)]
-    (->> sigs
-         (mapv
-          (fn [x]
-            (mapv last x)))
+  [t-args]
+  (let [xss [(ohlc/ohcl-bybit-v5 "BTCUSDT" "240")
+             (ohlc/ohcl-bybit-v5 "ETHUSDT" "240")
+             (ohlc/ohcl-bybit-v5 "SOLUSDT" "240")
+             (ohlc/ohcl-bybit-v5 "DOGEUSDT" "240")
+             (ohlc/ohcl-bybit-v5 "ADAUSDT" "240")
+             (ohlc/ohcl-bybit-v5 "BNBUSDT" "240")]]
+    (->> xss
+         (signals t-args)
+         (mapv (fn [x] (mapv last x)))
          flatten)))
 
 (comment
@@ -213,21 +203,29 @@
   (ohlc/ohcl-bybit-v5 "BTCUSDT" "240")
 
 
-  (let [d [(ohlc/ohcl-bybit-v5 "BTCUSDT" "240")
-           (ohlc/ohcl-bybit-v5 "ETHUSDT" "240")
-           (ohlc/ohcl-bybit-v5 "SOLUSDT" "240")
-           (ohlc/ohcl-bybit-v5 "DOGEUSDT" "240")
-           (ohlc/ohcl-bybit-v5 "ADAUSDT" "240")
-           (ohlc/ohcl-bybit-v5 "BNBUSDT" "240")]
-        sigs (signals d)
-        s (->> sigs
+  (let [xss [(ohlc/ohcl-bybit-v5 "BTCUSDT" "240")
+             (ohlc/ohcl-bybit-v5 "ETHUSDT" "240")
+             (ohlc/ohcl-bybit-v5 "SOLUSDT" "240")
+             (ohlc/ohcl-bybit-v5 "DOGEUSDT" "240")
+             (ohlc/ohcl-bybit-v5 "ADAUSDT" "240")
+             (ohlc/ohcl-bybit-v5 "BNBUSDT" "240")]
+        t-args {:tdfi-p 12
+                :tdfi-level 0.21
+                :rex-p 18
+                :rex-sp 16
+                :conf-p 10
+                :conf-cross -1
+                :tpcoef 0.5
+                :slcoef 2.0
+                :risk 1}
+        sigs (signals t-args xss)
+        s (->> xss
+               (signals t-args)
                (mapv (fn [x]
                        (mapv last x))))]
 
     (clojure.pprint/pprint  s)
 ;;     (clojure.pprint/pprint  sigs)
     )
-
-  (get-signals)
 
   1)
