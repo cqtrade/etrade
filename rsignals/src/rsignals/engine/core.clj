@@ -100,7 +100,7 @@
   (let [t (getTimeInUTC)
         c (str (:h t) (:m t) (:s t))
         hour-time? (the-times c)]
-    (when (or true hour-time?)
+    (when hour-time?
       (prn (getTimeInUTC))
       (prn the-params)
       (async/thread (engine))))
