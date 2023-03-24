@@ -165,7 +165,9 @@ const handlePosition = async (pos) => {
         pos.size, 'at', pos.entryPrice);
 
       let p;
-      if (currPNL >= 0.4 && currPNL < 0.5) {
+      if (currPNL >= 0.2 && currPNL < 0.4) {
+        p = -0.1;
+      } else if (currPNL >= 0.4 && currPNL < 0.5) {
         p = -0.2;
       } else if (currPNL >= 0.5 && currPNL < 0.75) {
         p = -0.29;
@@ -225,7 +227,7 @@ module.exports.getPositions = getPositions;
 
 const flow = async () => {
   try {
-    await getPositions('USDT');
+    await getPositions('USDC');
   } catch (e) {
     console.error('request failed: ', e);
     throw e;
