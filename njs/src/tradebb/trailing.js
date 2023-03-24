@@ -1,4 +1,5 @@
-const { ContractClient } = require('bybit-api');
+const { ContractClient } = require('bybit-api')
+const log = require('../log.js')
 
 const key = process.env.API_KEY;
 const secret = process.env.API_SECRET;
@@ -103,7 +104,7 @@ const setTPSL = async ({
     }
     return r;
   } catch (error) {
-    console.error('setTPSL failed: ', error);
+    log.error('TRAIL setTPSL failed: ' + error.message);
     throw error;
   }
 };
@@ -229,7 +230,8 @@ const flow = async () => {
   try {
     await getPositions('USDC');
   } catch (e) {
-    console.error('request failed: ', e);
+    console.error('flow request failed: ', e);
+    log.error('flow request failed: ' + e.message);
     throw e;
   }
 
@@ -239,41 +241,20 @@ let minute;
 function engine() {
   if ((new Date()).getMinutes() !== minute) {
     minute = (new Date()).getMinutes();
-    console.log('Tick', `:${minute}`);
+    console.log('Tick trail', `:${minute}`);
   }
 
-  const interval = 33;
+  const interval = 333;
   setTimeout(() => {
     flow()
       .then(() => {
         engine();
       })
       .catch(e => {
-        console.log('flow failed: ', e);
+        log.error('trail engine fail: ', e);
         engine();
       });
   }, interval);
 }
 
 module.exports.engine = engine;
-
-
-async function fetchOneMinuteCandleDataFromBinance(symbol) {
-  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=1`;
-  const response = await fetch(url);
-  const data = await response.json();
-  return data[0];
-}
-
-async function fetchOneMinuteCandleDataFromByBit(symbol) {
-  const url = `https://api.bybit.com/v2/public/kline/list?symbol=${symbol}&interval=1&limit=1`;
-  const response = await fetch(url);
-  const data = await response.json();
-  return data.result[0];
-}
-async function fetchOneMinuteCandleDataFromBitmex(symbol) {
-  const url = `https://www.bitmex.com/api/v1/trade/bucketed?binSize=1m&partial=false&symbol=${symbol}&count=1&reverse=true`;
-  const response = await fetch(url);
-  const data = await response.json();
-  return data[0];
-}
