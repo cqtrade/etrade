@@ -270,14 +270,13 @@ const flow = async () => {
     console.error('flow request failed: ' + e.message);
     throw e;
   }
-
 }
 
 let minute;
 function engine() {
   if ((new Date()).getMinutes() !== minute) {
     minute = (new Date()).getMinutes();
-    console.log('Tick', `:${minute}`);
+    console.log('Tick positions', `:${minute}`);
   }
 
   const interval = 1000;
@@ -287,7 +286,7 @@ function engine() {
         engine();
       })
       .catch(e => {
-        log.error('engine flow failed: ' + e.message);
+        log.error('positions engine flow failed: ' + e.message);
         engine();
       });
   }, interval);
@@ -295,7 +294,7 @@ function engine() {
 
 module.exports.engine = engine;
 
-
+/*
 async function fetchOneMinuteCandleDataFromBinance(symbol) {
   const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=1`;
   const response = await fetch(url);
@@ -309,9 +308,11 @@ async function fetchOneMinuteCandleDataFromByBit(symbol) {
   const data = await response.json();
   return data.result[0];
 }
+
 async function fetchOneMinuteCandleDataFromBitmex(symbol) {
   const url = `https://www.bitmex.com/api/v1/trade/bucketed?binSize=1m&partial=false&symbol=${symbol}&count=1&reverse=true`;
   const response = await fetch(url);
   const data = await response.json();
   return data[0];
 }
+*/
