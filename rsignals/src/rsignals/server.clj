@@ -1,6 +1,7 @@
 (ns rsignals.server
   (:gen-class) ; for -main method in uberjar
   (:require [io.pedestal.http :as server]
+            [rsignals.envs :as envs]
             [io.pedestal.http.route :as route]
             [rsignals.engine.core :as engine]
             [clojure.core.async :as async]
@@ -34,6 +35,7 @@
 (defn -main
   "The entry-point for 'lein run'"
   [& args]
+  (envs/print-envs)
   (println "\nStart worker thread...")
   (async/thread (engine/start-worker))
   (println "\nCreating your server...")
