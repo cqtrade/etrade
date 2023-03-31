@@ -36,7 +36,6 @@ const getActiveOrders = async (symbol) => {
     //   throw new Error('getKline failed ' + retMsg);
     // }
 
-    // const [tickerInfo] = result.list;
     return result.list;
   } catch (error) {
     console.error('getActiveOrders failed: ', error);
@@ -129,7 +128,7 @@ const setTPSL = async ({
     }
     return r;
   } catch (error) {
-    console.error('setTPSL failed: ', error);
+    console.error('trading setTPSL failed: ', error);
     throw error;
   }
 };
@@ -167,7 +166,7 @@ const handlePosSl = async (pos, p, instrumentInfo) => {
       stopLoss: newSl,
     });
 
-    console.log('SL changed');
+    log.log('Positions SL changed');
   }
 };
 
@@ -179,7 +178,6 @@ const handlePosition = async (pos) => {
   try {
     if (pos.size > 0) {
 
-
       const [ticker, instrument] = await Promise.allSettled([
         getSymbolTicker(pos.symbol),
         getInstrumentInfo({ category: 'linear', symbol: pos.symbol }),
@@ -187,57 +185,35 @@ const handlePosition = async (pos) => {
       const tickerInfo = ticker.value;
       const instrumentInfo = instrument.value;
 
-      // const tickerInfo = await getSymbolTicker(pos.symbol);
-      // const instrumentInfo = await getInstrumentInfo({ category: 'linear', symbol: pos.symbol });
-
       const currPNL = pnl(pos.side, pos.entryPrice, tickerInfo.lastPrice);
-
-      console.log(getCurrentTime(), pos.symbol, 'pnl:', currPNL, pos.side,
-        pos.size, 'at', pos.entryPrice);
-
-      console.log('pos.symbol', pos.symbol)
 
       const activeTpOrders = await hasActiveLimitTpOrders(pos)
       let newSl
       const entryPrice = Number(pos.entryPrice)
       if (pos.side === 'Buy') {
         newSl = setPricePrecisionByTickSize((entryPrice + entryPrice * 0.002), instrumentInfo.priceFilter.tickSize)
-        // newSl = calcStepSize((entryPrice + entryPrice * 0.02), instrumentInfo.priceFilter.tickSize)
       } else if (pos.side === 'Sell') {
-        // newSl = calcStepSize((entryPrice - entryPrice * 0.02), instrumentInfo.priceFilter.tickSize)
         newSl = setPricePrecisionByTickSize((entryPrice - entryPrice * 0.002), instrumentInfo.priceFilter.tickSize)
       }
 
-      console.log('newSl', newSl)
-
-      console.log(Number(pos.stopLoss), Number(newSl))
-      // newSl = 0.30920000000000004
-      // console.log(pos)
       if (
         !activeTpOrders.length
         && currPNL > 0.35
         && Number(pos.stopLoss) !== Number(newSl)
       ) {
-        console.log('Start changing newSl', newSl)
-        // move stop loss to breakeven
-        // const newSl = setPricePrecisionByTickSize(pos.entryPrice, instrumentInfo.priceFilter.tickSize);
-
 
         const r = await setTPSL({
           positionIdx: pos.positionIdx,
           symbol: pos.symbol,
           stopLoss: newSl,
         });
-        console.log('r', r)
-        console.log('sl changed', newSl)
+
+        log.log('Strategy sl changed ' + pos.symbol + ' ' + newSl)
       }
 
-      console.log(' ');
-      console.log('###############################');
-      console.log(' ');
     }
   } catch (error) {
-    console.error('handlePosition failed: ', pos.symbol, error);
+    log.error('trading handlePosition failed: ' + pos.symbol + error.message);
   }
 }
 
@@ -255,7 +231,7 @@ const getPositions = async (settleCoin) => {
       await sleep(333);
     }
   } catch (e) {
-    console.error('getPositions request failed: ' + e.message);
+    log.error('trading getPositions request failed: ' + e.message);
     throw e;
   }
 };
@@ -267,7 +243,7 @@ const flow = async () => {
   try {
     await getPositions('USDT');
   } catch (e) {
-    console.error('flow request failed: ' + e.message);
+    log.error('flow request failed: ' + e.message);
     throw e;
   }
 }
@@ -293,26 +269,3 @@ function engine() {
 }
 
 module.exports.engine = engine;
-
-/*
-async function fetchOneMinuteCandleDataFromBinance(symbol) {
-  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=1`;
-  const response = await fetch(url);
-  const data = await response.json();
-  return data[0];
-}
-
-async function fetchOneMinuteCandleDataFromByBit(symbol) {
-  const url = `https://api.bybit.com/v2/public/kline/list?symbol=${symbol}&interval=1&limit=1`;
-  const response = await fetch(url);
-  const data = await response.json();
-  return data.result[0];
-}
-
-async function fetchOneMinuteCandleDataFromBitmex(symbol) {
-  const url = `https://www.bitmex.com/api/v1/trade/bucketed?binSize=1m&partial=false&symbol=${symbol}&count=1&reverse=true`;
-  const response = await fetch(url);
-  const data = await response.json();
-  return data[0];
-}
-*/

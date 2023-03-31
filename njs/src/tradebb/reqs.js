@@ -278,7 +278,7 @@ const submitOrder = async ({
             reduceOnly,
         });
         if (retMsg !== 'OK') {
-            throw new Error('submitOrder failed ' + retMsg);
+            throw new Error('ERROR submitOrder ' + symbol + ' qty ' + qty + retMsg);
         }
         return result;
     } catch (error) {
