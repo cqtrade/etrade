@@ -248,12 +248,12 @@ const flow = async () => {
   }
 }
 
-let minute;
+// let minute;
 function engine() {
-  if ((new Date()).getMinutes() !== minute) {
-    minute = (new Date()).getMinutes();
-    console.log('Tick positions', `:${minute}`);
-  }
+  // if ((new Date()).getMinutes() !== minute) {
+  //   minute = (new Date()).getMinutes();
+  //   console.log('Tick positions', `:${minute}`);
+  // }
 
   const interval = 1000;
   setTimeout(() => {

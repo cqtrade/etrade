@@ -223,15 +223,21 @@ async function signalHandler(sig) {
         const side = position.side;
 
         if (sig.sig === 1 && side === 'None') {
+            setTimeout(async () => {
+                console.log('buy', sig.ticker);
+                log.info(JSON.stringify(sig));
+            }, 0);
 
-            console.log('buy', sig.ticker);
             return await buy(sig);
 
         }
 
         if (sig.sig === -1 && side === 'None') {
+            setTimeout(async () => {
+                console.log('sell', sig.ticker);
+                log.debug(JSON.stringify(sig));
+            }, 0);
 
-            console.log('sell', sig.ticker);
             return await sell(sig);
 
         }
@@ -251,20 +257,26 @@ async function signalHandler(sig) {
         }
 
         if (sig.sig === 1 && side === 'Sell') {
+            setTimeout(async () => {
+                log.info('exit short and long' + sig.ticker)
+                log.debug(JSON.stringify(sig))
+            }, 0);
 
-            console.log('exit sell and buy', sig.ticker);
-            return
-
+            await exitPosition(sig, position)
+            return await buy(sig)
         }
 
         if (sig.sig === -1 && side === 'Buy') {
+            setTimeout(async () => {
+                log.info('exit long and short' + sig.ticker)
+                log.debug(JSON.stringify(sig))
+            }, 0);
 
-            console.log('exit buy and sell', sig.ticker);
-            return
-
+            await exitPosition(sig, position)
+            return await sell(sig)
         }
     } catch (error) {
-        log.error(`ERROR signalHandler ${error.message}`)
+        log.error(`ERROR trading signalHandler ${error.message}`)
     }
 }
 
