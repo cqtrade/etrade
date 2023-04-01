@@ -39,7 +39,7 @@ const getSymbolTicker = async (symbol) => {
     const [tickerInfo] = result.list;
     return tickerInfo;
   } catch (error) {
-    console.error('getSymbolTicker failed: ', error);
+    log.error('trailing getSymbolTicker failed: ' + error.message)
     throw error;
   }
 };
@@ -58,7 +58,7 @@ const getInstrumentInfo = async ({ category, symbol }) => {
     const [instrumentInfo] = result.list;
     return instrumentInfo;
   } catch (error) {
-    console.error('getInstrumentInfo failed: ', error);
+    log.error('trailing getInstrumentInfo failed: ' + error.message)
     throw error;
   }
 };
@@ -123,7 +123,7 @@ const setPricePrecisionByTickSize = (price, tickSize) => {
   return Number(price).toFixed(precision);
 }
 
-const handlePosSl = async (pos, p, instrumentInfo) => {
+const handlePosSl = async (pos, p, instrumentInfo, currPNL) => {
   const tickSize = instrumentInfo.priceFilter.tickSize;
   const currentSl = pos.stopLoss;
   const newSlRaw = calcSlPercentage(pos.side, pos.entryPrice, p)
@@ -134,7 +134,6 @@ const handlePosSl = async (pos, p, instrumentInfo) => {
     ||
     (pos.side === 'Sell' && Number(newSl) < Number(currentSl))
   ) {
-    console.log('currentSl !== newSl', currentSl, newSl);
 
     await setTPSL({
       positionIdx: pos.positionIdx,
@@ -142,7 +141,7 @@ const handlePosSl = async (pos, p, instrumentInfo) => {
       stopLoss: newSl,
     });
 
-    console.log('SL changed');
+    log.info('Trailing SL changed ' + currPNL + ' ' + pos.symbol)
   }
 };
 
@@ -157,13 +156,7 @@ const handlePosition = async (pos) => {
       const tickerInfo = ticker.value;
       const instrumentInfo = instrument.value;
 
-      // const tickerInfo = await getSymbolTicker(pos.symbol);
-      // const instrumentInfo = await getInstrumentInfo({ category: 'linear', symbol: pos.symbol });
-
       const currPNL = pnl(pos.side, pos.entryPrice, tickerInfo.lastPrice);
-
-      console.log(getCurrentTime(), pos.symbol, 'pnl:', currPNL, pos.side,
-        pos.size, 'at', pos.entryPrice);
 
       let p;
       if (currPNL >= 0.2 && currPNL < 0.4) {
@@ -189,18 +182,14 @@ const handlePosition = async (pos) => {
       } else if (currPNL >= 6 && currPNL < 7) {
         p = -5.5;
       }
-      // >= 7 might make sense to add trailing stop?
+      // >= 7 might make sense to add the real trailing stop?
 
       if (p) {
-        await handlePosSl(pos, p, instrumentInfo);
+        await handlePosSl(pos, p, instrumentInfo, currPNL);
       }
-
-      console.log(' ');
-      console.log('###############################');
-      console.log(' ');
     }
   } catch (error) {
-    console.error('handlePosition failed: ', pos.symbol, error);
+    log.error('handlePosition failed: ' + pos.symbol + error.message);
   }
 }
 
@@ -218,7 +207,7 @@ const getPositions = async (settleCoin) => {
       await sleep(333);
     }
   } catch (e) {
-    console.error('request failed: ', e);
+    log.error('Trail getPosition request failed: ' + e.message);
     throw e;
   }
 };
@@ -240,7 +229,6 @@ let minute;
 function engine() {
   if ((new Date()).getMinutes() !== minute) {
     minute = (new Date()).getMinutes();
-    console.log('Tick trail', `:${minute}`);
   }
 
   const interval = 333;
