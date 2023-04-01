@@ -166,7 +166,7 @@ const handlePosSl = async (pos, p, instrumentInfo) => {
       stopLoss: newSl,
     });
 
-    log.info('Trading positions SL changed ' + pos.symbol);
+    logger.info('Trading positions SL changed ' + pos.symbol);
   }
 };
 
@@ -208,12 +208,12 @@ const handlePosition = async (pos) => {
           stopLoss: newSl,
         });
 
-        log.info('Strategy sl changed ' + pos.symbol + ' ' + newSl)
+        logger.info('Strategy sl changed ' + pos.symbol + ' ' + newSl)
       }
 
     }
   } catch (error) {
-    log.error('trading handlePosition failed: ' + pos.symbol + error.message);
+    logger.error('trading handlePosition failed: ' + pos.symbol + error.message);
   }
 }
 
@@ -231,7 +231,7 @@ const getPositions = async (settleCoin) => {
       await sleep(333);
     }
   } catch (e) {
-    log.error('trading getPositions request failed: ' + e.message);
+    logger.error('trading getPositions request failed: ' + e.message);
     throw e;
   }
 };
@@ -243,7 +243,7 @@ const flow = async () => {
   try {
     await getPositions('USDT');
   } catch (e) {
-    log.error('flow request failed: ' + e.message);
+    logger.error('flow request failed: ' + e.message);
     throw e;
   }
 }

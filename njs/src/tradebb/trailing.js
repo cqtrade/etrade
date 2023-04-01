@@ -39,7 +39,7 @@ const getSymbolTicker = async (symbol) => {
     const [tickerInfo] = result.list;
     return tickerInfo;
   } catch (error) {
-    log.error('trailing getSymbolTicker failed: ' + error.message)
+    logger.error('trailing getSymbolTicker failed: ' + error.message)
     throw error;
   }
 };
@@ -58,7 +58,7 @@ const getInstrumentInfo = async ({ category, symbol }) => {
     const [instrumentInfo] = result.list;
     return instrumentInfo;
   } catch (error) {
-    log.error('trailing getInstrumentInfo failed: ' + error.message)
+    logger.error('trailing getInstrumentInfo failed: ' + error.message)
     throw error;
   }
 };
@@ -141,7 +141,7 @@ const handlePosSl = async (pos, p, instrumentInfo, currPNL) => {
       stopLoss: newSl,
     });
 
-    log.info('Trailing SL changed ' + currPNL + ' ' + pos.symbol)
+    logger.info('Trailing SL changed ' + currPNL + ' ' + pos.symbol)
   }
 };
 
@@ -189,7 +189,7 @@ const handlePosition = async (pos) => {
       }
     }
   } catch (error) {
-    log.error('handlePosition failed: ' + pos.symbol + error.message);
+    logger.error('handlePosition failed: ' + pos.symbol + error.message);
   }
 }
 
@@ -207,7 +207,7 @@ const getPositions = async (settleCoin) => {
       await sleep(333);
     }
   } catch (e) {
-    log.error('Trail getPosition request failed: ' + e.message);
+    logger.error('Trail getPosition request failed: ' + e.message);
     throw e;
   }
 };
