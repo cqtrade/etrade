@@ -1,5 +1,5 @@
 const { ContractClient } = require('bybit-api')
-const log = require('../log.js')
+const logger = require('../logger.js')
 
 const key = process.env.API_KEY;
 const secret = process.env.API_SECRET;
@@ -104,7 +104,7 @@ const setTPSL = async ({
     }
     return r;
   } catch (error) {
-    log.error('TRAIL setTPSL failed: ' + error.message);
+    logger.error('TRAIL setTPSL failed: ' + error.message);
     throw error;
   }
 };
@@ -230,8 +230,7 @@ const flow = async () => {
   try {
     await getPositions('USDC');
   } catch (e) {
-    console.error('flow request failed: ', e);
-    log.error('flow request failed: ' + e.message);
+    logger.error('flow request failed: ' + e.message);
     throw e;
   }
 
@@ -251,7 +250,7 @@ function engine() {
         engine();
       })
       .catch(e => {
-        log.error('trail engine fail: ', e);
+        logger.error('trail engine fail: ', e);
         engine();
       });
   }, interval);

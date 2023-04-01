@@ -1,5 +1,5 @@
 const { ContractClient } = require('bybit-api')
-const log = require('../log.js')
+const logger = require('../logger.js')
 
 const key = process.env.API_KEY;
 const secret = process.env.API_SECRET;
@@ -286,7 +286,7 @@ function engine() {
         engine();
       })
       .catch(e => {
-        log.error('positions engine flow failed: ' + e.message);
+        logger.error('positions engine flow failed: ' + e.message);
         engine();
       });
   }, interval);

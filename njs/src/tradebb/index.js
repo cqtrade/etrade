@@ -1,5 +1,5 @@
 const reqs = require('./reqs.js')
-const log = require('../log.js')
+const logger = require('../logger.js')
 
 function calculatePositionSize(
     risk,
@@ -208,7 +208,7 @@ async function buy(sig) {
 // in check positions move sl only if no tp and profit pnl is at least 0.25
 async function signalHandler(sig) {
     try {
-        log.debug(`Signal ${sig.ticker} ${sig.sig}`);
+        logger.debug(`Signal ${sig.ticker} ${sig.sig}`);
 
         if (!(sig && sig === Object(sig) && sig.ticker)) {
             return;
@@ -264,7 +264,7 @@ async function signalHandler(sig) {
 
         }
     } catch (error) {
-        log.error(`ERROR signalHandler ${error.message}`)
+        logger.error(`ERROR signalHandler ${error.message}`)
     }
 }
 

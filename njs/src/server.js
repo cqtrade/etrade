@@ -1,6 +1,6 @@
 const fastify = require('fastify');
 const trade = require('./tradebb/index')
-const log = require('./log.js')
+const logger = require('./logger.js')
 const utils = require('./utils.js')
 
 const server = fastify();
@@ -25,7 +25,7 @@ server.post(
                         return;
                     }
                 } catch (e) {
-                    log.error('signal handler error ' + e.message);
+                    logger.error('signal handler error ' + e.message);
                 }
             })().catch();
         }, 0);
