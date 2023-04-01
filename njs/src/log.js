@@ -15,6 +15,7 @@ function log(level, message) {
 }
 
 module.exports.debug = (message) => log('Debug', message);
+module.exports.log = (message) => log('Info', message);
 module.exports.info = (message) => log('Info', message);
 module.exports.warn = (message) => log('Warn', message);
 module.exports.error = (message) => log('Error', message);

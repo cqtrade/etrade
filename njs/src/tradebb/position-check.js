@@ -166,7 +166,7 @@ const handlePosSl = async (pos, p, instrumentInfo) => {
       stopLoss: newSl,
     });
 
-    log.log('Trading positions SL changed ' + pos.symbol);
+    log.info('Trading positions SL changed ' + pos.symbol);
   }
 };
 
@@ -208,7 +208,7 @@ const handlePosition = async (pos) => {
           stopLoss: newSl,
         });
 
-        log.log('Strategy sl changed ' + pos.symbol + ' ' + newSl)
+        log.info('Strategy sl changed ' + pos.symbol + ' ' + newSl)
       }
 
     }

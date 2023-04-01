@@ -141,7 +141,7 @@ const handlePosSl = async (pos, p, instrumentInfo, currPNL) => {
       stopLoss: newSl,
     });
 
-    log.log('Trailing SL changed ' + currPNL + ' ' + pos.symbol)
+    log.info('Trailing SL changed ' + currPNL + ' ' + pos.symbol)
   }
 };
 
