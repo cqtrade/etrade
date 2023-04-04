@@ -56,25 +56,15 @@ async function sell(sig) {
     const lastPrice = Number(ticker.value.lastPrice);
     const tickSize = instrument.value.priceFilter.tickSize;
 
-    console.log('lastPrice', lastPrice)
-    console.log('tickSize', tickSize)
-    console.log('atrsl', sig.atrsl)
-    console.log('atrtp', sig.atrtp)
     const tp = lastPrice - sig.atrtp;
     const sl = lastPrice + sig.atrsl;
-    console.log('tp', tp)
-    console.log('sl', sl)
+
     const slPrice = reqs.setPricePrecisionByTickSize(sl, tickSize);
     const tpPrice = reqs.setPricePrecisionByTickSize(tp, tickSize);
 
-    console.log('slPrice', slPrice)
-    console.log('tpPrice', tpPrice)
-
-    const equityUSD = 1000;
-    const risk = 10;
+    const equityUSD = Number(process.env.EQUITY);
+    const risk = sig.risk;
     const atrSl = sig.atrsl;
-
-    console.log('instrument.value', instrument.value)
 
     let posSize = calculatePositionSize(
         risk,
@@ -86,14 +76,25 @@ async function sell(sig) {
     const qtyStep = instrument.value.lotSizeFilter.qtyStep;
     const qtyMin = instrument.value.lotSizeFilter.minTradingQty;
 
+    let posSizeB4Step = posSize;
+
     posSize = calcStepSize(posSize, qtyStep)
 
-    console.log('posSize', posSize)
+    let posSizeB4MinCmp = posSize
     if (posSize < (3 * qtyMin)) {
         posSize = (3 * qtyMin);
     }
 
-    console.log('posSize', posSize)
+    log.info(
+        JSON.stringify({
+            risk,
+            atrSl,
+            lastPrice,
+            equityUSD,
+            posSizeB4Step,
+            posSizeB4MinCmp,
+            posSize,
+        }))
 
     let tpSize = calcStepSize(posSize / 3, qtyStep);
     if (tpSize < qtyMin) {
@@ -110,8 +111,6 @@ async function sell(sig) {
         stopLoss: String(slPrice),
         slTriggerBy: "LastPrice",
     });
-
-    //console.log(res, res)
 
     const res2 = await reqs.submitOrder({
         side: "Buy",
@@ -135,25 +134,15 @@ async function buy(sig) {
     const lastPrice = Number(ticker.value.lastPrice);
     const tickSize = instrument.value.priceFilter.tickSize;
 
-    //console.log('lastPrice', lastPrice)
-    //console.log('tickSize', tickSize)
-    //console.log('atrsl', sig.atrsl)
-    //console.log('atrtp', sig.atrtp)
     const tp = lastPrice + sig.atrtp;
     const sl = lastPrice - sig.atrsl;
-    //console.log('tp', tp)
-    //console.log('sl', sl)
+
     const slPrice = reqs.setPricePrecisionByTickSize(sl, tickSize);
     const tpPrice = reqs.setPricePrecisionByTickSize(tp, tickSize);
-
-    //console.log('slPrice', slPrice)
-    //console.log('tpPrice', tpPrice)
 
     const equityUSD = Number(process.env.EQUITY);
     const risk = sig.risk;
     const atrSl = sig.atrsl;
-
-    console.log('instrument.value', instrument.value)
 
     let posSize = calculatePositionSize(
         risk,
@@ -165,21 +154,30 @@ async function buy(sig) {
     const qtyStep = instrument.value.lotSizeFilter.qtyStep;
     const qtyMin = instrument.value.lotSizeFilter.minTradingQty;
 
+    let posSizeB4Step = posSize;
     posSize = calcStepSize(posSize, qtyStep)
 
-    console.log('posSize', posSize)
+    let posSizeB4MinCmp = posSize
     if (posSize < (3 * qtyMin)) {
         posSize = (3 * qtyMin);
     }
 
-    console.log('posSize', posSize)
+    log.info(
+        JSON.stringify({
+            risk,
+            atrSl,
+            lastPrice,
+            equityUSD,
+            posSizeB4Step,
+            posSizeB4MinCmp,
+            posSize,
+        }))
 
     let tpSize = calcStepSize(posSize / 3, qtyStep);
     if (tpSize < qtyMin) {
         tpSize = qtyMin;
     }
 
-    console.log('tpSize', tpSize)
     const res = await reqs.submitOrder({
         side: "Buy",
         symbol: sig.ticker,
@@ -189,8 +187,6 @@ async function buy(sig) {
         stopLoss: String(slPrice),
         slTriggerBy: "LastPrice",
     });
-
-    //console.log(res, res)
 
     const res2 = await reqs.submitOrder({
         side: "Sell",
