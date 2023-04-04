@@ -14,13 +14,13 @@
                        (fn [m]
                          (select-keys
                           m
-                          [:ticker :sig :risk :atrsl :atrtp :tdfi :exchange]))
+                          [:ticker :sig :risk :atrsl :atrtp :tdfi :exchange :atr :close]))
                        (engine.short/get-signals the-params-short))
         signals-long (mapv
                       (fn [m]
                         (select-keys
                          m
-                         [:ticker :sig :risk :atrsl :atrtp :tdfi :exchange]))
+                         [:ticker :sig :risk :atrsl :atrtp :tdfi :exchange :atr :close]))
                       (engine.long/get-signals the-params-long))]
     (->> [signals-long signals-short]
          flatten)))
