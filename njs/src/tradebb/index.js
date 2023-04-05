@@ -1,5 +1,5 @@
 const reqs = require('./reqs.js')
-const log = require('../log.js')
+const logger = require('../logger.js')
 
 function calculatePositionSize(
     risk,
@@ -223,7 +223,7 @@ async function buy(sig) {
 // in check positions move sl only if no tp and profit pnl is at least 0.25
 async function signalHandler(sig) {
     try {
-        log.debug(`Signal ${sig.ticker} ${sig.sig}`);
+        logger.debug(`Signal ${sig.ticker} ${sig.sig}`);
 
         if (!(sig && sig === Object(sig) && sig.ticker)) {
             return;
@@ -240,7 +240,7 @@ async function signalHandler(sig) {
         if (sig.sig === 1 && side === 'None') {
             setTimeout(async () => {
                 console.log('buy', sig.ticker);
-                log.info(JSON.stringify(sig));
+                logger.info(JSON.stringify(sig));
             }, 0);
 
             return await buy(sig);
@@ -250,7 +250,7 @@ async function signalHandler(sig) {
         if (sig.sig === -1 && side === 'None') {
             setTimeout(async () => {
                 console.log('sell', sig.ticker);
-                log.debug(JSON.stringify(sig));
+                logger.debug(JSON.stringify(sig));
             }, 0);
 
             return await sell(sig);
@@ -273,8 +273,8 @@ async function signalHandler(sig) {
 
         if (sig.sig === 1 && side === 'Sell') {
             setTimeout(async () => {
-                log.info('exit short and long' + sig.ticker)
-                log.debug(JSON.stringify(sig))
+                logger.info('exit short and long' + sig.ticker)
+                logger.debug(JSON.stringify(sig))
             }, 0);
 
             await exitPosition(sig, position)
@@ -283,15 +283,15 @@ async function signalHandler(sig) {
 
         if (sig.sig === -1 && side === 'Buy') {
             setTimeout(async () => {
-                log.info('exit long and short' + sig.ticker)
-                log.debug(JSON.stringify(sig))
+                logger.info('exit long and short' + sig.ticker)
+                logger.debug(JSON.stringify(sig))
             }, 0);
 
             await exitPosition(sig, position)
             return await sell(sig)
         }
     } catch (error) {
-        log.error(`ERROR trading signalHandler ${error.message}`)
+        logger.error(`ERROR signalHandler ${error.message}`)
     }
 }
 
