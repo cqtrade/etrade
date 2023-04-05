@@ -7,12 +7,15 @@ function calculatePositionSize(
     lastPrice,
     equityUSD,
 ) {
-    const close = lastPrice;
-    const atrRiskPerc = (atrSl * 100) / close;
-    const riskRatio = risk / atrRiskPerc;
-    const equity = equityUSD / close;
-    const positionSize = ((equity * riskRatio) / 100);
-    return positionSize;
+    const slRisk = (atrSl * 100) / lastPrice;
+    const equityLeverage = risk / slRisk;
+    const posSizeUSD = equityUSD * equityLeverage;
+    const positionSize = posSizeUSD / lastPrice;
+    return {
+        positionSize,
+        equityLeverage,
+        posSizeUSD
+    };
 }
 
 function calcStepSize(qty, stepSize) {
@@ -66,12 +69,18 @@ async function sell(sig) {
     const risk = sig.risk;
     const atrSl = sig.atrsl;
 
-    let posSize = calculatePositionSize(
+    const {
+        positionSize,
+        equityLeverage,
+        posSizeUSD,
+    } = calculatePositionSize(
         risk,
         atrSl,
         lastPrice,
         equityUSD,
-    )
+    );
+
+    let posSize = positionSize;
 
     const qtyStep = instrument.value.lotSizeFilter.qtyStep;
     const qtyMin = instrument.value.lotSizeFilter.minTradingQty;
@@ -94,6 +103,8 @@ async function sell(sig) {
             posSizeB4Step,
             posSizeB4MinCmp,
             posSize,
+            equityLeverage,
+            posSizeUSD,
         }))
 
     let tpSize = calcStepSize(posSize / 3, qtyStep);
@@ -144,12 +155,18 @@ async function buy(sig) {
     const risk = sig.risk;
     const atrSl = sig.atrsl;
 
-    let posSize = calculatePositionSize(
+    const {
+        positionSize,
+        equityLeverage,
+        posSizeUSD,
+    } = calculatePositionSize(
         risk,
         atrSl,
         lastPrice,
         equityUSD,
-    )
+    );
+
+    let posSize = positionSize;
 
     const qtyStep = instrument.value.lotSizeFilter.qtyStep;
     const qtyMin = instrument.value.lotSizeFilter.minTradingQty;
@@ -171,6 +188,8 @@ async function buy(sig) {
             posSizeB4Step,
             posSizeB4MinCmp,
             posSize,
+            equityLeverage,
+            posSizeUSD,
         }))
 
     let tpSize = calcStepSize(posSize / 3, qtyStep);
