@@ -153,7 +153,6 @@ const handlePosSl = async (pos, p, instrumentInfo) => {
     ||
     (pos.side === 'Sell' && Number(newSl) < Number(currentSl))
   ) {
-    console.log('currentSl !== newSl', currentSl, newSl);
 
     await setTPSL({
       positionIdx: pos.positionIdx,

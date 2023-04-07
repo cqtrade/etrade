@@ -94,7 +94,7 @@ async function sell(sig) {
         posSize = (3 * qtyMin);
     }
 
-    log.info(
+    logger.info(
         JSON.stringify({
             risk,
             atrSl,
@@ -179,7 +179,7 @@ async function buy(sig) {
         posSize = (3 * qtyMin);
     }
 
-    log.info(
+    logger.info(
         JSON.stringify({
             risk,
             atrSl,
@@ -220,20 +220,16 @@ async function buy(sig) {
     return [res, res2];
 }
 
-// in check positions move sl only if no tp and profit pnl is at least 0.25
+// in check positions move sl only if no tp order and profit pnl is at least 0.25%
 async function signalHandler(sig) {
     try {
-        logger.debug(`Signal ${sig.ticker} ${sig.sig}`);
+        logger.info(`Signal ${sig.ticker} ${sig.sig}`);
 
         if (!(sig && sig === Object(sig) && sig.ticker)) {
             return;
         }
 
-        console.log(`signalHandler ${sig.ticker} ${sig.sig}`);
-
         const position = await reqs.getPosition(sig.ticker, 'USDT');
-
-        // console.log('position', position)
 
         const side = position.side;
 
