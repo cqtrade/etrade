@@ -1,4 +1,4 @@
-const utils = require('./utils.js')
+const { sleep } = require('./utils.js')
 
 const logQueue = []
 let isLogging = false
@@ -74,7 +74,7 @@ const createLogger = ({
                 await logToDiscord(level, message, data)
             }
 
-            await utils.sleep(messageDelay)
+            await sleep(messageDelay)
         }
 
         isLogging = false

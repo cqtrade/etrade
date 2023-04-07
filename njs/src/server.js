@@ -1,7 +1,7 @@
 const fastify = require('fastify');
 const trade = require('./tradebb/index')
 const logger = require('./logger.js')
-const utils = require('./utils.js')
+const { sleep } = require('./utils.js')
 
 const server = fastify();
 
@@ -20,7 +20,7 @@ server.post(
                     if (request.body instanceof Array) {
                         for (const sig of request.body) {
                             await trade.signalHandler(sig);
-                            await utils.sleep(1000);
+                            await sleep(1000);
                         }
                         return;
                     }
