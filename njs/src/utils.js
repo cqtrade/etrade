@@ -1,3 +1,4 @@
-const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
+const sleep = (delay) => new Promise((resolve) =>
+    setTimeout(resolve, delay))
 
 module.exports.sleep = sleep
