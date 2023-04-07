@@ -16,17 +16,17 @@ const createLogger = ({
     }
 
     const logToDiscord = async (level, message, data) => {
-        const formattedData = data.length
+        const formattedData = data && data.length
             ? data
-                  .map(
-                      (item) =>
-                          '```\n' +
-                          (typeof item === 'object'
-                              ? JSON.stringify(item)
-                              : item) +
-                          '\n```'
-                  )
-                  .join('\n')
+                .map(
+                    (item) =>
+                        '```\n' +
+                        (typeof item === 'object'
+                            ? JSON.stringify(item)
+                            : item) +
+                        '\n```'
+                )
+                .join('\n')
             : ''
 
         const logData = {
@@ -59,40 +59,61 @@ const createLogger = ({
         while (logQueue.length > 0) {
             const { level, message, data } = logQueue.shift()
 
-            const timestamp = new Date().toISOString()
+            try {
+                const shouldLogToDiscord =
+                    discordWebhookUrl && discordLogLevels.includes(level)
 
-            console[level](
-                `[${timestamp}] [${level.toUpperCase()}] ${message} ${data
-                    .map((dataItem) => JSON.stringify(dataItem))
-                    .join(' ')}`
-            )
+                if (shouldLogToDiscord) {
+                    await logToDiscord(level, message, data)
+                }
 
-            const shouldLogToDiscord =
-                discordWebhookUrl && discordLogLevels.includes(level)
-
-            if (shouldLogToDiscord) {
-                await logToDiscord(level, message, data)
+                await sleep(messageDelay)
+            } catch (error) {
+                await sleep(messageDelay)
             }
-
-            await sleep(messageDelay)
         }
 
         isLogging = false
     }
 
     const addToLogQueue = (level, message, data) => {
+        const timestamp = new Date().toISOString()
+        console[level](
+            `[${timestamp}] [${level.toUpperCase()}] ${message} ${data
+                .map((dataItem) => JSON.stringify(dataItem))
+                .join(' ')}`
+        )
+
         logQueue.push({ level, message, data })
 
         if (!isLogging) {
             isLogging = true
             processLogQueue()
+                .catch((error) => {
+                    console.error(
+                        'An error occurred while processing the log queue',
+                        error
+                    )
+                    isLogging = false
+                })
         }
     }
 
-    const debug = (message, ...data) => addToLogQueue('debug', message, data)
-    const info = (message, ...data) => addToLogQueue('info', message, data)
-    const warn = (message, ...data) => addToLogQueue('warn', message, data)
-    const error = (message, ...data) => addToLogQueue('error', message, data)
+    const debug = (message, ...data) => setTimeout(() => {
+        addToLogQueue('debug', message, data)
+    }, 0)
+
+    const info = (message, ...data) => setTimeout(() => {
+        addToLogQueue('info', message, data)
+    }, 0)
+
+    const warn = (message, ...data) => setTimeout(() => {
+        addToLogQueue('warn', message, data)
+    }, 0)
+
+    const error = (message, ...data) => setTimeout(() => {
+        addToLogQueue('error', message, data)
+    }, 0)
 
     return {
         debug,
