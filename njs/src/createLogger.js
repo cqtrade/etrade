@@ -1,7 +1,7 @@
+const { sleep } = require('./utils.js')
+
 const logQueue = []
 let isLogging = false
-
-const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 const createLogger = ({
     discordLogLevels = [],

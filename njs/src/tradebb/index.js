@@ -94,19 +94,6 @@ async function sell(sig) {
         posSize = (3 * qtyMin);
     }
 
-    log.info(
-        JSON.stringify({
-            risk,
-            atrSl,
-            lastPrice,
-            equityUSD,
-            posSizeB4Step,
-            posSizeB4MinCmp,
-            posSize,
-            equityLeverage,
-            posSizeUSD,
-        }))
-
     let tpSize = calcStepSize(posSize / 3, qtyStep);
     if (tpSize < qtyMin) {
         tpSize = qtyMin;
@@ -132,6 +119,28 @@ async function sell(sig) {
         price: String(tpPrice),
         reduceOnly: true,
     });
+
+    const tpSizeUSD = tpSize * lastPrice;
+    setTimeout(() => {
+        logger.info(
+            JSON.stringify({
+                side: "Sell",
+                symbol: sig.ticker,
+                risk,
+                atrSl,
+                lastPrice,
+                equityUSD,
+                posSizeB4Step,
+                posSizeB4MinCmp,
+                posSize,
+                tpSize,
+                equityLeverage,
+                posSizeUSD,
+                tpSizeUSD,
+                tp,
+                sl,
+            }))
+    }, 0)
 
     return [res, res2];
 }
@@ -179,19 +188,6 @@ async function buy(sig) {
         posSize = (3 * qtyMin);
     }
 
-    log.info(
-        JSON.stringify({
-            risk,
-            atrSl,
-            lastPrice,
-            equityUSD,
-            posSizeB4Step,
-            posSizeB4MinCmp,
-            posSize,
-            equityLeverage,
-            posSizeUSD,
-        }))
-
     let tpSize = calcStepSize(posSize / 3, qtyStep);
     if (tpSize < qtyMin) {
         tpSize = qtyMin;
@@ -217,23 +213,41 @@ async function buy(sig) {
         reduceOnly: true,
     });
 
+    const tpSizeUSD = tpSize * lastPrice;
+    setTimeout(() => {
+        logger.info(
+            JSON.stringify({
+                side: "Buy",
+                symbol: sig.ticker,
+                risk,
+                atrSl,
+                lastPrice,
+                equityUSD,
+                posSizeB4Step,
+                posSizeB4MinCmp,
+                posSize,
+                tpSize,
+                equityLeverage,
+                posSizeUSD,
+                tpSizeUSD,
+                tp,
+                sl,
+            }))
+    }, 0)
+
     return [res, res2];
 }
 
-// in check positions move sl only if no tp and profit pnl is at least 0.25
+// in check positions move sl only if no tp order and profit pnl is at least 0.25%
 async function signalHandler(sig) {
     try {
-        logger.debug(`Signal ${sig.ticker} ${sig.sig}`);
+        logger.info(`Signal ${sig.ticker} ${sig.sig}`);
 
         if (!(sig && sig === Object(sig) && sig.ticker)) {
             return;
         }
 
-        console.log(`signalHandler ${sig.ticker} ${sig.sig}`);
-
         const position = await reqs.getPosition(sig.ticker, 'USDT');
-
-        // console.log('position', position)
 
         const side = position.side;
 

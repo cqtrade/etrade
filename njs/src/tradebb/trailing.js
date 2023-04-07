@@ -1,4 +1,5 @@
 const { ContractClient } = require('bybit-api')
+const { sleep } = require('../utils.js')
 const logger = require('../logger.js')
 
 const key = process.env.API_KEY;
@@ -9,12 +10,6 @@ const client = new ContractClient({
   secret,
   strict_param_validation: true,
 });
-
-const sleep = (ms) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
-
-module.exports.sleep = sleep;
 
 function getCurrentTime() {
   const d = new Date();

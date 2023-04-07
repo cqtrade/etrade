@@ -1,6 +1,4 @@
-const sleep = (ms) => {
-    return new Promise((resolve) =>
-        setTimeout(resolve, ms));
-};
+const sleep = (delay) => new Promise((resolve) =>
+    setTimeout(resolve, delay))
 
-module.exports.sleep = sleep;
+module.exports.sleep = sleep
