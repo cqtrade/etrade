@@ -99,7 +99,6 @@ async function sell(sig) {
         tpSize = qtyMin;
     }
 
-    console.log('tpSize', tpSize)
     const res = await reqs.submitOrder({
         side: "Sell",
         symbol: sig.ticker,
@@ -121,26 +120,25 @@ async function sell(sig) {
     });
 
     const tpSizeUSD = tpSize * lastPrice;
-    setTimeout(() => {
-        logger.info(
-            JSON.stringify({
-                side: "Sell",
-                symbol: sig.ticker,
-                risk,
-                atrSl,
-                lastPrice,
-                equityUSD,
-                posSizeB4Step,
-                posSizeB4MinCmp,
-                posSize,
-                tpSize,
-                equityLeverage,
-                posSizeUSD,
-                tpSizeUSD,
-                tp,
-                sl,
-            }))
-    }, 0)
+
+    logger.info(`Sell ${sig.ticker}`,
+        {
+            side: "Sell",
+            symbol: sig.ticker,
+            risk,
+            atrSl,
+            lastPrice,
+            equityUSD,
+            posSizeB4Step,
+            posSizeB4MinCmp,
+            posSize,
+            tpSize,
+            equityLeverage,
+            posSizeUSD,
+            tpSizeUSD,
+            tp,
+            sl,
+        })
 
     return [res, res2];
 }
@@ -214,26 +212,25 @@ async function buy(sig) {
     });
 
     const tpSizeUSD = tpSize * lastPrice;
-    setTimeout(() => {
-        logger.info(
-            JSON.stringify({
-                side: "Buy",
-                symbol: sig.ticker,
-                risk,
-                atrSl,
-                lastPrice,
-                equityUSD,
-                posSizeB4Step,
-                posSizeB4MinCmp,
-                posSize,
-                tpSize,
-                equityLeverage,
-                posSizeUSD,
-                tpSizeUSD,
-                tp,
-                sl,
-            }))
-    }, 0)
+
+    logger.info(`Buy ${sig.ticker}`,
+        {
+            side: "Buy",
+            symbol: sig.ticker,
+            risk,
+            atrSl,
+            lastPrice,
+            equityUSD,
+            posSizeB4Step,
+            posSizeB4MinCmp,
+            posSize,
+            tpSize,
+            equityLeverage,
+            posSizeUSD,
+            tpSizeUSD,
+            tp,
+            sl,
+        })
 
     return [res, res2];
 }
