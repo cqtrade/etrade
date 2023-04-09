@@ -1,5 +1,6 @@
 const reqs = require('./reqs.js')
 const logger = require('../logger.js')
+const { countDecimals, fixedDecimals } = require('../utils.js')
 
 function calculatePositionSize(
     risk,
@@ -18,8 +19,11 @@ function calculatePositionSize(
     };
 }
 
-function calcStepSize(qty, stepSize) {
-    return Math.floor(Number(qty) / Number(stepSize)) * Number(stepSize);
+function calcQtyPrecision(qty, stepSize) {
+    const rawRes = Math.floor(Number(qty) / Number(stepSize)) * Number(stepSize);
+    const decimals = countDecimals(stepSize);
+    const res = fixedDecimals(rawRes, decimals);
+    return res;
 }
 
 async function exitPosition(sig, position) {
@@ -87,60 +91,71 @@ async function sell(sig) {
 
     let posSizeB4Step = posSize;
 
-    posSize = calcStepSize(posSize, qtyStep)
+    posSize = calcQtyPrecision(posSize, qtyStep)
 
     let posSizeB4MinCmp = posSize
     if (posSize < (3 * qtyMin)) {
         posSize = (3 * qtyMin);
     }
 
-    let tpSize = calcStepSize(posSize / 3, qtyStep);
+    let tpSize = calcQtyPrecision(posSize / 3, qtyStep);
     if (tpSize < qtyMin) {
         tpSize = qtyMin;
     }
 
-    const res = await reqs.submitOrder({
-        side: "Sell",
-        symbol: sig.ticker,
-        qty: String(posSize),
-        orderType: "Market",
-        timeInForce: "ImmediateOrCancel",
-        stopLoss: String(slPrice),
-        slTriggerBy: "LastPrice",
-    });
-
-    const res2 = await reqs.submitOrder({
-        side: "Buy",
-        symbol: sig.ticker,
-        qty: String(tpSize),
-        orderType: "Limit",
-        timeInForce: "PostOnly",
-        price: String(tpPrice),
-        reduceOnly: true,
-    });
-
-    const tpSizeUSD = tpSize * lastPrice;
-
-    logger.info(`Sell ${sig.ticker}`,
-        {
+    try {
+        const marketOrderRes = await reqs.submitOrder({
             side: "Sell",
             symbol: sig.ticker,
-            risk,
-            atrSl,
-            lastPrice,
-            equityUSD,
-            posSizeB4Step,
-            posSizeB4MinCmp,
-            posSize,
-            tpSize,
-            equityLeverage,
-            posSizeUSD,
-            tpSizeUSD,
-            tp,
-            sl,
-        })
+            qty: String(posSize),
+            orderType: "Market",
+            timeInForce: "ImmediateOrCancel",
+            stopLoss: String(slPrice),
+            slTriggerBy: "LastPrice",
+        });
 
-    return [res, res2];
+        logger.debug(`Sell ${sig.ticker} market order res`, marketOrderRes)
+
+        try {
+            const tpOrderRes = await reqs.submitOrder({
+                side: "Buy",
+                symbol: sig.ticker,
+                qty: String(tpSize),
+                orderType: "Limit",
+                timeInForce: "PostOnly",
+                price: String(tpPrice),
+                reduceOnly: true,
+            });
+
+            logger.debug(`Buy ${sig.ticker} tpOrderRes res`, tpOrderRes)
+
+            const tpSizeUSD = tpSize * lastPrice;
+
+            logger.info(`Sell ${sig.ticker}`,
+                {
+                    side: "Sell",
+                    symbol: sig.ticker,
+                    risk,
+                    atrSl,
+                    lastPrice,
+                    equityUSD,
+                    posSizeB4Step,
+                    posSizeB4MinCmp,
+                    posSize,
+                    tpSize,
+                    equityLeverage,
+                    posSizeUSD,
+                    tpSizeUSD,
+                    tp,
+                    sl,
+                })
+
+        } catch (error) {
+            logger.error(`ERROR Sell tp ${sig.ticker}`, error)
+        }
+    } catch (error) {
+        logger.error(`ERROR Sell market ${sig.ticker}`, error)
+    }
 }
 
 async function buy(sig) {
@@ -179,60 +194,71 @@ async function buy(sig) {
     const qtyMin = instrument.value.lotSizeFilter.minTradingQty;
 
     let posSizeB4Step = posSize;
-    posSize = calcStepSize(posSize, qtyStep)
+    posSize = calcQtyPrecision(posSize, qtyStep)
 
     let posSizeB4MinCmp = posSize
     if (posSize < (3 * qtyMin)) {
         posSize = (3 * qtyMin);
     }
 
-    let tpSize = calcStepSize(posSize / 3, qtyStep);
+    let tpSize = calcQtyPrecision(posSize / 3, qtyStep);
     if (tpSize < qtyMin) {
         tpSize = qtyMin;
     }
 
-    const res = await reqs.submitOrder({
-        side: "Buy",
-        symbol: sig.ticker,
-        qty: String(posSize),
-        orderType: "Market",
-        timeInForce: "ImmediateOrCancel",
-        stopLoss: String(slPrice),
-        slTriggerBy: "LastPrice",
-    });
-
-    const res2 = await reqs.submitOrder({
-        side: "Sell",
-        symbol: sig.ticker,
-        qty: String(tpSize),
-        orderType: "Limit",
-        timeInForce: "PostOnly",
-        price: String(tpPrice),
-        reduceOnly: true,
-    });
-
-    const tpSizeUSD = tpSize * lastPrice;
-
-    logger.info(`Buy ${sig.ticker}`,
-        {
+    try {
+        const marketOrderRes = await reqs.submitOrder({
             side: "Buy",
             symbol: sig.ticker,
-            risk,
-            atrSl,
-            lastPrice,
-            equityUSD,
-            posSizeB4Step,
-            posSizeB4MinCmp,
-            posSize,
-            tpSize,
-            equityLeverage,
-            posSizeUSD,
-            tpSizeUSD,
-            tp,
-            sl,
-        })
+            qty: String(posSize),
+            orderType: "Market",
+            timeInForce: "ImmediateOrCancel",
+            stopLoss: String(slPrice),
+            slTriggerBy: "LastPrice",
+        });
 
-    return [res, res2];
+        logger.debug(`Buy ${sig.ticker} market order res`, marketOrderRes)
+
+        try {
+            const tpOrderRes = await reqs.submitOrder({
+                side: "Sell",
+                symbol: sig.ticker,
+                qty: String(tpSize),
+                orderType: "Limit",
+                timeInForce: "PostOnly",
+                price: String(tpPrice),
+                reduceOnly: true,
+            });
+
+            logger.debug(`Buy ${sig.ticker} tpOrderRes res`, tpOrderRes)
+
+            const tpSizeUSD = tpSize * lastPrice;
+
+            logger.info(`Buy ${sig.ticker}`,
+                {
+                    side: "Buy",
+                    symbol: sig.ticker,
+                    risk,
+                    atrSl,
+                    lastPrice,
+                    equityUSD,
+                    posSizeB4Step,
+                    posSizeB4MinCmp,
+                    posSize,
+                    tpSize,
+                    equityLeverage,
+                    posSizeUSD,
+                    tpSizeUSD,
+                    tp,
+                    sl,
+                })
+
+        } catch (error) {
+            logger.error(`ERROR Buy tp ${sig.ticker}`, error)
+        }
+    } catch (error) {
+        logger.error(`ERROR Buy market ${sig.ticker}`, error)
+    }
 }
 
 // in check positions move sl only if no tp order and profit pnl is at least 0.25%
