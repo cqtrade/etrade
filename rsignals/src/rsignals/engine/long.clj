@@ -185,7 +185,9 @@
              (ohlc/ohcl-bybit-v5 "SOLUSDT" "240")
              (ohlc/ohcl-bybit-v5 "DOGEUSDT" "240")
              (ohlc/ohcl-bybit-v5 "ADAUSDT" "240")
-             (ohlc/ohcl-bybit-v5 "BNBUSDT" "240")]]
+             (ohlc/ohcl-bybit-v5 "BNBUSDT" "240")
+             (ohlc/ohcl-bybit-v5 "XRPUSDT" "240")
+             (ohlc/ohcl-bybit-v5 "LTCUSDT" "240")]]
     (->> xss
          (signals t-args)
          (mapv (fn [x] (mapv last x)))
