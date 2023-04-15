@@ -1,5 +1,5 @@
-const { sleep } = require('./utils.js')
 const stringify = require('json-stable-stringify')
+const { sleep } = require('./utils.js')
 
 const logQueue = []
 let isLogging = false
