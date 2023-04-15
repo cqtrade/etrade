@@ -146,7 +146,7 @@
 
 (defn ohcl-bybit-v5
   "Kline interval. 1,3,5,15,30,60,120,240,360,720,D,M,W"
-  [ticker interval]
+  [interval ticker]
   (let [url (format
              "https://api.bybit.com/v5/market/kline?category=linear&symbol=%s&interval=%s&limit=1000"
              ticker
