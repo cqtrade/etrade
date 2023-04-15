@@ -21,11 +21,11 @@ function formatMessage(message) {
         try {
             return stringify(message, { cycles: true })
         } catch (error) {
-            return `Failed to stringify object: ${error}`
+            console.error(`Failed to stringify object: ${error}`)
         }
-    } else {
-        return message || ''
     }
+
+    return message || ''
 }
 
 async function logToDiscord({
