@@ -185,16 +185,39 @@
   (let [xss-prepped (prep-datasets xss)]
     (doall (pmap #(e-indies % xss-prepped) [t-args]))))
 
+(defn get-quotas
+  [interval tickers]
+  (mapv
+   (fn [ticker]
+     (Thread/sleep 333)
+     (ohlc/ohcl-bybit-v5 interval ticker))
+   tickers))
+
+(comment
+  (let [interval "240"
+        tickers ["BTCUSDT"
+                 "ETHUSDT"
+                 "SOLUSDT"
+                 "DOGEUSDT"
+                 "ADAUSDT"
+                 "BNBUSDT"
+                 "XRPUSDT"
+                 "LTCUSDT"]]
+    (get-quotas interval tickers))
+  1)
+
 (defn get-signals
   [t-args]
-  (let [xss [(ohlc/ohcl-bybit-v5 "BTCUSDT" "240")
-             (ohlc/ohcl-bybit-v5 "ETHUSDT" "240")
-             (ohlc/ohcl-bybit-v5 "SOLUSDT" "240")
-             (ohlc/ohcl-bybit-v5 "DOGEUSDT" "240")
-             (ohlc/ohcl-bybit-v5 "ADAUSDT" "240")
-             (ohlc/ohcl-bybit-v5 "BNBUSDT" "240")
-             (ohlc/ohcl-bybit-v5 "XRPUSDT" "240")
-             (ohlc/ohcl-bybit-v5 "LTCUSDT" "240")]]
+  (let [interval "240"
+        tickers ["BTCUSDT"
+                 "ETHUSDT"
+                 "SOLUSDT"
+                 "DOGEUSDT"
+                 "ADAUSDT"
+                 "BNBUSDT"
+                 "XRPUSDT"
+                 "LTCUSDT"]
+        xss (get-quotas interval tickers)]
     (->> xss
          (signals t-args)
          (mapv (fn [x] (mapv last x)))
