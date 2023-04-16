@@ -202,7 +202,8 @@
                  "ADAUSDT"
                  "BNBUSDT"
                  "XRPUSDT"
-                 "LTCUSDT"]]
+                 "LTCUSDT"
+                 "MATICUSDT"]]
     (get-quotas interval tickers))
   1)
 
@@ -216,7 +217,8 @@
                  "ADAUSDT"
                  "BNBUSDT"
                  "XRPUSDT"
-                 "LTCUSDT"]
+                 "LTCUSDT"
+                 "MATICUSDT"]
         xss (get-quotas interval tickers)]
     (->> xss
          (signals t-args)
