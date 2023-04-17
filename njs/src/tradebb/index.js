@@ -54,6 +54,16 @@ async function exitPosition(sig, position) {
     }
 }
 
+function atrTp1Calc(close, atrTp1) {
+    const diff = parseFloat(100 * (1 - (close - atrTp1) / close));
+    const minDiffAllowedPerc = 0.3;
+
+    if (diff < minDiffAllowedPerc) {
+        return (close * minDiffAllowedPerc) / 100;
+    }
+    return atrTp1;
+}
+
 async function sell(sig) {
     const [ticker, instrument] = await Promise.allSettled([
         reqs.getSymbolTicker(sig.ticker),
@@ -63,7 +73,7 @@ async function sell(sig) {
     const lastPrice = Number(ticker.value.lastPrice);
     const tickSize = instrument.value.priceFilter.tickSize;
 
-    const tp = lastPrice - sig.atrtp;
+    const tp = lastPrice - atrTp1Calc(lastPrice, sig.atrtp);
     const sl = lastPrice + sig.atrsl;
 
     const slPrice = reqs.setPricePrecisionByTickSize(sl, tickSize);
@@ -167,7 +177,7 @@ async function buy(sig) {
     const lastPrice = Number(ticker.value.lastPrice);
     const tickSize = instrument.value.priceFilter.tickSize;
 
-    const tp = lastPrice + sig.atrtp;
+    const tp = lastPrice + atrTp1Calc(lastPrice, sig.atrtp);
     const sl = lastPrice - sig.atrsl;
 
     const slPrice = reqs.setPricePrecisionByTickSize(sl, tickSize);
