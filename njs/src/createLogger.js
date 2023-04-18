@@ -9,9 +9,7 @@ function enqueueLog(level, message, data) {
 }
 
 function dequeueLog() {
-    if (logQueue.length === 0) {
-        return undefined
-    } else {
+    if (logQueue.length) {
         return logQueue.shift()
     }
 }
@@ -127,7 +125,7 @@ async function processLog({
             isLogging = true
 
             try {
-                while (logQueue.length > 0) {
+                while (logQueue.length) {
                     const { level, message, data } = dequeueLog()
 
                     setImmediate(() =>
