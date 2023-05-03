@@ -192,7 +192,7 @@ const handlePosition = async (pos) => {
 
       if (
         !activeTpOrders.length
-        && currPNL > 0.35
+        && currPNL > 0.25
         && Number(pos.stopLoss) !== Number(newSl)
       ) {
 
