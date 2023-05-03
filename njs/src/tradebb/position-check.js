@@ -193,9 +193,8 @@ const handlePosition = async (pos) => {
       if (
         !activeTpOrders.length
         && currPNL > 0.25
-        && Number(pos.stopLoss) !== Number(newSl)
-      ) {
-
+        && pos.side === 'Buy'
+        && Number(pos.stopLoss) < Number(newSl)) {
         const r = await setTPSL({
           positionIdx: pos.positionIdx,
           symbol: pos.symbol,
@@ -204,6 +203,35 @@ const handlePosition = async (pos) => {
 
         logger.info('Strategy sl changed ' + pos.symbol + ' ' + newSl)
       }
+
+      if (
+        !activeTpOrders.length
+        && currPNL > 0.25
+        && pos.side === 'Sell'
+        && Number(pos.stopLoss) > Number(newSl)) {
+        const r = await setTPSL({
+          positionIdx: pos.positionIdx,
+          symbol: pos.symbol,
+          stopLoss: newSl,
+        });
+
+        logger.info('Strategy sl changed ' + pos.symbol + ' ' + newSl)
+      }
+
+      // if (
+      //   !activeTpOrders.length
+      //   && currPNL > 0.25
+      //   && Number(pos.stopLoss) !== Number(newSl)
+      // ) {
+
+      //   const r = await setTPSL({
+      //     positionIdx: pos.positionIdx,
+      //     symbol: pos.symbol,
+      //     stopLoss: newSl,
+      //   });
+
+      //   logger.info('Strategy sl changed ' + pos.symbol + ' ' + newSl)
+      // }
 
     }
   } catch (error) {
