@@ -168,15 +168,16 @@ const handlePosition = async (pos) => {
         p = -1;
       } else if (currPNL >= 2 && currPNL < 3) {
         p = -1.5;
-      } else if (currPNL >= 3 && currPNL < 4) {
-        p = -2.5;
-      } else if (currPNL >= 4 && currPNL < 5) {
-        p = -3.5;
-      } else if (currPNL >= 5 && currPNL < 6) {
-        p = -4.5;
-      } else if (currPNL >= 6 && currPNL < 7) {
-        p = -5.5;
       }
+      // else if (currPNL >= 3 && currPNL < 4) {
+      //   p = -2.5;
+      // } else if (currPNL >= 4 && currPNL < 5) {
+      //   p = -3.5;
+      // } else if (currPNL >= 5 && currPNL < 6) {
+      //   p = -4.5;
+      // } else if (currPNL >= 6 && currPNL < 7) {
+      //   p = -5.5;
+      // }
       // >= 7 might make sense to add the real trailing stop?
 
       if (p) {
@@ -226,7 +227,7 @@ function engine() {
     minute = (new Date()).getMinutes();
   }
 
-  const interval = 333;
+  const interval = 3000;
   setTimeout(() => {
     flow()
       .then(() => {

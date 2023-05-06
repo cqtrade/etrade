@@ -277,7 +277,7 @@ function engine() {
   //   console.log('Tick positions', `:${minute}`);
   // }
 
-  const interval = 1000;
+  const interval = 2000;
   setTimeout(() => {
     flow()
       .then(() => {
