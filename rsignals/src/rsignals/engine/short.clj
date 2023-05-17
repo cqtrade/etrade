@@ -128,41 +128,40 @@
                      (and (== conf8 -1.0) (== conf9 -1.0))
                      (and (== conf9 -1.0) (> conf10 -1.0)))
 
-        ;;      conf-sell (case conf-cross
-        ;;                  -1 true
-        ;;                  0 cross0
-        ;;                  1 (or cross0 cross1)
-        ;;                  2 (or cross0 cross1 cross2)
-        ;;                  3 (or cross0 cross1 cross2 cross3)
-        ;;                  4 (or cross0 cross1 cross2 cross3 cross4)
-        ;;                  5 (or cross0 cross1 cross2 cross3 cross4 cross5)
-        ;;                  6 (or cross0 cross1 cross2 cross3 cross4 cross5 cross6)
-        ;;                  7 (or cross0 cross1 cross2 cross3 cross4 cross5 cross6 cross7)
-        ;;                  8 (or cross0 cross1 cross2 cross3 cross4 cross5 cross6 cross7 cross8)
-        ;;                  9 (or cross0 cross1 cross2 cross3 cross4 cross5 cross6 cross7 cross8 cross9))
+             conf-sell (case conf-cross
+                         -1 true
+                         0 cross0
+                         1 (or cross0 cross1)
+                         2 (or cross0 cross1 cross2)
+                         3 (or cross0 cross1 cross2 cross3)
+                         4 (or cross0 cross1 cross2 cross3 cross4)
+                         5 (or cross0 cross1 cross2 cross3 cross4 cross5)
+                         6 (or cross0 cross1 cross2 cross3 cross4 cross5 cross6)
+                         7 (or cross0 cross1 cross2 cross3 cross4 cross5 cross6 cross7)
+                         8 (or cross0 cross1 cross2 cross3 cross4 cross5 cross6 cross7 cross8)
+                         9 (or cross0 cross1 cross2 cross3 cross4 cross5 cross6 cross7 cross8 cross9))
 
              tdfi0 (-> coll (nth idx) :tdfi)
              tdfi1 (-> coll (nth (- idx 1)) :tdfi)
-
 
              rex0 (-> coll (nth idx) :rex)
              rex-sig0 (-> coll (nth idx) :rex-sig)
              rex1 (-> coll (nth (- idx 1)) :rex)
              rex-sig1 (-> coll (nth (- idx 1)) :rex-sig)
 
-             conf-sell (case conf-cross ; TMP use it for 
-                         -1 true
-                         -2 (< rex0 rex-sig0)
-                         -3 (< rex0 rex1))
+             rex-sell (< rex0 rex1)
 
              sell (and
                    (<= tdfi0 tdfi-level)
                    (> tdfi1 tdfi-level)
+                   rex-sell
                    conf-sell)
 
              exit-sell (and
                         (> rex0 rex-sig0)
                         (< rex1 rex-sig1))
+
+
              sig (cond
                    sell -1
                    exit-sell 2
@@ -194,7 +193,7 @@
    tickers))
 
 (comment
-  (let [interval "240"
+  (let [interval "D"
         tickers ["BTCUSDT"
                  "ETHUSDT"
                  "SOLUSDT"
@@ -203,14 +202,18 @@
                  "BNBUSDT"
                  "XRPUSDT"
                  "LTCUSDT"
-                 "MATICUSDT"]]
+                 "MATICUSDT"
+                 "DOTUSDT"
+                 "ATOMUSDT"]]
     (get-quotas interval tickers))
   1)
 
 (defn get-signals
   [t-args]
-  (let [interval "240"
-        tickers ["BTCUSDT"
+  (let [interval "D"
+        tickers ["DOTUSDT"
+                 "ATOMUSDT"
+                 "BTCUSDT"
                  "ETHUSDT"
                  "SOLUSDT"
                  "DOGEUSDT"
@@ -218,7 +221,9 @@
                  "BNBUSDT"
                  "XRPUSDT"
                  "LTCUSDT"
-                 "MATICUSDT"]
+                 "MATICUSDT"
+                 "DOTUSDT"
+                 "ATOMUSDT"]
         xss (get-quotas interval tickers)]
     (->> xss
          (signals t-args)

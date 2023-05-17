@@ -143,15 +143,15 @@
              tdfi0 (-> coll (nth idx) :tdfi)
              tdfi1 (-> coll (nth (- idx 1)) :tdfi)
 
-             buy (and
-                  (>= tdfi0 tdfi-level)
-                  (< tdfi1 tdfi-level)
-                  conf-buy)
-
              rex0 (-> coll (nth idx) :rex)
              rex-sig0 (-> coll (nth idx) :rex-sig)
              rex1 (-> coll (nth (- idx 1)) :rex)
              rex-sig1 (-> coll (nth (- idx 1)) :rex-sig)
+
+             buy (and
+                  (>= tdfi0 tdfi-level)
+                  (< tdfi1 tdfi-level)
+                  #_conf-buy)
 
              exit-buy (and
                        (< rex0 rex-sig0)
@@ -187,8 +187,10 @@
    tickers))
 
 (comment
-  (let [interval "240"
-        tickers ["BTCUSDT"
+  (let [interval "D"
+        tickers ["DOTUSDT"
+                 "ATOMUSDT"
+                 "BTCUSDT"
                  "ETHUSDT"
                  "SOLUSDT"
                  "DOGEUSDT"
@@ -202,8 +204,10 @@
 
 (defn get-signals
   [t-args]
-  (let [interval "240"
-        tickers ["BTCUSDT"
+  (let [interval "D"
+        tickers ["DOTUSDT"
+                 "ATOMUSDT"
+                 "BTCUSDT"
                  "ETHUSDT"
                  "SOLUSDT"
                  "DOGEUSDT"
