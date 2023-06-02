@@ -1,7 +1,8 @@
 (ns rsignals.engine.long
   (:require
    [rsignals.engine.ohlc :as ohlc]
-   [rsignals.engine.ta :as ta]))
+   [rsignals.engine.ta :as ta]
+   [clojure.pprint :as pprint]))
 
 (defn prep-datasets
   [xs]
@@ -16,7 +17,7 @@
          vals
          (mapv #(vec (sort-by :time %))))))
 
-(def skip-bars 75)
+(def skip-bars 50)
 
 (defn indicators
   [{:keys [tdfi-p rex-p rex-sp conf-p tpcoef slcoef risk]} coll]
@@ -175,7 +176,9 @@
 
 (defn signals
   [t-args xss]
-  (let [xss-prepped (prep-datasets xss)]
+  (let [xss-prepped (->> xss
+                         (filter #(> (count %) 70))
+                         prep-datasets)]
     (doall (pmap #(e-indies % xss-prepped) [t-args]))))
 
 (defn get-quotas
@@ -188,17 +191,11 @@
 
 (comment
   (let [interval "D"
-        tickers ["DOTUSDT"
-                 "ATOMUSDT"
-                 "BTCUSDT"
-                 "ETHUSDT"
-                 "SOLUSDT"
-                 "DOGEUSDT"
-                 "ADAUSDT"
-                 "BNBUSDT"
-                 "XRPUSDT"
-                 "LTCUSDT"
-                 "MATICUSDT"]]
+        tickers ["LINAUSDT"
+                 "APTUSDT"
+                 "ARBUSDT"
+                 "INJUSDT"
+                 "RNDRUSDT"]]
     (get-quotas interval tickers))
   1)
 
@@ -215,9 +212,30 @@
                  "BNBUSDT"
                  "XRPUSDT"
                  "LTCUSDT"
-                 "MATICUSDT"]
+                 "MATICUSDT"
+                 "LINAUSDT"
+                 "APTUSDT"
+                 "ARBUSDT"
+                 "INJUSDT"
+                 "RNDRUSDT"]
         xss (get-quotas interval tickers)]
     (->> xss
          (signals t-args)
          (mapv (fn [x] (mapv last x)))
-         flatten)))
+         flatten
+         (remove #(nil? (:sig %))))))
+
+(comment
+
+  (let [t-args {:tdfi-p 2
+                :tdfi-level 1
+                :rex-p 4
+                :rex-sp 4
+                :conf-p 4
+                :conf-cross 1
+                :tpcoef 1
+                :slcoef 1
+                :risk 1}]
+    (clojure.pprint/pprint (get-signals t-args)))
+
+  1)
