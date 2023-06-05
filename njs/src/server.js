@@ -22,6 +22,7 @@ server.post(
                             await trade.signalHandler(sig);
                             await sleep(1000);
                         }
+                        logger.info(`Signals received: ${request.body.length}`);
                         return;
                     }
                 } catch (e) {

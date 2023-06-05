@@ -183,18 +183,23 @@
 
 (defn get-quotas
   [interval tickers]
-  (mapv
-   (fn [ticker]
-     (Thread/sleep 333)
-     (ohlc/ohcl-bybit-v5 interval ticker))
-   tickers))
+  (->> tickers
+       (mapv
+        (fn [ticker]
+          (Thread/sleep 133)
+          (try
+            (ohlc/ohcl-bybit-v5 interval ticker)
+            (catch Exception e
+              (println "error" ticker (-> e .getMessage))
+              (flush)
+              (Thread/sleep 1000)
+              []))))
+       (remove empty?)))
 
 (comment
   (let [interval "D"
-        tickers ["LINAUSDT"
-                 "APTUSDT"
-                 "ARBUSDT"
-                 "INJUSDT"
+        tickers ["LINsAUSDT"
+
                  "RNDRUSDT"]]
     (get-quotas interval tickers))
   1)
@@ -202,22 +207,29 @@
 (defn get-signals
   [t-args]
   (let [interval "D"
-        tickers ["DOTUSDT"
-                 "ATOMUSDT"
-                 "BTCUSDT"
-                 "ETHUSDT"
-                 "SOLUSDT"
-                 "DOGEUSDT"
-                 "ADAUSDT"
-                 "BNBUSDT"
-                 "XRPUSDT"
-                 "LTCUSDT"
-                 "MATICUSDT"
-                 "LINAUSDT"
-                 "APTUSDT"
-                 "ARBUSDT"
-                 "INJUSDT"
-                 "RNDRUSDT"]
+        tickers (->> ["DOTUSDT"
+                      "ATOMUSDT"
+                      "BTCUSDT"
+                      "ETHUSDT"
+                      "SOLUSDT"
+                      "DOGEUSDT"
+                      "ADAUSDT"
+                      "BNBUSDT"
+                      "XRPUSDT"
+                      "LTCUSDT"
+                      "MATICUSDT"
+                      "LINAUSDT"
+                      "APTUSDT"
+                      "ARBUSDT"
+                      "INJUSDT"
+                      "RNDRUSDT"
+                      "RENUSDT"
+                      "MTLUSDT"
+                      "SANDUSDT"
+                      "FTMUSDT"
+                      "LINKUSDT"]
+                     set
+                     vec)
         xss (get-quotas interval tickers)]
     (->> xss
          (signals t-args)
@@ -229,9 +241,9 @@
 
   (let [t-args {:tdfi-p 2
                 :tdfi-level 1
-                :rex-p 4
-                :rex-sp 4
-                :conf-p 4
+                :rex-p 1
+                :rex-sp 1
+                :conf-p 1
                 :conf-cross 1
                 :tpcoef 1
                 :slcoef 1
