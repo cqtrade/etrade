@@ -274,10 +274,15 @@ async function buy(sig) {
 // in check positions move sl only if no tp order and profit pnl is at least 0.25%
 async function signalHandler(sig) {
     try {
-        logger.info(`Signal ${sig.ticker} ${sig.sig}`);
 
         if (!(sig && sig === Object(sig) && sig.ticker)) {
             return;
+        }
+
+        if (Number(sig.sig)) {
+            logger.info(`Signal ${sig.ticker} ${sig.sig}`);
+        } else {
+            logger.debug(`Signal ${sig.ticker} ${sig.sig}`);
         }
 
         const position = await reqs.getPosition(sig.ticker, 'USDT');
