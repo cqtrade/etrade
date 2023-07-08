@@ -221,27 +221,38 @@
 (defn get-signals
   [t-args]
   (let [interval "D"
-        tickers (->> ["DOTUSDT"
-                      "ATOMUSDT"
+        tickers (->> ["ATOMUSDT"
                       "BTCUSDT"
                       "ETHUSDT"
-                      "SOLUSDT"
+                      "LTCUSDT"
                       "DOGEUSDT"
                       "ADAUSDT"
                       "BNBUSDT"
                       "XRPUSDT"
-                      "LTCUSDT"
                       "MATICUSDT"
+                      "LINKUSDT"
+                      "MTLUSDT"
+                      "FTMUSDT"
+                      "WAVESUSDT"
+                     
+                                       ;;  ; < 1450
+                      "UNIUSDT"
+                      "SANDUSDT"
+                      "DOTUSDT"
+                      "RENUSDT"
+                      "SOLUSDT"
+                      "BCHUSDT"
+                      "AVAXUSDT"
+                      "COMPUSDT"
+                      "MKRUSDT"
+                     
+                                        ; < 1000
                       "LINAUSDT"
-                      "APTUSDT"
-                      "ARBUSDT"
                       "INJUSDT"
                       "RNDRUSDT"
-                      "RENUSDT"
-                      "MTLUSDT"
-                      "SANDUSDT"
-                      "FTMUSDT"
-                      "LINKUSDT"]
+                      "APTUSDT"
+                      "ARBUSDT"
+                      "APEUSDT"]
                      set
                      vec)
         xss (get-quotas interval tickers)]
@@ -253,11 +264,11 @@
 
 (comment
 
-  (let [t-args {:tdfi-p 1
+  (let [t-args {:tdfi-p 2
                 :tdfi-level 1
-                :rex-p 1
-                :rex-sp 1
-                :conf-p 1
+                :rex-p 2
+                :rex-sp 2
+                :conf-p 2
                 :conf-cross 1
                 :tpcoef 1
                 :slcoef 1
