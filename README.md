@@ -3,6 +3,12 @@
 Trading bot. Consists of signal service and trading bot.
 
 ```sh
+
+sh scripts/reload.sh
+
+```
+
+```sh
  docker compose build
  docker compose down
  docker compose up
