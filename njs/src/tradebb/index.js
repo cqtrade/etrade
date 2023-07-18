@@ -7,6 +7,7 @@ function calculatePositionSize(risk, atrSl, lastPrice, equityUSD) {
     const equityLeverage = risk / slRisk
     const posSizeUSD = equityUSD * equityLeverage
     const positionSize = posSizeUSD / lastPrice
+
     return {
         positionSize,
         equityLeverage,
@@ -14,16 +15,16 @@ function calculatePositionSize(risk, atrSl, lastPrice, equityUSD) {
     }
 }
 
-function calcQtyPrecision(qty, stepSize) {
+function calculateQtyPrecision(qty, stepSize) {
     const rawRes = Math.floor(Number(qty) / Number(stepSize)) * Number(stepSize)
     const decimals = countDecimals(stepSize)
-    const res = fixedDecimals(rawRes, decimals)
-    return res
+
+    return fixedDecimals(rawRes, decimals)
 }
 
 async function exitPosition(sig, position) {
     if (position.side === 'Buy') {
-        const res = await reqs.submitOrder({
+        const result = await reqs.submitOrder({
             side: 'Sell',
             symbol: sig.ticker,
             qty: position.size,
@@ -32,11 +33,11 @@ async function exitPosition(sig, position) {
             closeOnTrigger: true,
         })
 
-        return res
+        return result
     }
 
     if (position.side === 'Sell') {
-        const res = await reqs.submitOrder({
+        const result = await reqs.submitOrder({
             side: 'Buy',
             symbol: sig.ticker,
             qty: position.size,
@@ -45,7 +46,7 @@ async function exitPosition(sig, position) {
             closeOnTrigger: true,
         })
 
-        return res
+        return result
     }
 }
 
@@ -56,6 +57,7 @@ function atrTp1Calc(close, atrTp1) {
     if (diff < minDiffAllowedPerc) {
         return (close * minDiffAllowedPerc) / 100
     }
+
     return atrTp1
 }
 
@@ -90,16 +92,16 @@ async function sell(sig) {
     const qtyStep = instrument.value.lotSizeFilter.qtyStep
     const qtyMin = instrument.value.lotSizeFilter.minTradingQty
 
-    const posSizeB4Step = posSize
+    const posSizeBeforeStep = posSize
 
-    posSize = calcQtyPrecision(posSize, qtyStep)
+    posSize = calculateQtyPrecision(posSize, qtyStep)
 
-    const posSizeB4MinCmp = posSize
+    const posSizeBeforeMinCmp = posSize
     if (posSize < 3 * qtyMin) {
         posSize = 3 * qtyMin
     }
 
-    let tpSize = calcQtyPrecision(posSize / 3, qtyStep)
+    let tpSize = calculateQtyPrecision(posSize / 3, qtyStep)
     if (tpSize < qtyMin) {
         tpSize = qtyMin
     }
@@ -139,8 +141,8 @@ async function sell(sig) {
                 atrSl,
                 lastPrice,
                 equityUSD,
-                posSizeB4Step,
-                posSizeB4MinCmp,
+                posSizeBeforeStep,
+                posSizeBeforeMinCmp,
                 posSize,
                 tpSize,
                 equityLeverage,
@@ -188,15 +190,17 @@ async function buy(sig) {
     const qtyStep = instrument.value.lotSizeFilter.qtyStep
     const qtyMin = instrument.value.lotSizeFilter.minTradingQty
 
-    const posSizeB4Step = posSize
-    posSize = calcQtyPrecision(posSize, qtyStep)
+    const posSizeBeforeStep = posSize
 
-    const posSizeB4MinCmp = posSize
+    posSize = calculateQtyPrecision(posSize, qtyStep)
+
+    const posSizeBeforeMinCmp = posSize
+
     if (posSize < 3 * qtyMin) {
         posSize = 3 * qtyMin
     }
 
-    let tpSize = calcQtyPrecision(posSize / 3, qtyStep)
+    let tpSize = calculateQtyPrecision(posSize / 3, qtyStep)
     if (tpSize < qtyMin) {
         tpSize = qtyMin
     }
@@ -236,8 +240,8 @@ async function buy(sig) {
                 atrSl,
                 lastPrice,
                 equityUSD,
-                posSizeB4Step,
-                posSizeB4MinCmp,
+                posSizeBeforeStep,
+                posSizeBeforeMinCmp,
                 posSize,
                 tpSize,
                 equityLeverage,
@@ -268,55 +272,65 @@ async function signalHandler(sig) {
         }
 
         const position = await reqs.getPosition(sig.ticker, 'USDT')
-
         const side = position.side
 
-        if (sig.sig === 1 && side === 'None') {
-            setTimeout(async () => {
-                console.log('buy', sig.ticker)
-                logger.info(JSON.stringify(sig))
-            }, 0)
+        const actions = {
+            1: {
+                None: async () => {
+                    setImmediate(() => {
+                        logger.debug('buy', sig.ticker)
+                        logger.info(JSON.stringify(sig))
+                    })
 
-            return await buy(sig)
+                    return await buy(sig)
+                },
+                Sell: async () => {
+                    setImmediate(() => {
+                        logger.info('exit short and long' + sig.ticker)
+                        logger.debug(JSON.stringify(sig))
+                    })
+                    await exitPosition(sig, position)
+
+                    return await buy(sig)
+                },
+            },
+            '-1': {
+                None: async () => {
+                    setImmediate(() => {
+                        logger.debug('sell', sig.ticker)
+                        logger.debug(JSON.stringify(sig))
+                    })
+
+                    return await sell(sig)
+                },
+                Buy: async () => {
+                    setImmediate(() => {
+                        logger.info('exit long and short' + sig.ticker)
+                        logger.debug(JSON.stringify(sig))
+                    })
+                    await exitPosition(sig, position)
+
+                    return await sell(sig)
+                },
+            },
+            2: {
+                Sell: async () => {
+                    logger.debug('sell exit', sig.ticker)
+
+                    return await exitPosition(sig, position)
+                },
+            },
+            '-2': {
+                Buy: async () => {
+                    logger.debug('buy exit', sig.ticker)
+
+                    return await exitPosition(sig, position)
+                },
+            },
         }
 
-        if (sig.sig === -1 && side === 'None') {
-            setTimeout(async () => {
-                console.log('sell', sig.ticker)
-                logger.debug(JSON.stringify(sig))
-            }, 0)
-
-            return await sell(sig)
-        }
-
-        if (sig.sig === -2 && side === 'Buy') {
-            console.log('buy exit', sig.ticker)
-            return await exitPosition(sig, position)
-        }
-
-        if (sig.sig === 2 && side === 'Sell') {
-            console.log('sell exit', sig.ticker)
-            return await exitPosition(sig, position)
-        }
-
-        if (sig.sig === 1 && side === 'Sell') {
-            setTimeout(async () => {
-                logger.info('exit short and long' + sig.ticker)
-                logger.debug(JSON.stringify(sig))
-            }, 0)
-
-            await exitPosition(sig, position)
-            return await buy(sig)
-        }
-
-        if (sig.sig === -1 && side === 'Buy') {
-            setTimeout(async () => {
-                logger.info('exit long and short' + sig.ticker)
-                logger.debug(JSON.stringify(sig))
-            }, 0)
-
-            await exitPosition(sig, position)
-            return await sell(sig)
+        if (actions?.[sig.sig]?.[side]) {
+            return await actions[sig.sig][side]()
         }
     } catch (error) {
         logger.error(`ERROR signalHandler ${error.message}`)

@@ -40,12 +40,9 @@ async function logToDiscord({
         error: 16007990,
     }
 
-    const formattedData =
-        data && data.length
-            ? data
-                  .map((item) => '```\n' + formatMessage(item) + '\n```')
-                  .join('\n')
-            : ''
+    const formattedData = data?.length
+        ? data.map((item) => '```\n' + formatMessage(item) + '\n```').join('\n')
+        : ''
 
     const formattedMessage = formatMessage(message)
 
@@ -106,10 +103,9 @@ async function processLog({
 }) {
     const timestamp = new Date().toISOString()
     const formattedMessage = formatMessage(message)
-    const formattedData =
-        data && data.length
-            ? data.map((dataItem) => formatMessage(dataItem)).join(' ')
-            : ''
+    const formattedData = data?.length
+        ? data.map((dataItem) => formatMessage(dataItem)).join(' ')
+        : ''
 
     console[level](
         `[${timestamp}] [${level.toUpperCase()}] ${formattedMessage} ${formattedData}`

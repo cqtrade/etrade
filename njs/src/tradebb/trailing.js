@@ -144,35 +144,23 @@ const handlePosition = async (pos) => {
 
             const currPNL = pnl(pos.side, pos.entryPrice, tickerInfo.lastPrice)
 
-            let p
-            if (currPNL >= 0.2 && currPNL < 0.4) {
-                p = -0.1
-            } else if (currPNL >= 0.4 && currPNL < 0.5) {
-                p = -0.2
-            } else if (currPNL >= 0.5 && currPNL < 0.75) {
-                p = -0.29
-            } else if (currPNL >= 0.75 && currPNL < 1.0) {
-                p = -0.5
-            } else if (currPNL >= 1.0 && currPNL < 1.5) {
-                p = -0.75
-            } else if (currPNL >= 1.5 && currPNL < 2) {
-                p = -1
-            } else if (currPNL >= 2 && currPNL < 3) {
-                p = -1.5
-            }
-            // else if (currPNL >= 3 && currPNL < 4) {
-            //   p = -2.5;
-            // } else if (currPNL >= 4 && currPNL < 5) {
-            //   p = -3.5;
-            // } else if (currPNL >= 5 && currPNL < 6) {
-            //   p = -4.5;
-            // } else if (currPNL >= 6 && currPNL < 7) {
-            //   p = -5.5;
-            // }
-            // >= 7 might make sense to add the real trailing stop?
+            const thresholds = [
+                { min: 0.2, max: 0.4, value: -0.1 },
+                { min: 0.4, max: 0.5, value: -0.2 },
+                { min: 0.5, max: 0.75, value: -0.29 },
+                { min: 0.75, max: 1, value: -0.5 },
+                { min: 1, max: 1.5, value: -0.75 },
+                { min: 1.5, max: 2, value: -1 },
+                { min: 2, max: 3, value: -1.5 },
+            ]
 
-            if (p) {
-                await handlePosSl(pos, p, instrumentInfo, currPNL)
+            const percentage = thresholds.find(
+                (threshold) =>
+                    currPNL >= threshold.min && currPNL < threshold.max
+            )?.value
+
+            if (percentage) {
+                await handlePosSl(pos, percentage, instrumentInfo, currPNL)
             }
         }
     } catch (error) {

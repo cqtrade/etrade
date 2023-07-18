@@ -30,13 +30,19 @@ server.post('/signal', {}, async (request, reply) => {
 })
 
 function bootServer() {
-    server.listen(3000, '0.0.0.0', (err, address) => {
-        if (err) {
-            console.error(err.message)
-            process.exit(1)
+    server.listen(
+        {
+            port: 3000,
+            host: '0.0.0.0',
+        },
+        (err, address) => {
+            if (err) {
+                console.error(err.message)
+                process.exit(1)
+            }
+            console.log(`Server listening at ${address}`)
         }
-        console.log(`Server listening at ${address}`)
-    })
+    )
 }
 
 module.exports.bootServer = bootServer

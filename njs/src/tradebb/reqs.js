@@ -1,5 +1,6 @@
 const { ContractClient } = require('bybit-api')
 const { sleep } = require('../utils.js')
+const logger = require('../logger.js')
 
 const key = process.env.API_KEY
 const secret = process.env.API_SECRET
@@ -9,11 +10,6 @@ const client = new ContractClient({
     secret,
     strict_param_validation: true,
 })
-
-function getCurrentTime() {
-    const d = new Date()
-    return `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`
-}
 
 const pnl = (side, avgEntry, lastPrice) => {
     if (side === 'Buy') {
@@ -146,56 +142,40 @@ const handlePosition = async (pos) => {
             const tickerInfo = ticker.value
             const instrumentInfo = instrument.value
 
-            // const tickerInfo = await getSymbolTicker(pos.symbol);
-            // const instrumentInfo = await getInstrumentInfo({ category: 'linear', symbol: pos.symbol });
-
             const currPNL = pnl(pos.side, pos.entryPrice, tickerInfo.lastPrice)
 
-            console.log(
-                getCurrentTime(),
-                pos.symbol,
-                'pnl:',
-                currPNL,
-                pos.side,
-                pos.size,
-                'at',
-                pos.entryPrice
-            )
+            logger.debug('handlePosition', {
+                symbol: pos.symbol,
+                pnl: currPNL,
+                side: pos.side,
+                size: pos.size,
+                entryPrice: pos.entryPrice,
+            })
 
-            let p
-            if (currPNL >= 0.4 && currPNL < 0.5) {
-                p = -0.2
-            } else if (currPNL >= 0.5 && currPNL < 0.75) {
-                p = -0.29
-            } else if (currPNL >= 0.75 && currPNL < 1.0) {
-                p = -0.5
-            } else if (currPNL >= 1.0 && currPNL < 1.5) {
-                p = -0.75
-            } else if (currPNL >= 1.5 && currPNL < 2) {
-                p = -1
-            } else if (currPNL >= 2 && currPNL < 3) {
-                p = -1.5
-            } else if (currPNL >= 3 && currPNL < 4) {
-                p = -2.5
-            } else if (currPNL >= 4 && currPNL < 5) {
-                p = -3.5
-            } else if (currPNL >= 5 && currPNL < 6) {
-                p = -4.5
-            } else if (currPNL >= 6 && currPNL < 7) {
-                p = -5.5
+            const thresholds = [
+                { min: 0.4, max: 0.5, value: -0.2 },
+                { min: 0.5, max: 0.75, value: -0.29 },
+                { min: 0.75, max: 1.0, value: -0.5 },
+                { min: 1.0, max: 1.5, value: -0.75 },
+                { min: 1.5, max: 2.0, value: -1 },
+                { min: 2.0, max: 3.0, value: -1.5 },
+                { min: 3.0, max: 4.0, value: -2.5 },
+                { min: 4.0, max: 5.0, value: -3.5 },
+                { min: 5.0, max: 6.0, value: -4.5 },
+                { min: 6.0, max: 7.0, value: -5.5 },
+            ]
+
+            const percentage = thresholds.find(
+                (threshold) =>
+                    currPNL >= threshold.min && currPNL < threshold.max
+            )?.value
+
+            if (percentage) {
+                await handlePosSl(pos, percentage, instrumentInfo)
             }
-            // >= 7 might make sense to add trailing stop?
-
-            if (p) {
-                await handlePosSl(pos, p, instrumentInfo)
-            }
-
-            console.log(' ')
-            console.log('###############################')
-            console.log(' ')
         }
     } catch (error) {
-        console.error('handlePosition failed: ', pos.symbol, error)
+        logger.error('handlePosition failed: ', pos.symbol, error)
     }
 }
 
@@ -235,25 +215,6 @@ const getPosition = async (symbol, settleCoin) => {
 
 module.exports.getPosition = getPosition
 
-// export interface ContractOrderRequest {
-//   symbol: string;
-//   side: OrderSide;
-//   positionIdx?: '0' | '1' | '2';
-//   orderType: UMOrderType;
-//   qty: string;
-//   price?: string;
-//   triggerDirection?: '1' | '2';
-//   triggerPrice?: string;
-//   triggerBy?: string;
-//   tpTriggerBy?: string;
-//   slTriggerBy?: string;
-//   timeInForce: USDCTimeInForce;
-//   orderLinkId?: string;
-//   takeProfit?: string;
-//   stopLoss?: string;
-//   reduceOnly?: boolean;
-//   closeOnTrigger?: boolean;
-// }
 const submitOrder = async ({
     side,
     symbol,
