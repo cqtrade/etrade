@@ -30,6 +30,9 @@
         slcoef (if (System/getenv "SLCOEF")
                  (Double/parseDouble (System/getenv "SLCOEF"))
                  1.0)
+        atr-multiple (if (System/getenv "ATR_MULTIPLE")
+                       (Integer/parseInt (System/getenv "ATR_MULTIPLE"))
+                       -1)
         risk (if (System/getenv "RISK")
                (Integer/parseInt (System/getenv "RISK"))
                1.0)]
@@ -39,6 +42,7 @@
      :rex-sp rex-sp
      :conf-p conf-p
      :conf-cross conf-cross
+     :atr-multiple atr-multiple
      :tpcoef tpcoef
      :slcoef slcoef
      :risk risk}))
