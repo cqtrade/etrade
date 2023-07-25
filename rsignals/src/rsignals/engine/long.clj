@@ -46,7 +46,7 @@
      atrs)))
 
 (defn strategy
-  [{:keys [tdfi-level conf-cross]} coll]
+  [{:keys [tdfi-level conf-cross atr-multiple]} coll]
   (map-indexed
    (fn [idx curr]
      (if (< idx skip-bars)
@@ -149,9 +149,19 @@
              rex1 (-> coll (nth (- idx 1)) :rex)
              rex-sig1 (-> coll (nth (- idx 1)) :rex-sig)
 
+             close0 (-> coll (nth idx) :close)
+             close1 (-> coll (nth (- idx 1)) :close)
+             close-diff (- close0 close1)
+             atr0 (-> coll (nth idx) :atr)
+
+             buy-natural (if (= atr-multiple -1)
+                           true
+                           (< close-diff (* atr-multiple atr0)))
+
              buy (and
                   (>= tdfi0 tdfi-level)
                   (< tdfi1 tdfi-level)
+                  buy-natural
                   #_conf-buy)
 
              exit-buy (and
@@ -258,6 +268,7 @@
                 :conf-cross 1
                 :tpcoef 1
                 :slcoef 1
+                :atr-multiple 1
                 :risk 1}]
     (clojure.pprint/pprint (get-signals t-args)))
 

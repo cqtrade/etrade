@@ -28,6 +28,8 @@ function formatMessage(message) {
 
 async function logToDiscord({
     discordWebhookUrl,
+    additionalDiscordWebhookUrl,
+    additionalDiscordLogLevels,
     level,
     message,
     data,
@@ -59,9 +61,15 @@ async function logToDiscord({
     let retry = 0
     const retryDelay = 5000
 
+    const webhookUrl =
+        additionalDiscordWebhookUrl &&
+        additionalDiscordLogLevels?.includes(level)
+            ? additionalDiscordWebhookUrl
+            : discordWebhookUrl
+
     while (retry <= retryCount) {
         try {
-            const response = await fetch(discordWebhookUrl, {
+            const response = await fetch(webhookUrl, {
                 method: 'POST',
                 body: stringify(logData),
                 headers: {
@@ -99,6 +107,8 @@ async function processLog({
     data,
     discordWebhookUrl,
     discordLogLevels,
+    additionalDiscordWebhookUrl,
+    additionalDiscordLogLevels,
     messageDelay,
 }) {
     const timestamp = new Date().toISOString()
@@ -112,7 +122,8 @@ async function processLog({
     )
 
     const shouldLogToDiscord =
-        discordLogLevels.length && discordLogLevels.includes(level)
+        discordLogLevels?.includes(level) ||
+        additionalDiscordLogLevels?.includes(level)
 
     if (shouldLogToDiscord) {
         enqueueLog(level, message, data)
@@ -127,6 +138,8 @@ async function processLog({
                     setImmediate(() =>
                         logToDiscord({
                             discordWebhookUrl,
+                            additionalDiscordWebhookUrl,
+                            additionalDiscordLogLevels,
                             level,
                             message,
                             data,
@@ -147,18 +160,36 @@ async function processLog({
     }
 }
 
+function hasMatchingValues(firstArray, secondArray) {
+    return firstArray.some((value) => secondArray.includes(value))
+}
+
 function createLogger({
     discordWebhookUrl,
     discordLogLevels = [],
+    additionalDiscordWebhookUrl,
+    additionalDiscordLogLevels = [],
     messageDelay = 0,
 } = {}) {
+    if (hasMatchingValues(discordLogLevels, additionalDiscordLogLevels)) {
+        throw new Error('Duplicate log levels provided')
+    }
+
     if (discordLogLevels.length && !discordWebhookUrl) {
         throw new Error('Discord webhook URL is required')
     }
 
+    if (additionalDiscordLogLevels.length && !additionalDiscordWebhookUrl) {
+        throw new Error('Additional Discord webhook URL is required')
+    }
+
     const validLogLevels = ['debug', 'info', 'warn', 'error']
 
-    if (discordLogLevels.some((level) => !validLogLevels.includes(level))) {
+    if (
+        [...discordLogLevels, ...additionalDiscordLogLevels].some(
+            (level) => !validLogLevels.includes(level)
+        )
+    ) {
         throw new Error('Invalid log level provided')
     }
 
@@ -174,6 +205,8 @@ function createLogger({
                 data,
                 discordWebhookUrl,
                 discordLogLevels,
+                additionalDiscordWebhookUrl,
+                additionalDiscordLogLevels,
                 messageDelay,
             })
         )
