@@ -217,38 +217,31 @@
 (defn get-signals
   [t-args]
   (let [interval "D"
-        tickers (->> ["ATOMUSDT"
-                      "BTCUSDT"
+        tickers (->> ["BTCUSDT"
                       "ETHUSDT"
-                      "LTCUSDT"
-                      "DOGEUSDT"
-                      "ADAUSDT"
-                      "BNBUSDT"
                       "XRPUSDT"
-                      "MATICUSDT"
-                      "LINKUSDT"
-                      "MTLUSDT"
+                      "LTCUSDT"
+                      "ADAUSDT"
+                      "XLMUSDT"
+                      "BNBUSDT"
+
+                                           ; < x 1500
                       "FTMUSDT"
-                      "WAVESUSDT"
-
-                  ;;  ; < 1450
-                      "UNIUSDT"
-                      "SANDUSDT"
-                      "DOTUSDT"
-                      "RENUSDT"
-                      "SOLUSDT"
-                      "BCHUSDT"
-                      "AVAXUSDT"
+                      "LINKUSDT"
+                      "MATICUSDT"
+                      "DOGEUSDT"
                       "COMPUSDT"
-                      "MKRUSDT"
+                      "BCHUSDT"
 
-                   ; < 1000
-                      "LINAUSDT"
+                                           ; < x 1000
+                      "SOLUSDT"
+                      "AAVEUSDT"
+                      "MKRUSDT"
+                      "AVAXUSDT"
                       "INJUSDT"
-                      "RNDRUSDT"
-                      "APTUSDT"
-                      "ARBUSDT"
-                      "APEUSDT"]
+                      "UNIUSDT"
+                      "DOTUSDT"
+                      "SANDUSDT"]
                      set
                      vec)
         xss (get-quotas interval tickers)]
@@ -271,5 +264,6 @@
                 :atr-multiple 1
                 :risk 1}]
     (clojure.pprint/pprint (get-signals t-args)))
+
 
   1)
