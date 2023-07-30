@@ -1,5 +1,6 @@
 (ns rsignals.engine.signals
   (:require
+   [clojure.pprint :as pprint]
    [rsignals.envs :as envs]
    [rsignals.engine.long :as engine.long]
    [rsignals.engine.short :as engine.short]))
@@ -21,12 +22,14 @@
                         (select-keys
                          m
                          [:ticker :sig :risk :atrsl :atrtp :tdfi :exchange :atr :close]))
-                      (engine.long/get-signals the-params-long))]
-    (->> [signals-long signals-short]
+                      (engine.long/get-signals the-params-long))
+        all-sigs [signals-short signals-long]]
+    (pprint/pprint all-sigs)
+    (->> all-sigs
          flatten)))
 
 (comment
   (let [sigs (get-signals)]
-    (clojure.pprint/pprint sigs))
+    (pprint/pprint sigs))
   1)
 
