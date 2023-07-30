@@ -1,5 +1,6 @@
 (ns rsignals.engine.signals
   (:require
+   [clojure.pprint :as pprint]
    [rsignals.envs :as envs]
    [rsignals.engine.long :as engine.long]
    [rsignals.engine.short :as engine.short]))
@@ -10,23 +11,26 @@
 
 (defn get-signals
   []
-  (let [signals-short (mapv
+  (let [sigs-short (engine.short/get-signals the-params-short)
+        signals-short (mapv
                        (fn [m]
                          (select-keys
                           m
                           [:ticker :sig :risk :atrsl :atrtp :tdfi :exchange :atr :close]))
-                       (engine.short/get-signals the-params-short))
+                       sigs-short)
+        sigs-long (engine.long/get-signals the-params-long)
         signals-long (mapv
                       (fn [m]
                         (select-keys
                          m
                          [:ticker :sig :risk :atrsl :atrtp :tdfi :exchange :atr :close]))
-                      (engine.long/get-signals the-params-long))]
-    (->> [signals-long signals-short]
+                      sigs-long)]
+    (pprint/pprint [sigs-short sigs-long])
+    (->> [signals-short signals-long]
          flatten)))
 
 (comment
   (let [sigs (get-signals)]
-    (clojure.pprint/pprint sigs))
+    (pprint/pprint sigs))
   1)
 
