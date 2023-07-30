@@ -11,21 +11,22 @@
 
 (defn get-signals
   []
-  (let [signals-short (mapv
+  (let [sigs-short (engine.short/get-signals the-params-short)
+        signals-short (mapv
                        (fn [m]
                          (select-keys
                           m
                           [:ticker :sig :risk :atrsl :atrtp :tdfi :exchange :atr :close]))
-                       (engine.short/get-signals the-params-short))
+                       sigs-short)
+        sigs-long (engine.long/get-signals the-params-long)
         signals-long (mapv
                       (fn [m]
                         (select-keys
                          m
                          [:ticker :sig :risk :atrsl :atrtp :tdfi :exchange :atr :close]))
-                      (engine.long/get-signals the-params-long))
-        all-sigs [signals-short signals-long]]
-    (pprint/pprint all-sigs)
-    (->> all-sigs
+                      sigs-long)]
+    (pprint/pprint [sigs-short sigs-long])
+    (->> [signals-short signals-long]
          flatten)))
 
 (comment
