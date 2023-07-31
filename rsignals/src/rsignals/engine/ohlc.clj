@@ -148,7 +148,7 @@
   "Kline interval. 1,3,5,15,30,60,120,240,360,720,D,M,W"
   [interval ticker]
   (let [url (format
-             "https://api.bybit.com/v5/market/kline?category=linear&symbol=%s&interval=%s&limit=1000"
+             "https://api.bybit.com/v5/market/kline?category=linear&symbol=%s&interval=%s&limit=500"
              ticker
              interval)
         data (get-request url)
@@ -158,7 +158,7 @@
                   (sort-by first)
                   (mapv
                    (fn [[start open high low close volume]]
-                     {:time start
+                     {:time (Long/valueOf start)
                       :startTime (str (java.util.Date. (Long/valueOf start)))
                       :open (Double/parseDouble open)
                       :high (Double/parseDouble high)
@@ -169,3 +169,47 @@
                       :resolution interval
                       :exchange "BB"})))]
     coll))
+
+(defn time-mappings
+  [ts]
+  (let [{:keys [date month year time]} (bean ts)]
+    {:dt date
+     :mnth (inc month)
+     :yr (+ year 1900)
+     :unix-timestamp time}))
+
+(defn- manual-ds
+  [ts]
+  (let [o (time-mappings ts)
+        d (if (< (:dt o) 10)
+            (str "0" (:dt o))
+            (:dt o))
+        m (if (< (:mnth o) 10)
+            (str "0" (:mnth o))
+            (:mnth o))]
+    (str (:yr o) "-" m "-" d)))
+
+(defn validated-dates
+  [x]
+  (let [today (manual-ds (java.util.Date.))
+        ts (manual-ds (java.util.Date. (Long/valueOf (:time x))))]
+    (if (= today ts)
+      x
+      ; TODO log to DISCORD
+      (throw (Exception. "Date is not today")))))
+
+
+(comment
+  (quot (System/currentTimeMillis) 1000)
+
+  (let [today (manual-ds (java.util.Date.))
+        ts (manual-ds (java.util.Date. (Long/valueOf 1690761600000)))]
+    (validated-dates 1690675200000))
+
+
+
+  (let [interval "D"
+        ticker "XRPUSDT"]
+    (clojure.pprint/pprint
+     (ohcl-bybit-v5 interval ticker)))
+  1)

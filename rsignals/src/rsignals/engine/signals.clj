@@ -25,7 +25,6 @@
                          m
                          [:ticker :sig :risk :atrsl :atrtp :tdfi :exchange :atr :close]))
                       sigs-long)]
-    (pprint/pprint [sigs-short sigs-long])
     (->> [signals-short signals-long]
          flatten)))
 
