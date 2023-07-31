@@ -225,7 +225,7 @@
                       "XLMUSDT"
                       "BNBUSDT"
 
-                                           ; < x 1500
+                     ; < x 1500
                       "FTMUSDT"
                       "LINKUSDT"
                       "MATICUSDT"
@@ -233,7 +233,7 @@
                       "COMPUSDT"
                       "BCHUSDT"
 
-                                           ; < x 1000
+                      ; < x 1000
                       "SOLUSDT"
                       "AAVEUSDT"
                       "MKRUSDT"
@@ -244,26 +244,13 @@
                       "SANDUSDT"]
                      set
                      vec)
-        xss (get-quotas interval tickers)]
-    (->> xss
-         (signals t-args)
-         (mapv (fn [x] (mapv last x)))
-         flatten
-         (remove #(nil? (:sig %))))))
-
-(comment
-
-  (let [t-args {:tdfi-p 2
-                :tdfi-level 1
-                :rex-p 2
-                :rex-sp 2
-                :conf-p 2
-                :conf-cross 1
-                :tpcoef 1
-                :slcoef 1
-                :atr-multiple 1
-                :risk 1}]
-    (clojure.pprint/pprint (get-signals t-args)))
-
-
-  1)
+        xss (get-quotas interval tickers)
+        prepared-signals (->> xss
+                              (signals t-args)
+                              (mapv (fn [x] (mapv last x)))
+                              flatten
+                              (map ohlc/validated-dates)
+                              (remove #(nil? (:sig %))))]
+    (pprint/pprint prepared-signals)
+    (prn "Signals long processed" (count prepared-signals))
+    prepared-signals))
