@@ -1,8 +1,6 @@
-(ns rsignals.envs
+(ns rsignals.engine.envs
   (:require
-   [clojure.pprint :as pprint]
-   [rsignals.engine.long :as engine.long]
-   [rsignals.engine.short :as engine.short]))
+   [clojure.pprint :as pprint]))
 
 (defn get-params-long
   []

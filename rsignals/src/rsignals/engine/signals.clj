@@ -1,7 +1,7 @@
 (ns rsignals.engine.signals
   (:require
    [clojure.pprint :as pprint]
-   [rsignals.envs :as envs]
+   [rsignals.engine.envs :as envs]
    [rsignals.engine.long :as engine.long]
    [rsignals.engine.short :as engine.short]))
 
