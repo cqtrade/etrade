@@ -1,8 +1,9 @@
 (ns rsignals.engine.core
-  (:require [clj-http.client :as client]
+  (:require [cheshire.core :as json]
+            [clj-http.client :as client]
             [clojure.core.async :as async]
-            [cheshire.core :as json]
             [rsignals.engine.signals :as signals]
+            [rsignals.engine.envs :as envs]
             [rsignals.utils :as utils]))
 
 (defn post-signals
@@ -48,6 +49,9 @@
 (defn start-worker
   []
   (Thread/sleep 1000)
+  (prn "########### 1D ###########")
+  (envs/print-envs)
+  (prn "########### -- ###########")
   (let [t (utils/getTimeInUTC)
         c (str (:h t) (:m t) (:s t))
         hour-time? (the-times c)]
