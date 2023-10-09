@@ -46,12 +46,9 @@
                 ;;  "195851"
                  })
 
-(defn start-worker
+(defn start-worker*
   []
   (Thread/sleep 1000)
-  (prn "########### 1D ###########")
-  (envs/print-envs)
-  (prn "########### -- ###########")
   (let [t (utils/getTimeInUTC)
         c (str (:h t) (:m t) (:s t))
         hour-time? (the-times c)]
@@ -59,3 +56,10 @@
       (prn (utils/getTimeInUTC))
       (async/thread (engine))))
   (when @run-engine (recur)))
+
+(defn start-worker
+  []
+  (prn "########### 1D ###########")
+  (envs/print-envs)
+  (prn "########### -- ###########")
+  (start-worker*))
