@@ -1,8 +1,16 @@
-(ns rsignals.engine.ta
+(ns rsignals.tools.ta
   (:require
    [incanter.stats :as stats]
    [rsignals.engine.dstats :as dstats]))
 
+
+  ;; 15 15s 
+  ;;  60 1min
+  ;;  300 5min
+  ;;  900 15min
+  ;;  3600 1h
+  ;;  14400 4h
+  ;;  86400 1D
 
 (defn take-last-x
   [length xs]
@@ -89,7 +97,7 @@
    xs))
 
 (defn rma
-  "baseline"
+  "baseline original"
   [sources period]
   (let [a (/ 1 period)
         a* (- 1 a)]
@@ -105,6 +113,23 @@
                               :sum (+ (* a source) (* a* sum-prev))})))))
           [])
          (mapv #(:sum %)))))
+
+(defn rma*
+  "baseline"
+  [sources period]
+  (let [a (/ 1 period)
+        a' (- 1 a)]
+    (->> sources
+         (reduce-kv
+          (fn [acc idx curr]
+            (let [ema-y (-> acc peek :ma)]
+              (if (or (= idx 0) (nil? ema-y))
+                (conj acc {:ma curr})
+                (if (and curr ema-y)
+                  (conj acc {:ma (float (+ (* curr a) (* ema-y a')))})
+                  (conj acc {:ma curr})))))
+          [])
+         (mapv :ma))))
 
 (defn tr
   [coll]
@@ -185,6 +210,21 @@
         [])
        (mapv #(:rsi %))))
 
+;; (defn rma*
+;;   [xs period]
+;;   (let [alpha (/ 1.0 period)]
+;;     (reductions (fn [prev x] (+ (* alpha x) (* (- 1.0 alpha) prev))) xs)))
+
+;; (defn rsi*
+;;   [^long period ^floats sources]
+;;   (let [changes (map - (rest sources) sources)
+;;         ups (map (comp (partial max 0) first) changes)
+;;         downs (map (comp (partial min 0) second) changes)
+;;         ups-rma (drop (dec period) (rma ups period))
+;;         downs-rma (drop (dec period) (rma (map - downs) period))
+;;         rsi (map (fn [^float u ^float d] (if (zero? d) 100 (- 100 (/ 100 (inc (/ u d)))))) ups-rma downs-rma)]
+;;     (into [nil] rsi)))
+
 (defn rocp
   [period sources]
   (reduce
@@ -229,6 +269,13 @@
               tdf
               htdf)]
     ntdf))
+
+(comment
+  (let [period 2
+        sources [1 2 3 4 5 6 7 8 9 10]]
+    (tdfi period sources))
+
+  1)
 
 (defn smoothed-tdfi [speriod period sources]
   (sma speriod (tdfi period sources)))
@@ -558,6 +605,21 @@
      devs
      basis)))
 
+(defn bb
+  [mult period xs]
+  (let [devs (stdev mult period xs)
+        basis (sma period xs)]
+    (mapv
+     (fn [x dev base]
+       (if (and dev base x)
+         (let [upper (+ base dev)
+               lower (- base dev)]
+           [upper base lower])
+         nil))
+     xs
+     devs
+     basis)))
+
 (defn ssl*-ema
   [period coll]
   (let [highs (mapv :high coll)
@@ -650,3 +712,82 @@
      mas2
      mas3
      atrs)))
+
+; //@version=5
+;; indicator(title="Directional Movement Index", shorttitle="DMI", format=format.price, precision=4, timeframe="", timeframe_gaps=true)
+;; lensig = input.int(14, title="ADX Smoothing", minval=1, maxval=50)
+;; len = input.int(14, minval=1, title="DI Length")
+;; up = ta.change(high)
+;; down = -ta.change(low)
+;; plusDM = na(up) ? na : (up > down and up > 0 ? up : 0)
+;; minusDM = na(down) ? na : (down > up and down > 0 ? down : 0)
+;; trur = ta.rma(ta.tr, len)
+;; plus = fixnan(100 * ta.ema(plusDM, len) / trur)
+;; minus = fixnan(100 * ta.ema(minusDM, len) / trur)
+;; sum = plus + minus
+;; adx = 100 * ta.rma(math.abs(plus - minus) / (sum == 0 ? 1 : sum), lensig)
+;; plot(adx, color=color.purple, title="ADX")
+;; plot(plus, color=#00FF00, title="+DI")
+;; plot(minus, color=#FF0000, title="-DI")
+;; plot(10, color=#FF6D00, title="-DI")
+
+
+(defn dms
+  [period coll]
+  (map-indexed
+   (fn [idx curr]
+     (let [prev-idx (- idx period)]
+       (if (neg-int? prev-idx)
+         [nil nil]
+         (let [up (- (:high curr) (:high (nth coll prev-idx)))
+               down (* -1 (- (:low curr) (:low (nth coll prev-idx))))
+               dm-plus (if (and (> up down) (> up 0)) up 0)
+               dm-minus (if (and (> down up) (> down 0)) down 0)]
+           [dm-plus dm-minus]))))
+   coll))
+
+(defn dmis
+  [period coll]
+  (let [changes (dms 1 coll)
+        trurs (-> coll
+                  vec
+                  tr
+                  (rma* period))
+
+        plus-rmas (-> (mapv first changes)
+                      vec
+                      (rma* period))
+        minus-rmas (-> (mapv second changes)
+                       vec
+                       (rma* period))
+
+        plus-minus (map
+                    (fn [trur plus-rma minus-rma]
+                      (if (and trur plus-rma minus-rma)
+                        [(* 100 (/ plus-rma trur))
+                         (* 100 (/ minus-rma trur))]
+                        [nil nil]))
+                    trurs
+                    plus-rmas
+                    minus-rmas)
+        ]
+    ;; changes
+    plus-minus))
+
+(comment
+
+
+  (let [ticker "BTCUSDT"
+        interval "1d"
+        bound-v 2
+        res (bitbot.rest.read/paginate-spot ticker interval 1 bound-v nil [])
+
+        dmis (dmis 14 res)]
+    (pprint/pprint
+     (mapv
+      (fn [l b]
+        [(:startTime b) l])
+      dmis res)))
+
+
+  1)

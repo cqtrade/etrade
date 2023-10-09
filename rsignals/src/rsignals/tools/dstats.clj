@@ -1,4 +1,4 @@
-(ns rsignals.engine.dstats
+(ns rsignals.tools.dstats
   (:require [incanter.core :as i]))
 
 

@@ -32,7 +32,8 @@
   (let [data (signals/get-signals)]
     (clojure.pprint/pprint data))
 
-  0)
+
+  1)
 
 (def the-times #{"235733"
                 ;;  "035751"
