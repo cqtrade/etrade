@@ -1,22 +1,11 @@
 (ns rsignals.tools.ohlc
   (:require
    [clj-http.client :as client]
-   [cheshire.core :as json]
-   [rsignals.tools.ta :as ta]))
+   [cheshire.core :as json]))
 
 (def bound-values {"1h" 37
                    "4h" 10
                    "1d" 3})
-
-(defn with-indicators
-  [xs]
-  (mapv
-   (fn [d atr tdfi-l]
-     (let [tdfi-l (when tdfi-l (float tdfi-l))]
-       (merge d {:atr atr :tdfi-l tdfi-l})))
-   xs
-   (ta/atr 14 (vec xs))
-   (ta/tdfi 11 (mapv :close xs))))
 
 (defn get-request
   [url]
@@ -46,15 +35,12 @@
        (group-by :time)
        vals
        (mapv first)
-       (sort-by :time)
-       with-indicators
-       (drop-last)))
+       (sort-by :time)))
 
 (defn fin-data
   [ticker interval coll]
   (->> coll
-       (prep-data ticker interval)
-       (drop-last)))
+       (prep-data ticker interval)))
 
 (defn paginate-spot [ticker interval i bound-v endtime coll]
   (if (< i bound-v)
@@ -116,13 +102,6 @@
     "ADAUSDT"
     "BNBUSDT"])
 
-  ;; ; test
-  ;; (let [interval "1d"
-  ;;       bound-v 2
-  ;;       ticker "BTCUSDT"
-  ;;       res (paginate-spot ticker interval 1 bound-v nil [])]
-  ;;   (clojure.pprint/pprint res))
-
   (read-results-edn "BTCUSDT_spot_4h")
 
   (let [res (paginate-spot "BTCUSDT" "4h" 1 2 nil [])]
@@ -131,18 +110,6 @@
 
 
   1)
-
-(defn get-ohcl-from-bybit-v3
-  [ticker interval]
-  (let [url (format
-             "https://api.bybit.com/v2/public/kline/list?symbol=%s&interval=%s&limit=1000"
-             ticker
-             interval)
-        data (get-request url)
-        coll (->> data
-                  :result
-                  :data)]
-    (prep-data ticker interval coll)))
 
 (defn ohcl-bybit-v5
   "Kline interval. 1,3,5,15,30,60,120,240,360,720,D,M,W"
@@ -198,6 +165,13 @@
       ; TODO log to DISCORD
       (throw (Exception. "Date is not today")))))
 
+(defn binance-spot [interval ticker]
+  (let [url (format
+             "https://api.binance.com/api/v3/klines?limit=500&symbol=%s&interval=%s"
+             ticker
+             interval)
+        data (get-request url)]
+    (fin-data ticker interval data)))
 
 (comment
   (quot (System/currentTimeMillis) 1000)
@@ -206,10 +180,15 @@
         ts (manual-ds (java.util.Date. (Long/valueOf 1690761600000)))]
     (validated-dates 1690675200000))
 
-
-
-  (let [interval "D"
+  (let [interval "240"
         ticker "XRPUSDT"]
     (clojure.pprint/pprint
-     (ohcl-bybit-v5 interval ticker)))
+     (take-last 2 (ohcl-bybit-v5 interval ticker))))
+
+
+  (let [interval "4h"
+        ticker "XRPUSDT"]
+    (clojure.pprint/pprint
+     (take-last 2 (binance-spot interval ticker))))
+
   1)

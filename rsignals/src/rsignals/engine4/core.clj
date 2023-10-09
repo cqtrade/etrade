@@ -1,9 +1,9 @@
-(ns rsignals.engine.core
+(ns rsignals.engine4.core
   (:require [cheshire.core :as json]
             [clj-http.client :as client]
             [clojure.core.async :as async]
-            [rsignals.engine.signals :as signals]
-            [rsignals.engine.envs :as envs]
+            [rsignals.engine4.signals :as signals]
+            [rsignals.engine4.envs :as envs]
             [rsignals.utils :as utils]))
 
 (defn post-signals
@@ -21,8 +21,8 @@
   []
   (try
     (let [url (if (System/getenv "APP_DOCKER")
-                "http://njs:3000/signal"
-                "http://0.0.0.0:3000/signal")
+                "http://njs:3000/signal4"
+                "http://0.0.0.0:3000/signal4")
           data (signals/get-signals)]
       (post-signals url data))
     (catch Exception e
@@ -30,14 +30,20 @@
 
 (comment
 
-  (time 
+  (time
    (let [data (signals/get-signals)]
-     (clojure.pprint/pprint data)))
-
+     (clojure.pprint/pprint data))) ; ~ 2 min
 
   1)
 
-(def the-times #{"235503"})
+(def the-times #{"235633"
+                 "035633"
+                 "35633"
+                 "075633"
+                 "75633"
+                 "115633"
+                 "155633"
+                 "195633"})
 
 (defn start-worker*
   []
