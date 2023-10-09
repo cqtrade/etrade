@@ -1,7 +1,7 @@
 (ns rsignals.tools.ta
   (:require
    [incanter.stats :as stats]
-   [rsignals.engine.dstats :as dstats]))
+   [rsignals.tools.dstats :as dstats]))
 
 
   ;; 15 15s 
