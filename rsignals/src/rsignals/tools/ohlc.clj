@@ -2,7 +2,7 @@
   (:require
    [clj-http.client :as client]
    [cheshire.core :as json]
-   [rsignals.engine.ta :as ta]))
+   [rsignals.tools.ta :as ta]))
 
 (def bound-values {"1h" 37
                    "4h" 10
