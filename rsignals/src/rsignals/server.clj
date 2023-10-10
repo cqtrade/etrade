@@ -3,6 +3,7 @@
   (:require [io.pedestal.http :as server]
             [io.pedestal.http.route :as route]
             [rsignals.engine.core :as engine]
+            [rsignals.engine4.core :as engine4]
             [clojure.core.async :as async]
             [rsignals.service :as service]))
 
@@ -34,8 +35,13 @@
 (defn -main
   "The entry-point for 'lein run'"
   [& args]
+
   (println "\nStart worker thread...")
   (async/thread (engine/start-worker))
+
+  (println "\nStart worker thread...")
+  (async/thread (engine4/start-worker))
+
   (println "\nCreating your server...")
   (server/start runnable-service))
 
