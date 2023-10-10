@@ -43,7 +43,7 @@
                  (Double/parseDouble (System/getenv "FL_SLCOEF"))
                  1.0)
         risk (if (System/getenv "FL_RISK")
-               (Integer/parseInt (System/getenv "FL_RISK"))
+               (Double/parseDouble (System/getenv "FL_RISK"))
                1.0)]
     {:tdfi-p tdfi-p
      :tdfi-level tdfi-level
@@ -99,7 +99,7 @@
                  (Double/parseDouble (System/getenv "FS_SLCOEF"))
                  1.0)
         risk (if (System/getenv "FS_RISK")
-               (Integer/parseInt (System/getenv "FS_RISK"))
+               (Double/parseDouble (System/getenv "FS_RISK"))
                1.0)]
     {:tdfi-p tdfi-p
      :tdfi-level tdfi-level
