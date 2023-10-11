@@ -1,7 +1,18 @@
 (ns rsignals.tools.ohlc
   (:require
    [clj-http.client :as client]
-   [cheshire.core :as json]))
+   [cheshire.core :as json])
+  (:import (org.apache.logging.log4j Level
+                                     LogManager)))
+;; https://github.com/dakrone/clj-http#logging
+(defn change-log-level! [logger-name level]
+  (let [ctx (LogManager/getContext false)
+        config (.getConfiguration ctx)
+        logger-config (.getLoggerConfig config logger-name)]
+    (.setLevel logger-config level)
+    (.updateLoggers ctx)))
+
+(change-log-level! LogManager/ROOT_LOGGER_NAME Level/INFO)
 
 (def bound-values {"1h" 37
                    "4h" 10
@@ -167,7 +178,7 @@
 
 (defn binance-spot [interval ticker]
   (let [url (format
-             "https://api.binance.com/api/v3/klines?limit=500&symbol=%s&interval=%s"
+             "https://api.binance.com/api/v3/klines?limit=300&symbol=%s&interval=%s"
              ticker
              interval)
         data (get-request url)]

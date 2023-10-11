@@ -14,6 +14,10 @@
                  ;; [io.pedestal/pedestal.immutant "0.5.11-beta-1"]
                  ;; [io.pedestal/pedestal.tomcat "0.5.11-beta-1"]
                  
+                 [org.apache.logging.log4j/log4j-api "2.11.0"]
+                 [org.apache.logging.log4j/log4j-core "2.11.0"]
+                 [org.apache.logging.log4j/log4j-1.2-api "2.11.0"]
+                 
                  [ch.qos.logback/logback-classic "1.2.10" :exclusions [org.slf4j/slf4j-api]]
                  [org.slf4j/jul-to-slf4j "1.7.35"]
                  [org.slf4j/jcl-over-slf4j "1.7.35"]
