@@ -159,12 +159,17 @@
                      vec)
         xss (get-quotas interval tickers)
         _ (prn "Quotas long received" (count xss))
-        prepared-signals (->> xss
-                              (signals t-args)
-                              (mapv (fn [x] (mapv last x)))
-                              flatten
-                              (map ohlc/validated-dates)
-                              (remove #(nil? (:sig %))))]
+        prepared-signals (try
+                            (->> xss
+                                 (signals t-args)
+                                 (mapv (fn [x] (mapv last x)))
+                                 flatten
+                                 (map ohlc/validated-dates)
+                                 (remove #(nil? (:sig %))))
+                            (catch Exception e
+                              (prn e
+                                   (str "Exception sigs: " (.getMessage e)))
+                              []))]
     (pprint/pprint prepared-signals)
     (prn "Signals long processed" (count prepared-signals))
     prepared-signals))

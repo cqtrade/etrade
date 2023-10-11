@@ -197,11 +197,11 @@
                                  (signals t-args)
                                  (mapv (fn [x] (mapv last x)))
                                  flatten
-                                ;;  (map ohlc/validated-dates)
-                                ;;  (remove #(nil? (:sig %)))
-                                 )
+                                 (map ohlc/validated-dates)
+                                 (remove #(nil? (:sig %))))
                             (catch Exception e
-                              (str "caught exception: " (.getMessage e))
+                              (prn e
+                                   (str "Exception sigs: " (.getMessage e)))
                               []))]
     (pprint/pprint prepared-signals)
     (prn "Signals short processed" (count prepared-signals))
