@@ -51,15 +51,19 @@
    (fn [idx curr]
      (if (< idx skip-bars)
        curr
-       (let [conf<0 (crosses/crossunder :conf 0 conf-cross idx coll)
-             tdfi<level (crosses/crossunder0 :tdfi tdfi-level idx coll)
-             rex0 (-> coll (nth idx) :rex)
-             rex1 (-> coll (nth (- idx 1)) :rex)
-             rex-sell (< rex0 rex1)
-             sell (and tdfi<level rex-sell conf<0)
-             exit-sell (crosses/crossover0 :rex :rex-sig idx coll)
-             sig (cond sell -1 exit-sell 2 :else 0)]
-         (merge curr {:sell sell :exit-sell exit-sell :sig sig}))))
+       (try
+         (let [conf<0 (crosses/crossunder :conf 0 conf-cross idx coll)
+               tdfi<level (crosses/crossunder0 :tdfi tdfi-level idx coll)
+               rex0 (-> coll (nth idx) :rex)
+               rex1 (-> coll (nth (- idx 1)) :rex)
+               rex-sell (< rex0 rex1)
+               sell (and tdfi<level rex-sell conf<0)
+               exit-sell (crosses/crossover0 :rex :rex-sig idx coll)
+               sig (cond sell -1 exit-sell 2 :else 0)]
+           (merge curr {:sell sell :exit-sell exit-sell :sig sig}))
+         (catch Exception e
+           (prn e (str "Exception D short strategy: " (.getMessage e)))
+           curr))))
    coll))
 
 (defn e-indies [t-args xs-prepped]

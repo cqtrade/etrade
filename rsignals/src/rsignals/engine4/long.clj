@@ -59,22 +59,21 @@
    (fn [idx curr]
      (if (< idx skip-bars)
        curr
-       (let [exit-buy (or
-                       (crosses/crossunder0 :rex :rex-sig idx coll)
-                       (crosses/crossunder0 :close :baseline idx coll))
-
-             close>baseline (crosses/crossover :close :baseline baseline-cross idx coll)
-
-             tdfi>level (crosses/crossover :tdfi tdfi-level tdfi-cross idx coll)
-
-             trade-natural? (crosses/trade-natural? atr-multiple idx coll)
-
-             buy (and (not exit-buy)
-                      trade-natural?
-                      tdfi>level
-                      close>baseline)
-             sig (cond buy 1 exit-buy -2 :else 0)]
-         (merge curr {:buy buy :exit-buy exit-buy :sig sig}))))
+       (try
+         (let [exit-buy (or (crosses/crossunder0 :rex :rex-sig idx coll)
+                            (crosses/crossunder0 :close :baseline idx coll))
+               close>baseline (crosses/crossover :close :baseline baseline-cross idx coll)
+               tdfi>level (crosses/crossover :tdfi tdfi-level tdfi-cross idx coll)
+               trade-natural? (crosses/trade-natural? atr-multiple idx coll)
+               buy (and (not exit-buy)
+                        trade-natural?
+                        tdfi>level
+                        close>baseline)
+               sig (cond buy 1 exit-buy -2 :else 0)]
+           (merge curr {:buy buy :exit-buy exit-buy :sig sig}))
+         (catch Exception e
+           (prn e (str "Exception 4 long strategy: " (.getMessage e)))
+           curr))))
    coll))
 
 (defn e-indies [t-args xs-prepped]
@@ -160,16 +159,16 @@
         xss (get-quotas interval tickers)
         _ (prn "Quotas long received" (count xss))
         prepared-signals (try
-                            (->> xss
-                                 (signals t-args)
-                                 (mapv (fn [x] (mapv last x)))
-                                 flatten
-                                 (map ohlc/validated-dates)
-                                 (remove #(nil? (:sig %))))
-                            (catch Exception e
-                              (prn e
-                                   (str "Exception sigs: " (.getMessage e)))
-                              []))]
+                           (->> xss
+                                (signals t-args)
+                                (mapv (fn [x] (mapv last x)))
+                                flatten
+                                (map ohlc/validated-dates)
+                                (remove #(nil? (:sig %))))
+                           (catch Exception e
+                             (prn e
+                                  (str "Exception sigs: " (.getMessage e)))
+                             []))]
     (pprint/pprint prepared-signals)
     (prn "Signals long processed" (count prepared-signals))
     prepared-signals))
