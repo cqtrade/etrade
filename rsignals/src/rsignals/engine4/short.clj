@@ -106,7 +106,7 @@
   (let [interval "4"
         tickers ["ARBUSDT"
                  "CRVUSDT"
-                
+
                  "THETAUSDT"
                  "IMXUSDT"
                  "FLMUSDT"
@@ -115,7 +115,7 @@
                  "KNCUSDT"
                  "FRONTUSDT"
                  "BLZUSDT"
-                
+
                  "BTCUSDT"
                  "ETHUSDT"
                  "XRPUSDT"
@@ -123,7 +123,7 @@
                  "ADAUSDT"
                  "XLMUSDT"
                  "BNBUSDT"
-                
+
                                      ; < x 1500
                  "FTMUSDT"
                  "LINKUSDT"
@@ -132,7 +132,7 @@
                  "COMPUSDT"
                  "BCHUSDT"
                  "HBARUSDT"
-                
+
                                       ; < x 1000
                  "SOLUSDT"
                  "AAVEUSDT"
@@ -151,7 +151,7 @@
   (let [interval "4h"
         tickers (->> ["ARBUSDT"
                       "CRVUSDT"
-                      
+
                       "THETAUSDT"
                       "IMXUSDT"
                       "FLMUSDT"
@@ -160,7 +160,7 @@
                       "KNCUSDT"
                       "FRONTUSDT"
                       "BLZUSDT"
-                      
+
                       "BTCUSDT"
                       "ETHUSDT"
                       "XRPUSDT"
@@ -168,7 +168,7 @@
                       "ADAUSDT"
                       "XLMUSDT"
                       "BNBUSDT"
-                      
+
                                           ; < x 1500
                       "FTMUSDT"
                       "LINKUSDT"
@@ -177,7 +177,7 @@
                       "COMPUSDT"
                       "BCHUSDT"
                       "HBARUSDT"
-                      
+
                                            ; < x 1000
                       "SOLUSDT"
                       "AAVEUSDT"
@@ -192,12 +192,17 @@
                      vec)
         xss (get-quotas interval tickers)
         _ (prn "Quotas short received" (count xss))
-        prepared-signals (->> xss
-                              (signals t-args)
-                              (mapv (fn [x] (mapv last x)))
-                              flatten
-                              (map ohlc/validated-dates)
-                              (remove #(nil? (:sig %))))]
+        prepared-signals  (try
+                            (->> xss
+                                 (signals t-args)
+                                 (mapv (fn [x] (mapv last x)))
+                                 flatten
+                                ;;  (map ohlc/validated-dates)
+                                ;;  (remove #(nil? (:sig %)))
+                                 )
+                            (catch Exception e
+                              (str "caught exception: " (.getMessage e))
+                              []))]
     (pprint/pprint prepared-signals)
     (prn "Signals short processed" (count prepared-signals))
     prepared-signals))
