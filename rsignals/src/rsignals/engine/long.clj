@@ -1,7 +1,6 @@
 (ns rsignals.engine.long
   (:require [clojure.pprint :as pprint]
             [rsignals.tools.crosses :as crosses]
-            [rsignals.tools.ohlc :as ohlc]
             [rsignals.tools.ta :as ta]))
 
 (defn prep-datasets
@@ -17,7 +16,7 @@
          vals
          (mapv #(vec (sort-by :time %))))))
 
-(def skip-bars 50)
+(def skip-bars 200)
 
 (defn indicators
   [{:keys [tdfi-p rex-p rex-sp conf-p tpcoef slcoef risk]} coll]
@@ -79,67 +78,12 @@
                          prep-datasets)]
     (doall (pmap #(e-indies % xss-prepped) [t-args]))))
 
-(defn get-quotas
-  [interval tickers]
-  (->> tickers
-       (mapv
-        (fn [ticker]
-          (Thread/sleep 133)
-          (try
-            (ohlc/ohcl-bybit-v5 interval ticker)
-            (catch Exception e
-              (println "error" ticker (-> e .getMessage))
-              (flush)
-              (Thread/sleep 1000)
-              []))))
-       (remove empty?)))
-
-(comment
-  (let [interval "D"
-        tickers ["LINsAUSDT"
-
-                 "RNDRUSDT"]]
-    (get-quotas interval tickers))
-  1)
-
 (defn get-signals
-  [t-args]
-  (let [interval "D"
-        tickers (->> ["BTCUSDT"
-                      "ETHUSDT"
-                      "XRPUSDT"
-                      "LTCUSDT"
-                      "ADAUSDT"
-                      "XLMUSDT"
-                      "BNBUSDT"
-
-                     ; < x 1500
-                      "FTMUSDT"
-                      "LINKUSDT"
-                      "MATICUSDT"
-                      "DOGEUSDT"
-                      "COMPUSDT"
-                      "BCHUSDT"
-                      "HBARUSDT"
-
-                      ; < x 1000
-                      "SOLUSDT"
-                      "AAVEUSDT"
-                      "MKRUSDT"
-                      "AVAXUSDT"
-                      "INJUSDT"
-                      "UNIUSDT"
-                      "DOTUSDT"
-                      "SANDUSDT"
-                      "RUNEUSDT"]
-                     set
-                     vec)
-        xss (get-quotas interval tickers)
-        prepared-signals (->> xss
+  [t-args xss]
+  (let [prepared-signals (->> xss
                               (signals t-args)
                               (mapv (fn [x] (mapv last x)))
                               flatten
-                              (map ohlc/validated-dates)
                               (remove #(nil? (:sig %))))]
     (pprint/pprint prepared-signals)
     (prn "Signals long processed" (count prepared-signals))
