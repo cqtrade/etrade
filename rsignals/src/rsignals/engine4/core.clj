@@ -35,39 +35,3 @@
      (clojure.pprint/pprint data))) ; ~ 2 min
 
   1)
-
-(def the-times #{"235633"
-                 "035633"
-                 "35633"
-                 "075633"
-                 "75633"
-                 "115633"
-                 "155633"
-                 "195633"})
-
-(defn start-worker*
-  []
-  (Thread/sleep 1000)
-  (let [t (utils/getTimeInUTC)
-        c (str (:h t) (:m t) (:s t))
-        hour-time? (the-times c)]
-    (when hour-time?
-      (prn (utils/getTimeInUTC))
-      (async/thread (engine))))
-  (when @run-engine (recur)))
-
-(defn start-worker
-  []
-  (prn "########### 4h ###########")
-  (envs/print-envs)
-  (prn "########### -- ###########")
-  (start-worker*))
-
-(comment
-  (engine)
-
-
-  (envs/print-envs)
-
-
-  1)
