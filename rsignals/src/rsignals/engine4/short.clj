@@ -59,17 +59,21 @@
    (fn [idx curr]
      (if (< idx skip-bars)
        curr
-       (let [exit-sell (or (crosses/crossover0 :rex :rex-sig idx coll)
-                           (crosses/crossover0 :close :baseline idx coll))
-             close<baseline (crosses/crossunder :close :baseline baseline-cross idx coll)
-             tdfi<level (crosses/crossunder :tdfi tdfi-level tdfi-cross idx coll)
-             trade-natural? (crosses/trade-natural? atr-multiple idx coll)
-             sell (and (not exit-sell)
-                       trade-natural?
-                       tdfi<level
-                       close<baseline)
-             sig (cond sell -1 exit-sell 2 :else 0)]
-         (merge curr {:sell sell :exit-sell exit-sell :sig sig}))))
+       (try
+         (let [exit-sell (or (crosses/crossover0 :rex :rex-sig idx coll)
+                             (crosses/crossover0 :close :baseline idx coll))
+               close<baseline (crosses/crossunder :close :baseline baseline-cross idx coll)
+               tdfi<level (crosses/crossunder :tdfi tdfi-level tdfi-cross idx coll)
+               trade-natural? (crosses/trade-natural? atr-multiple idx coll)
+               sell (and (not exit-sell)
+                         trade-natural?
+                         tdfi<level
+                         close<baseline)
+               sig (cond sell -1 exit-sell 2 :else 0)]
+           (merge curr {:sell sell :exit-sell exit-sell :sig sig}))
+         (catch Exception e
+           (prn e (str "Exception 4 short strategy: " (.getMessage e)))
+           curr))))
    coll))
 
 (defn e-indies [t-args xs-prepped]
