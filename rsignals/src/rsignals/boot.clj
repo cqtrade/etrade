@@ -5,17 +5,19 @@
             [rsignals.engine.envs :as d-envs]
             [rsignals.utils :as utils]))
 
+
 (def the-daily-times
-  #{"235503"})
+  #{"235510"})
 
 (def the-4hourly-times
-  #{"035633"
-    "35633"
-    "075633"
-    "75633"
-    "115633"
-    "155633"
-    "195633"})
+  #{"132513"
+    "035613"
+    "35613"
+    "075613"
+    "75613"
+    "115613"
+    "155613"
+    "195613"})
 
 (defn worker
   []
@@ -23,10 +25,19 @@
         c (str (:h t) (:m t) (:s t))
         daily-time? (the-daily-times c)
         hourly4-time? (the-4hourly-times c)]
+
     (when daily-time?
-      (prn "DAILY & 4H SIGNALS" t)
+      (prn "DAILY SIGNALS START" t)
       (engine-daily/engine)
-      (engine-4hourly/engine))
+      (prn "DAILY SIGNALS DONE")
+      (Thread/sleep 103))
+    (when daily-time?
+      (prn "4H SIGNALS START" t)
+      (engine-4hourly/engine)
+      (prn "4H SIGNALS DONE")
+      (Thread/sleep 103))
+
+
     (when hourly4-time?
       (prn "4H SIGNALS" t)
       (engine-4hourly/engine))
@@ -41,7 +52,9 @@
   (worker))
 
 (comment
-  (engine-4hourly/engine)
-  
-  1
-  )
+
+  (start)
+
+  (utils/getTimeInUTC)
+
+  1)
