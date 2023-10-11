@@ -6,14 +6,15 @@
             [rsignals.utils :as utils]))
 
 
+(def test-time
+  (System/getenv "TEST_TIME"))
+
 (def the-daily-times
   #{"235510"})
 
 (def the-4hourly-times
-  #{"142113"
-    "035613"
+  #{test-time
     "35613"
-    "075613"
     "75613"
     "115613"
     "155613"
