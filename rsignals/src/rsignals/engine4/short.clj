@@ -75,7 +75,7 @@
 (defn e-indies [t-args xs-prepped]
   (let [xs-indicators (doall (map #(indicators t-args %) xs-prepped))]
     (doall
-     (map
+     (mapv
       #(let [xs (strategy t-args %)]
          xs)
       xs-indicators))))
@@ -85,7 +85,7 @@
   (let [xss-prepped (->> xss
                          (filter #(> (count %) 70))
                          prep-datasets)]
-    (doall (pmap #(e-indies % xss-prepped) [t-args]))))
+    (mapv #(e-indies % xss-prepped) [t-args])))
 
 (defn get-quotas
   [interval tickers]
@@ -151,7 +151,7 @@
   (let [interval "4h"
         tickers (->> ["ARBUSDT"
                       "CRVUSDT"
-                     
+                      
                       "THETAUSDT"
                       "IMXUSDT"
                       "FLMUSDT"
@@ -160,7 +160,7 @@
                       "KNCUSDT"
                       "FRONTUSDT"
                       "BLZUSDT"
-                     
+                      
                       "BTCUSDT"
                       "ETHUSDT"
                       "XRPUSDT"
@@ -168,7 +168,7 @@
                       "ADAUSDT"
                       "XLMUSDT"
                       "BNBUSDT"
-                     
+                      
                                           ; < x 1500
                       "FTMUSDT"
                       "LINKUSDT"
@@ -177,7 +177,7 @@
                       "COMPUSDT"
                       "BCHUSDT"
                       "HBARUSDT"
-                     
+                      
                                            ; < x 1000
                       "SOLUSDT"
                       "AAVEUSDT"
@@ -191,6 +191,7 @@
                      set
                      vec)
         xss (get-quotas interval tickers)
+        _ (prn "Quotas short received" (count xss))
         prepared-signals (->> xss
                               (signals t-args)
                               (mapv (fn [x] (mapv last x)))

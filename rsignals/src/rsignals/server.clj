@@ -3,7 +3,7 @@
   (:require [io.pedestal.http :as server]
             [io.pedestal.http.route :as route]
             [rsignals.boot :as boot]
-            ;; [clojure.core.async :as async]
+            [clojure.core.async :as async]
             [rsignals.service :as service]))
 
 ;; This is an adapted service map, that can be started and stopped
@@ -34,10 +34,9 @@
 (defn -main
   "The entry-point for 'lein run'"
   [& args]
-  ;; (async/thread (boot/start))
+  (async/thread (boot/start))
   ;; (println "\nCreating your server...")
-  ;; (server/start runnable-service)
-  (boot/start))
+  (server/start runnable-service))
 
 ;; If you package the service up as a WAR,
 ;; some form of the following function sections is required (for io.pedestal.servlet.ClojureVarServlet).
