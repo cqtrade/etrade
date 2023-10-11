@@ -90,7 +90,7 @@
   (let [xss-prepped (->> xss
                          (filter #(> (count %) 70))
                          prep-datasets)]
-    (doall (pmap #(e-indies % xss-prepped) [t-args]))))
+    (mapv #(e-indies % xss-prepped) [t-args])))
 
 (defn get-quotas
   [interval tickers]
@@ -158,6 +158,7 @@
                      set
                      vec)
         xss (get-quotas interval tickers)
+        _ (prn "Quotas long received" (count xss))
         prepared-signals (->> xss
                               (signals t-args)
                               (mapv (fn [x] (mapv last x)))
