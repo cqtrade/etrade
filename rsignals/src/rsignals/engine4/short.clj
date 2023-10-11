@@ -17,7 +17,7 @@
          vals
          (mapv #(vec (sort-by :time %))))))
 
-(def skip-bars 50)
+(def skip-bars 200)
 
 (defn indicators
   [{:keys [tdfi-p rex-p rex-sp baseline-p baseline-type
@@ -91,121 +91,16 @@
                          prep-datasets)]
     (mapv #(e-indies % xss-prepped) [t-args])))
 
-(defn get-quotas
-  [interval tickers]
-  (->> tickers
-       (mapv
-        (fn [ticker]
-          (Thread/sleep 133)
-          (try
-            (ohlc/binance-spot interval ticker)
-            (catch Exception e
-              (println "error" ticker (-> e .getMessage))
-              (flush)
-              (Thread/sleep 1000)
-              []))))
-       (remove empty?)))
-
-(comment
-  (let [interval "4"
-        tickers ["ARBUSDT"
-                 "CRVUSDT"
-
-                 "THETAUSDT"
-                 "IMXUSDT"
-                 "FLMUSDT"
-                 "STMXUSDT"
-                 "TRBUSDT"
-                 "KNCUSDT"
-                 "FRONTUSDT"
-                 "BLZUSDT"
-
-                 "BTCUSDT"
-                 "ETHUSDT"
-                 "XRPUSDT"
-                 "LTCUSDT"
-                 "ADAUSDT"
-                 "XLMUSDT"
-                 "BNBUSDT"
-
-                                     ; < x 1500
-                 "FTMUSDT"
-                 "LINKUSDT"
-                 "MATICUSDT"
-                 "DOGEUSDT"
-                 "COMPUSDT"
-                 "BCHUSDT"
-                 "HBARUSDT"
-
-                                      ; < x 1000
-                 "SOLUSDT"
-                 "AAVEUSDT"
-                 "MKRUSDT"
-                 "AVAXUSDT"
-                 "INJUSDT"
-                 "UNIUSDT"
-                 "DOTUSDT"
-                 "SANDUSDT"
-                 "RUNEUSDT"]]
-    (get-quotas interval tickers))
-  1)
-
 (defn get-signals
-  [t-args]
-  (let [interval "4h"
-        tickers (->> ["ARBUSDT"
-                      "CRVUSDT"
-
-                      "THETAUSDT"
-                      "IMXUSDT"
-                      "FLMUSDT"
-                      "STMXUSDT"
-                      "TRBUSDT"
-                      "KNCUSDT"
-                      "FRONTUSDT"
-                      "BLZUSDT"
-
-                      "BTCUSDT"
-                      "ETHUSDT"
-                      "XRPUSDT"
-                      "LTCUSDT"
-                      "ADAUSDT"
-                      "XLMUSDT"
-                      "BNBUSDT"
-
-                                          ; < x 1500
-                      "FTMUSDT"
-                      "LINKUSDT"
-                      "MATICUSDT"
-                      "DOGEUSDT"
-                      "COMPUSDT"
-                      "BCHUSDT"
-                      "HBARUSDT"
-
-                                           ; < x 1000
-                      "SOLUSDT"
-                      "AAVEUSDT"
-                      "MKRUSDT"
-                      "AVAXUSDT"
-                      "INJUSDT"
-                      "UNIUSDT"
-                      "DOTUSDT"
-                      "SANDUSDT"
-                      "RUNEUSDT"]
-                     set
-                     vec)
-        xss (get-quotas interval tickers)
-        _ (prn "Quotas short received" (count xss))
-        prepared-signals  (try
+  [t-args xss]
+  (let [prepared-signals  (try
                             (->> xss
                                  (signals t-args)
                                  (mapv (fn [x] (mapv last x)))
                                  flatten
-                                 (map ohlc/validated-dates)
                                  (remove #(nil? (:sig %))))
                             (catch Exception e
-                              (prn e
-                                   (str "Exception sigs: " (.getMessage e)))
+                              (prn e (str "Exception sigs: " (.getMessage e)))
                               []))]
     (pprint/pprint prepared-signals)
     (prn "Signals short processed" (count prepared-signals))
