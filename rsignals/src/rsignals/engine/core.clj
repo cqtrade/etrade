@@ -36,23 +36,3 @@
 
 
   1)
-
-(def the-times #{"235503"})
-
-(defn start-worker*
-  []
-  (Thread/sleep 1000)
-  (let [t (utils/getTimeInUTC)
-        c (str (:h t) (:m t) (:s t))
-        hour-time? (the-times c)]
-    (when hour-time?
-      (prn (utils/getTimeInUTC))
-      (async/thread (engine))))
-  (when @run-engine (recur)))
-
-(defn start-worker
-  []
-  (prn "########### 1D ###########")
-  (envs/print-envs)
-  (prn "########### -- ###########")
-  (start-worker*))
