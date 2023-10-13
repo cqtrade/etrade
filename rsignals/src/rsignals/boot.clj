@@ -1,8 +1,10 @@
 (ns rsignals.boot
-  (:require [rsignals.engine.core :as engine-daily]
+  (:require [clojure.core.async :as async]
+            [rsignals.engine.core :as engine-daily]
+            [rsignals.engine.envs :as d-envs]
             [rsignals.engine4.core :as engine-4hourly]
             [rsignals.engine4.envs :as h4-envs]
-            [rsignals.engine.envs :as d-envs]
+            [rsignals.tools.discord :as discord]
             [rsignals.utils :as utils]))
 
 
@@ -50,6 +52,7 @@
   (prn "############## START BOOT ##############")
   (d-envs/print-envs)
   (h4-envs/print-envs)
+  (async/go (discord/loop-messages))
   (worker))
 
 (comment

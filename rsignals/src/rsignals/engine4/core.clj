@@ -1,10 +1,8 @@
 (ns rsignals.engine4.core
   (:require [cheshire.core :as json]
             [clj-http.client :as client]
-            [clojure.core.async :as async]
             [rsignals.engine4.signals :as signals]
-            [rsignals.engine4.envs :as envs]
-            [rsignals.utils :as utils]))
+            [rsignals.tools.discord :as discord]))
 
 (defn post-signals
   [url body]
@@ -15,8 +13,6 @@
               :throw-entire-message? true})]
     (json/parse-string (:body res) true)))
 
-(def run-engine (atom true))
-
 (defn engine
   []
   (try
@@ -24,9 +20,10 @@
                 "http://njs:3000/signal4"
                 "http://0.0.0.0:3000/signal4")
           data (signals/get-signals)]
-      (post-signals url data))
+      (post-signals url data)
+      (discord/log-signals "4h" data))
     (catch Exception e
-      (str "Exception engine: " (.getMessage e)))))
+      (prn (str "Exception engine 4h: " (.getMessage e))))))
 
 (comment
 
