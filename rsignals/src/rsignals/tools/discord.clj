@@ -35,7 +35,7 @@
   (let [res (client/post
              webhook-url
              {:headers {:content-type "application/json"}
-              :body (json/generate-string {:content (str "```" message "```")})
+              :body (json/generate-string {:content message})
               :throw-entire-message? true})]
     (json/parse-string (:body res) true)))
 
@@ -46,8 +46,8 @@
     (try
       (let [webhook (System/getenv "DISCORD_WEBHOOK_URL")
             message (pop-the-first the-queue)]
-        (if (and message webhook)
-          (post-to-discord webhook message)
+        (when (and message webhook)
+          (post-to-discord webhook (str "```" message "```"))
           (pp/pprint message)))
       (catch Exception e
         (pp/pprint
@@ -64,13 +64,13 @@
   (subs s 0 (- (count s) 4)))
 
 (defn log-signals [tf signals]
-  ; todo add some more stats based on the signals
   (log
    (str tf " signals\n"
         (with-out-str
           (clojure.pprint/print-table
            ["Buy" "Sell" "Ex B" "Ex S"]
            (->> signals
+                (remove #(= (:sig %) 0))
                 (map #(-> {(case (:sig %)
                              1 "Buy"
                              -1 "Sell"
