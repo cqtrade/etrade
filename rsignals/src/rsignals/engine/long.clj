@@ -19,19 +19,17 @@
 (def skip-bars 200)
 
 (defn indicators
-  [{:keys [tdfi-p rex-p rex-sp conf-p tpcoef slcoef risk]} coll]
+  [{:keys [tdfi-p rex-p rex-sp tpcoef slcoef risk]} coll]
   (let [closes (mapv :close coll)
         tdfis (ta/tdfi tdfi-p closes)
         rexs (ta/rex-sma rex-p coll)
         rex-sigss (ta/sma rex-sp rexs)
-        confs (ta/ssl*-ema conf-p coll)
         atrs (ta/atr 14 coll)]
     (mapv
-     (fn [d tdfi rex rex-sig conf atr]
+     (fn [d tdfi rex rex-sig atr]
        (merge d {:tdfi tdfi
                  :rex rex
                  :rex-sig rex-sig
-                 :conf conf
                  :atr atr
                  :atrtp (* atr tpcoef)
                  :atrsl (* atr slcoef)
@@ -41,21 +39,21 @@
      tdfis
      rexs
      rex-sigss
-     confs
      atrs)))
 
 (defn strategy
-  [{:keys [tdfi-level conf-cross atr-multiple]} coll]
+  [{:keys [tdfi-level atr-multiple]} coll]
   (map-indexed
    (fn [idx curr]
      (if (< idx skip-bars)
        curr
        (try
          (let [exit-buy (crosses/crossunder0 :rex :rex-sig idx coll)
-               conf>0 (crosses/crossover :conf 0 conf-cross idx coll)
                tdfi>level (crosses/crossover0 :tdfi tdfi-level idx coll)
                trade-natural? (crosses/trade-natural? atr-multiple idx coll)
-               buy (and conf>0 trade-natural? tdfi>level)
+               buy (and (> (:rex curr) (:rex-sig curr))
+                        trade-natural?
+                        tdfi>level)
                sig (cond buy 1 exit-buy -2 :else 0)]
            (merge curr {:buy buy :exit-buy exit-buy :sig sig}))
          (catch Exception e

@@ -16,12 +16,6 @@
         rex-sp (if (System/getenv "REX_SP")
                  (Integer/parseInt (System/getenv "REX_SP"))
                  5)
-        conf-p (if (System/getenv "CONF_P")
-                 (Integer/parseInt (System/getenv "CONF_P"))
-                 10)
-        conf-cross (if (System/getenv "CONF_CROSS")
-                     (Integer/parseInt (System/getenv "CONF_CROSS"))
-                     -1)
         tpcoef (if (System/getenv "TPCOEF")
                  (Double/parseDouble (System/getenv "TPCOEF"))
                  1.0)
@@ -38,8 +32,6 @@
      :tdfi-level tdfi-level
      :rex-p rex-p
      :rex-sp rex-sp
-     :conf-p conf-p
-     :conf-cross conf-cross
      :atr-multiple atr-multiple
      :tpcoef tpcoef
      :slcoef slcoef
