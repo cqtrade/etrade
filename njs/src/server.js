@@ -1,5 +1,6 @@
 const fastify = require('fastify');
 const trade = require('./tradebb/index')
+const tradeBinance = require('./tradebinance/index')
 const logger = require('./logger.js')
 const { sleep } = require('./utils.js')
 
@@ -32,26 +33,29 @@ server.post(
         }, 0);
     });
 
-    server.post(
-        '/signal4',
-        {},
-        async (request, reply) => {
-            reply.code(201).send({ status: 'OK' });
-            setTimeout(() => {
-                (async () => {
-                    try {
-                        console.log('request.body', request.body);
-                        if (request.body instanceof Array) {
-                            // TODO: handle signal
-                            logger.info(`4 Signals received: ${request.body.length}`);
-                            return;
+server.post(
+    '/signal4',
+    {},
+    async (request, reply) => {
+        reply.code(201).send({ status: 'OK' });
+        setTimeout(() => {
+            (async () => {
+                try {
+                    console.log('request.body', request.body);
+                    if (request.body instanceof Array) {
+                        for (const sig of request.body) {
+                            await tradeBinance.signalHandler(sig);
+                            await sleep(1000);
                         }
-                    } catch (e) {
-                        logger.error('4 signal handler error ' + e.message);
+                        logger.info(`4 Signals received: ${request.body.length}`);
+                        return;
                     }
-                })().catch();
-            }, 0);
-        });
+                } catch (e) {
+                    logger.error('4 signal handler error ' + e.message);
+                }
+            })().catch();
+        }, 0);
+    });
 
 function bootServer() {
     server.listen(3000, '0.0.0.0', (err, address) => {
