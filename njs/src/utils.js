@@ -1,10 +1,9 @@
-const sleep = (delay) => new Promise((resolve) =>
-    setTimeout(resolve, delay))
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 module.exports.sleep = sleep
 
 const countDecimals = (num) => {
-    const numAsString = num.toString();
+    const numAsString = num.toString()
 
     // Check if the number has a decimal point
     if (numAsString.includes('.')) {

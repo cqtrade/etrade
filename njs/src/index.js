@@ -4,7 +4,7 @@ const server = require('./server.js')
 
 if (process.env.TRAIL) {
     // USDC positions trailing stop
-    trailing.engine();
+    trailing.engine()
 }
 
 // USDT positions check
