@@ -1,6 +1,6 @@
 (ns rsignals.engine.envs
-  (:require
-   [clojure.pprint :as pprint]))
+  (:require [clojure.pprint :as pprint]
+            [clojure.string :as str]))
 
 (defn get-params-long
   []
@@ -76,7 +76,73 @@
      :slcoef slcoef
      :risk risk}))
 
+(defn get-tickers
+  []
+  (let [tickers-str (or (System/getenv "TICKERS_D_BB")
+                        (str/join "," ["BTCUSDT"
+                                       "ETHUSDT"
+                                       "XRPUSDT"
+                                       "LTCUSDT"
+                                       "ADAUSDT"
+                                       "XLMUSDT"
+                                       "BNBUSDT"
+
+                                       "FTMUSDT"
+                                       "LINKUSDT"
+                                       "MATICUSDT"
+                                       "DOGEUSDT"
+                                       "COMPUSDT"
+                                       "BCHUSDT"
+                                       "HBARUSDT"
+
+                                       "SOLUSDT"
+                                       "AAVEUSDT"
+                                       "MKRUSDT"
+                                       "AVAXUSDT"
+                                       "INJUSDT"
+                                       "UNIUSDT"
+                                       "DOTUSDT"
+                                       "SANDUSDT"
+                                       "RUNEUSDT"]))]
+    (vec (set (str/split tickers-str #",")))))
+
+
 (defn print-envs
   []
+  (prn "########### Daily ###########")
+  (pprint/pprint (get-tickers))
   (pprint/pprint (get-params-long))
-  (pprint/pprint (get-params-short)))
+  (pprint/pprint (get-params-short))
+  (prn "######################"))
+
+(comment
+  (print-envs)
+
+  (str/join "," ["BTCUSDT"
+                 "ETHUSDT"
+                 "XRPUSDT"
+                 "LTCUSDT"
+                 "ADAUSDT"
+                 "XLMUSDT"
+                 "BNBUSDT"
+
+
+                 "FTMUSDT"
+                 "LINKUSDT"
+                 "MATICUSDT"
+                 "DOGEUSDT"
+                 "COMPUSDT"
+                 "BCHUSDT"
+                 "HBARUSDT"
+
+
+                 "SOLUSDT"
+                 "AAVEUSDT"
+                 "MKRUSDT"
+                 "AVAXUSDT"
+                 "INJUSDT"
+                 "UNIUSDT"
+                 "DOTUSDT"
+                 "SANDUSDT"
+                 "RUNEUSDT"])
+  1)

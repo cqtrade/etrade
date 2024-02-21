@@ -1,6 +1,48 @@
 (ns rsignals.engine4.envs
-  (:require
-   [clojure.pprint :as pprint]))
+  (:require [clojure.pprint :as pprint]
+            [clojure.string :as str]))
+
+(defn get-tickers
+  []
+  (let [tickers-str (or (System/getenv "TICKERS_4H_BN")
+                        (str/join "," ["ARBUSDT"
+                                       "CRVUSDT"
+
+                                       "THETAUSDT"
+                                       "IMXUSDT"
+                                       "FLMUSDT"
+                                       "STMXUSDT"
+                                       "TRBUSDT"
+                                       "KNCUSDT"
+                                       "FRONTUSDT"
+                                       "BLZUSDT"
+
+                                       "BTCUSDT"
+                                       "ETHUSDT"
+                                       "XRPUSDT"
+                                       "LTCUSDT"
+                                       "ADAUSDT"
+                                       "XLMUSDT"
+                                       "BNBUSDT"
+
+                                       "FTMUSDT"
+                                       "LINKUSDT"
+                                       "MATICUSDT"
+                                       "DOGEUSDT"
+                                       "COMPUSDT"
+                                       "BCHUSDT"
+                                       "HBARUSDT"
+
+                                       "SOLUSDT"
+                                       "AAVEUSDT"
+                                       "MKRUSDT"
+                                       "AVAXUSDT"
+                                       "INJUSDT"
+                                       "UNIUSDT"
+                                       "DOTUSDT"
+                                       "SANDUSDT"
+                                       "RUNEUSDT"]))]
+    (vec (set (str/split tickers-str #",")))))
 
 (defn get-params-long
   []
@@ -116,8 +158,11 @@
 
 (defn print-envs
   []
+  (prn "########### 4H ###########")
+  (pprint/pprint (get-tickers))
   (pprint/pprint (get-params-long))
-  (pprint/pprint (get-params-short)))
+  (pprint/pprint (get-params-short))
+  (prn "######################"))
 
 (comment
 
