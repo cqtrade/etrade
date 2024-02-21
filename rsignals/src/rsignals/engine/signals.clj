@@ -28,36 +28,7 @@
 (defn get-data
   []
   (let [interval "D"
-        tickers (->> ["BTCUSDT"
-                      "ETHUSDT"
-                      "XRPUSDT"
-                      "LTCUSDT"
-                      "ADAUSDT"
-                      "XLMUSDT"
-                      "BNBUSDT"
-                
-                                     ; < x 1500
-                      "FTMUSDT"
-                      "LINKUSDT"
-                      "MATICUSDT"
-                      "DOGEUSDT"
-                      "COMPUSDT"
-                      "BCHUSDT"
-                      "HBARUSDT"
-                
-                                      ; < x 1000
-                      "SOLUSDT"
-                      "AAVEUSDT"
-                      "MKRUSDT"
-                      "AVAXUSDT"
-                      "INJUSDT"
-                      "UNIUSDT"
-                      "DOTUSDT"
-                      "SANDUSDT"
-                      "RUNEUSDT"]
-                     set
-                     vec)
-        xss (get-quotas interval tickers)]
+        xss (get-quotas interval (envs/get-tickers))]
     (prn "Quotas D received" (count xss))
     xss))
 
@@ -74,7 +45,9 @@
                                           :tdfi :exchange :atr :close :time])))])))
 
 (comment
+  (envs/get-tickers)
   (let [sigs (get-signals)]
     (pprint/pprint sigs))
-  1)
+  1
+  )
 
