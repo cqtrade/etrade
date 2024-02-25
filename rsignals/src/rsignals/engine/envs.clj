@@ -163,11 +163,11 @@
 
 (defn log-boot-long
   []
-  ["LONG" (get-params-long)])
+  (discord/log ["LONG" (get-params-long)]))
 
 (defn log-boot-short
   []
-  ["SHORT" (get-params-short)])
+  (discord/log ["SHORT" (get-params-short)]))
 
 (comment
   (clojure.pprint/pprint (get-tickers))
