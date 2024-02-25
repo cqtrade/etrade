@@ -108,18 +108,33 @@
                                        "RUNEUSDT"]))]
     (vec (set (str/split tickers-str #",")))))
 
+(defn get-dynamic-tickers-vol
+  []
+  (let [length (if (System/getenv "DYNAMIC_TICKERS_LENGTH")
+                 (Integer/parseInt
+                  (System/getenv "DYNAMIC_TICKERS_LENGTH"))
+                 13)
+        tickers-vol-ms (ohlc/get-tickers-by-vol-desc length)]
+    (try
+      (discord/log (with-out-str
+                     (pprint/print-table
+                      (map-indexed
+                       (fn [idx x]
+                         {:idx (inc idx)
+                          :symbol (:symbol x)})
+                       tickers-vol-ms))))
+      (catch Exception e
+        (prn (str "EXCEPTION dynamic tickers vol: " (.getMessage e)))))
+    (map :symbol
+         tickers-vol-ms)))
+
 (defn get-dynamic-tickers
   []
   (let [tickers-main (get-tickers*)
         api-key (System/getenv "API_KEY")
         api-secret (System/getenv "API_SECRET")
         tickers-pos (ohlc/current-positions api-key api-secret)
-        length (if (System/getenv "DYNAMIC_TICKERS_LENGTH")
-                 (Integer/parseInt
-                  (System/getenv "DYNAMIC_TICKERS_LENGTH"))
-                 13)
-        tickers-vol (map :symbol
-                         (ohlc/get-tickers-by-vol-desc length))]
+        tickers-vol (get-dynamic-tickers-vol)]
     (distinct (concat tickers-main tickers-pos tickers-vol))))
 
 (comment
@@ -146,11 +161,19 @@
   (pprint/pprint (get-params-short))
   (prn "######################"))
 
+(defn log-boot-long
+  []
+  ["LONG" (get-params-long)])
+
+(defn log-boot-short
+  []
+  ["SHORT" (get-params-short)])
+
 (comment
   (clojure.pprint/pprint (get-tickers))
 
   (print-envs)
-  (discord/log "HOLA")
+  (discord/log (log-boot-long))
   (discord/loop-messages*)
 
   (str/join "," ["BTCUSDT"
@@ -180,5 +203,4 @@
                  "DOTUSDT"
                  "SANDUSDT"
                  "RUNEUSDT"])
-  1
-  )
+  1)
