@@ -32,22 +32,29 @@
     (prn "Quotas D received" (count xss))
     xss))
 
+(comment
+  (get-data)
+
+  1)
+
 (defn get-signals
   []
   (let [xss (get-data)]
     (flatten [(->> xss
+                   (filter #(> (count %) 48))
                    (engine.short/get-signals the-params-short)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
                                           :tdfi :exchange :atr :close :time])))
               (->> xss
+                   (filter #(> (count %) 35))
                    (engine.long/get-signals the-params-long)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
                                           :tdfi :exchange :atr :close :time])))])))
 
 (comment
-  (envs/get-tickers)
-  (let [sigs (get-signals)]
-    (pprint/pprint sigs))
-  1
-  )
 
+  (let [sigs (get-signals)]
+    (pprint/pprint (map #(-> [(:ticker %) (:sig %)])
+                        sigs)))
+
+  1)

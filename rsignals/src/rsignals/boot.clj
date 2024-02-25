@@ -34,16 +34,18 @@
       (engine-daily/engine)
       (prn "DAILY SIGNALS DONE")
       (Thread/sleep 103))
-    (when daily-time?
-      (prn "4H SIGNALS START" t)
-      (engine-4hourly/engine)
-      (prn "4H SIGNALS DONE")
-      (Thread/sleep 103))
 
+    (when-not (System/getenv "SKIP_4H")
+      (when daily-time?
+        (prn "4H SIGNALS START" t)
+        (engine-4hourly/engine)
+        (prn "4H SIGNALS DONE")
+        (Thread/sleep 103))
 
-    (when hourly4-time?
-      (prn "4H SIGNALS" t)
-      (engine-4hourly/engine))
+      (when hourly4-time?
+        (prn "4H SIGNALS" t)
+        (engine-4hourly/engine)))
+
     (Thread/sleep 1000)
     (recur)))
 
