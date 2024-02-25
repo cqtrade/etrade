@@ -53,9 +53,9 @@
   []
   (prn "############## START BOOT ##############")
   (d-envs/print-envs)
+  (d-envs/get-dynamic-tickers-vol)
   (d-envs/log-boot-long)
   (d-envs/log-boot-short)
-  (d-envs/get-dynamic-tickers-vol)
   (h4-envs/print-envs)
   (async/go (discord/loop-messages))
   (worker))
