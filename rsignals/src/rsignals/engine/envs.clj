@@ -1,6 +1,8 @@
 (ns rsignals.engine.envs
   (:require [clojure.pprint :as pprint]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [rsignals.tools.ohlc :as ohlc]
+            [rsignals.tools.discord :as discord]))
 
 (defn get-params-long
   []
@@ -76,7 +78,7 @@
      :slcoef slcoef
      :risk risk}))
 
-(defn get-tickers
+(defn get-tickers*
   []
   (let [tickers-str (or (System/getenv "TICKERS_D_BB")
                         (str/join "," ["BTCUSDT"
@@ -106,6 +108,35 @@
                                        "RUNEUSDT"]))]
     (vec (set (str/split tickers-str #",")))))
 
+(defn get-dynamic-tickers
+  []
+  (let [tickers-main (get-tickers*)
+        api-key (System/getenv "API_KEY")
+        api-secret (System/getenv "API_SECRET")
+        tickers-pos (ohlc/current-positions api-key api-secret)
+        length (if (System/getenv "DYNAMIC_TICKERS_LENGTH")
+                 (Integer/parseInt
+                  (System/getenv "DYNAMIC_TICKERS_LENGTH"))
+                 13)
+        tickers-vol (map :symbol
+                         (ohlc/get-tickers-by-vol-desc length))]
+    (distinct (concat tickers-main tickers-pos tickers-vol))))
+
+(comment
+  (clojure.pprint/pprint (count (get-dynamic-tickers)))
+  (clojure.pprint/pprint (get-dynamic-tickers))
+  1)
+
+(defn get-tickers
+  []
+  (if (System/getenv "DYNAMIC_TICKERS_D_BB")
+    (try
+      (get-dynamic-tickers)
+      (catch Exception e
+        (discord/log
+         (str "EXCEPTION dynamic tickers: " (.getMessage e)))
+        (get-tickers*)))
+    (get-tickers*)))
 
 (defn print-envs
   []
@@ -116,7 +147,11 @@
   (prn "######################"))
 
 (comment
+  (clojure.pprint/pprint (get-tickers))
+
   (print-envs)
+  (discord/log "HOLA")
+  (discord/loop-messages*)
 
   (str/join "," ["BTCUSDT"
                  "ETHUSDT"
@@ -145,4 +180,5 @@
                  "DOTUSDT"
                  "SANDUSDT"
                  "RUNEUSDT"])
-  1)
+  1
+  )

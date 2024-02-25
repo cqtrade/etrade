@@ -1,6 +1,5 @@
 (ns rsignals.engine.long
-  (:require [clojure.pprint :as pprint]
-            [rsignals.tools.crosses :as crosses]
+  (:require [rsignals.tools.crosses :as crosses]
             [rsignals.tools.ta :as ta]))
 
 (defn prep-datasets
@@ -16,7 +15,7 @@
          vals
          (mapv #(vec (sort-by :time %))))))
 
-(def skip-bars 200)
+(def skip-bars 34)
 
 (defn indicators
   [{:keys [tdfi-p rex-p rex-sp tpcoef slcoef risk]} coll]
@@ -56,8 +55,8 @@
                         tdfi>level)
                sig (cond buy 1 exit-buy -2 :else 0)]
            (merge curr {:buy buy :exit-buy exit-buy :sig sig}))
-         (catch Exception e
-           (prn e (str "Exception d long strategy: " (.getMessage e)))
+         (catch Exception _
+           #_(prn e (str "Exception d long strategy: " (.getMessage e)))
            curr))))
    coll))
 
@@ -72,7 +71,7 @@
 (defn signals
   [t-args xss]
   (let [xss-prepped (->> xss
-                         (filter #(> (count %) 70))
+                         (filter #(> (count %) 30))
                          prep-datasets)]
     (doall (pmap #(e-indies % xss-prepped) [t-args]))))
 
@@ -83,6 +82,6 @@
                               (mapv (fn [x] (mapv last x)))
                               flatten
                               (remove #(nil? (:sig %))))]
-    (pprint/pprint prepared-signals)
+    ;; (pprint/pprint prepared-signals)
     (prn "Signals long processed" (count prepared-signals))
     prepared-signals))
