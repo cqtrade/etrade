@@ -1,4 +1,7 @@
-const { ContractClient } = require('bybit-api');
+const {
+    ContractClient,
+    RestClientV5,
+} = require('bybit-api');
 const { sleep } = require('../utils.js')
 
 const key = process.env.API_KEY;
@@ -9,6 +12,13 @@ const client = new ContractClient({
     secret,
     strict_param_validation: true,
 });
+
+const clientV5 = new RestClientV5({
+    key,
+    secret,
+    strict_param_validation: true,
+});
+
 
 function getCurrentTime() {
     const d = new Date();
@@ -65,20 +75,13 @@ const setTPSL = async ({
     symbol,
     takeProfit,
 }) => {
-    // positionIdx: "0",
-    // symbol: "SOLUSDT",
-    // slTriggerBy: "LastPrice",
-    // stopLoss: "21.97",
-    // takeProfit: "22.56",
-    // tpTriggerBy: "LastPrice",
-
-    /** 0-one-way, 1-buy side, 2-sell side */
     try {
         const slTriggerBy = 'LastPrice';
         const tpTriggerBy = 'LastPrice';
-        return await client.setTPSL(
+        return await clientV5.setTradingStop(
             takeProfit
                 ? {
+                    category: 'linear',
                     positionIdx,
                     slTriggerBy,
                     stopLoss,
@@ -87,12 +90,31 @@ const setTPSL = async ({
                     tpTriggerBy,
                 }
                 : {
+                    category: 'linear',
                     positionIdx,
                     slTriggerBy,
                     stopLoss,
                     symbol,
                 }
         );
+        // if V5 only for uta use this based on env
+        // return await client.setTPSL(
+        //     takeProfit
+        //         ? {
+        //             positionIdx,
+        //             slTriggerBy,
+        //             stopLoss,
+        //             symbol,
+        //             takeProfit,
+        //             tpTriggerBy,
+        //         }
+        //         : {
+        //             positionIdx,
+        //             slTriggerBy,
+        //             stopLoss,
+        //             symbol,
+        //         }
+        // );
     } catch (error) {
         console.error('setTPSL failed: ', error);
         throw error;
@@ -100,7 +122,7 @@ const setTPSL = async ({
 };
 
 const calcSlPercentage = (side, entryPriceString, percentage) => {
-    let entryPrice = Number(entryPriceString)
+    const entryPrice = Number(entryPriceString)
     if (side === 'Buy') {
         return entryPrice - (entryPrice * percentage / 100);
     } else {
@@ -148,9 +170,6 @@ const handlePosition = async (pos) => {
             ]);
             const tickerInfo = ticker.value;
             const instrumentInfo = instrument.value;
-
-            // const tickerInfo = await getSymbolTicker(pos.symbol);
-            // const instrumentInfo = await getInstrumentInfo({ category: 'linear', symbol: pos.symbol });
 
             const currPNL = pnl(pos.side, pos.entryPrice, tickerInfo.lastPrice);
 
@@ -230,25 +249,6 @@ const getPosition = async (symbol, settleCoin) => {
 
 module.exports.getPosition = getPosition;
 
-// export interface ContractOrderRequest {
-//   symbol: string;
-//   side: OrderSide;
-//   positionIdx?: '0' | '1' | '2';
-//   orderType: UMOrderType;
-//   qty: string;
-//   price?: string;
-//   triggerDirection?: '1' | '2';
-//   triggerPrice?: string;
-//   triggerBy?: string;
-//   tpTriggerBy?: string;
-//   slTriggerBy?: string;
-//   timeInForce: USDCTimeInForce;
-//   orderLinkId?: string;
-//   takeProfit?: string;
-//   stopLoss?: string;
-//   reduceOnly?: boolean;
-//   closeOnTrigger?: boolean;
-// }
 const submitOrder = async ({
     side,
     symbol,
@@ -261,7 +261,9 @@ const submitOrder = async ({
     reduceOnly,
 }) => {
     try {
-        const { retMsg, result } = await client.submitOrder({
+
+        const { retMsg, result } = await clientV5.submitOrder({
+            category: 'linear',
             side,
             symbol,
             qty,
@@ -283,3 +285,33 @@ const submitOrder = async ({
 };
 
 module.exports.submitOrder = submitOrder;
+
+const setLeverage = async ({
+    symbol,
+    buyLeverage,
+    sellLeverage,
+}) => {
+
+    try {
+        const { retMsg, result } = await clientV5.setLeverage(
+            {
+                category: 'linear',
+                symbol,
+                buyLeverage,
+                sellLeverage,
+            }
+        );
+        if (retMsg !== 'OK') {
+            // TODO it shouldn't matter at this point if fails
+            // throw new Error('setLeverage failed ' + retMsg);
+            console.log('setLeverage failed: ', retMsg);
+        }
+
+        return result;
+    } catch (error) {
+        // TODO should be logged
+        console.log('setLeverage failed: ', error);
+    }
+};
+
+module.exports.setLeverage = setLeverage;

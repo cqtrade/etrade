@@ -99,11 +99,11 @@ async function sell(sig) {
     const qtyStep = instrument.value.lotSizeFilter.qtyStep;
     const qtyMin = instrument.value.lotSizeFilter.minTradingQty;
 
-    let posSizeB4Step = posSize;
+    const posSizeB4Step = posSize;
 
     posSize = calcQtyPrecision(posSize, qtyStep)
 
-    let posSizeB4MinCmp = posSize
+    const posSizeB4MinCmp = posSize
     if (posSize < (3 * qtyMin)) {
         posSize = (3 * qtyMin);
     }
@@ -174,6 +174,16 @@ async function buy(sig) {
         reqs.getInstrumentInfo({ category: 'linear', symbol: sig.ticker }),
     ]);
 
+    if (instrument.status === 'fulfilled') {
+        const maxLeverage = instrument.value.leverageFilter.maxLeverage;
+        console.log('instrument', instrument.value.symbol, maxLeverage);
+        await reqs.setLeverage({
+            symbol: sig.ticker,
+            buyLeverage: maxLeverage,
+            sellLeverage: maxLeverage
+        });
+    }
+
     const lastPrice = Number(ticker.value.lastPrice);
     const tickSize = instrument.value.priceFilter.tickSize;
 
@@ -203,10 +213,10 @@ async function buy(sig) {
     const qtyStep = instrument.value.lotSizeFilter.qtyStep;
     const qtyMin = instrument.value.lotSizeFilter.minTradingQty;
 
-    let posSizeB4Step = posSize;
+    const posSizeB4Step = posSize;
     posSize = calcQtyPrecision(posSize, qtyStep)
 
-    let posSizeB4MinCmp = posSize
+    const posSizeB4MinCmp = posSize
     if (posSize < (3 * qtyMin)) {
         posSize = (3 * qtyMin);
     }
