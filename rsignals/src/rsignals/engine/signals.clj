@@ -54,7 +54,8 @@
 (comment
 
   (let [sigs (get-signals)]
-    (pprint/pprint (map #(-> [(:ticker %) (:sig %)])
-                        sigs)))
+    (pprint/pprint (->> sigs
+                        (map #(-> [(:ticker %) (:sig %)]))
+                        (remove #(= 0 (second %))))))
 
   1)
