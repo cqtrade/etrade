@@ -1,6 +1,15 @@
+const { RestClientV5 } = require('bybit-api')
 const reqs = require('./reqs.js')
 const logger = require('../logger.js')
 const { countDecimals, fixedDecimals } = require('../utils.js')
+
+const key = process.env.API_KEY;
+const secret = process.env.API_SECRET;
+const clientV5 = new RestClientV5({
+    key,
+    secret,
+    strict_param_validation: true,
+})
 
 function calculatePositionSize(
     risk,
@@ -176,7 +185,7 @@ async function buy(sig) {
 
     if (instrument.status === 'fulfilled') {
         const maxLeverage = instrument.value.leverageFilter.maxLeverage;
-        console.log('instrument', instrument.value.symbol, maxLeverage);
+        // console.log('instrument', instrument.value.symbol, maxLeverage);
         await reqs.setLeverage({
             symbol: sig.ticker,
             buyLeverage: maxLeverage,
@@ -295,12 +304,26 @@ async function signalHandler(sig) {
             logger.debug(`Signal ${sig.ticker} ${sig.sig}`);
         }
 
-        const position = await reqs.getPosition(sig.ticker, 'USDT');
+        // const position = await reqs.getPosition(sig.ticker, 'USDT');
+        const { retMsg, result } = await clientV5.getPositionInfo({
+            category: 'linear',
+            symbol: sig.ticker,
+            // settleCoin: 'USDT',
+        })
+        if (retMsg !== 'OK') {
+            throw new Error('getPositions failed during incoming signal ' + retMsg);
+        }
+
+        const [position] = result.list;
+
+        if (!position) {
+            throw new Error('ERROR no getPositionInfo for ' + sig.ticker);
+        }
 
         const side = position.side;
 
-        if (sig.sig === 1 && side === 'None') {
-            setTimeout(async () => {
+        if (sig.sig === 1 && (side === '' || side === 'None')) {
+            setTimeout(() => {
                 console.log('buy', sig.ticker);
                 logger.info(JSON.stringify(sig));
             }, 0);
@@ -309,8 +332,8 @@ async function signalHandler(sig) {
 
         }
 
-        if (sig.sig === -1 && side === 'None') {
-            setTimeout(async () => {
+        if (sig.sig === -1 && (side === '' || side === 'None')) {
+            setTimeout(() => {
                 console.log('sell', sig.ticker);
                 logger.debug(JSON.stringify(sig));
             }, 0);
@@ -334,7 +357,7 @@ async function signalHandler(sig) {
         }
 
         if (sig.sig === 1 && side === 'Sell') {
-            setTimeout(async () => {
+            setTimeout(() => {
                 logger.info('exit short and long' + sig.ticker)
                 logger.debug(JSON.stringify(sig))
             }, 0);
@@ -344,7 +367,7 @@ async function signalHandler(sig) {
         }
 
         if (sig.sig === -1 && side === 'Buy') {
-            setTimeout(async () => {
+            setTimeout(() => {
                 logger.info('exit long and short' + sig.ticker)
                 logger.debug(JSON.stringify(sig))
             }, 0);
@@ -352,9 +375,21 @@ async function signalHandler(sig) {
             await exitPosition(sig, position)
             return await sell(sig)
         }
+
+        console.log('no action', sig.ticker)
     } catch (error) {
+
+        console.log(`ERROR signalHandler ${error.message}`)
         logger.error(`ERROR signalHandler ${error.message}`)
     }
 }
 
 module.exports.signalHandler = signalHandler;
+
+// signalHandler({
+//     "time": 1708905600000, "ticker": "STXUSDT",
+//     "risk": 0.5,
+//     "close": 2.9152, "atrtp": 0.22659635655563362, "atrsl": 0.45319271311126724,
+//     "sig": -2,
+//     "atr": 0.22659635655563362, "tdfi": 0.389025, "exchange": "BB"
+// }).catch(console.error);
