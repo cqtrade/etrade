@@ -41,12 +41,12 @@
   []
   (let [xss (get-data)]
     (flatten [(->> xss
-                   (filter #(> (count %) 48))
+                   (filter #(> (count %) 50))
                    (engine.short/get-signals the-params-short)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
                                           :tdfi :exchange :atr :close :time])))
               (->> xss
-                   (filter #(> (count %) 35))
+                   (filter #(> (count %) 50))
                    (engine.long/get-signals the-params-long)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
                                           :tdfi :exchange :atr :close :time])))])))

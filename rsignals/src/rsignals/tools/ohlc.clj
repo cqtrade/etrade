@@ -1,11 +1,10 @@
 (ns rsignals.tools.ohlc
-  (:require
-   [clj-http.client :as client]
-   [cheshire.core :as json])
-  (:import (org.apache.logging.log4j Level
-                                     LogManager)
-           (javax.crypto Mac)
-           (javax.crypto.spec SecretKeySpec)))
+  (:require [cheshire.core :as json]
+            [clj-http.client :as client]
+            [clojure.string :as str])
+  (:import (javax.crypto Mac)
+           (javax.crypto.spec SecretKeySpec)
+           (org.apache.logging.log4j Level LogManager)))
 
 
 ;; https://github.com/dakrone/clj-http#logging
@@ -72,9 +71,6 @@
 (defn get-bb-positions
   [api-key api-secret]
   (let [timestamp (System/currentTimeMillis)
-        #_(-> (System/currentTimeMillis)
-            (quot 1)
-            str)
         recv-window 5000
         query-string "category=linear&settleCoin=USDT"
         message (str timestamp api-key recv-window query-string)
@@ -115,13 +111,13 @@
         (fn [{:keys [volume24h turnover24h] :as m}]
           (merge m {:volume24hDouble (Double/parseDouble volume24h)
                     :turnover24hDouble (Double/parseDouble turnover24h)})))
+       (filter #(str/ends-with? (:symbol %) "USDT"))
        (sort-by :turnover24hDouble >)
        (take length)))
 
-
 (comment
   (clojure.pprint/pprint
-   (map :symbol (get-tickers-by-vol-desc 45)))
+   (map :symbol (get-tickers-by-vol-desc 55)))
 
   (let [api-key (System/getenv "API_KEY")
         api-secret (System/getenv "API_SECRET")
@@ -245,7 +241,7 @@
   "Kline interval. 1,3,5,15,30,60,120,240,360,720,D,M,W"
   [interval ticker]
   (let [url (format
-             "https://api.bybit.com/v5/market/kline?category=linear&symbol=%s&interval=%s&limit=500"
+             "https://api.bybit.com/v5/market/kline?category=linear&symbol=%s&interval=%s&limit=200"
              ticker
              interval)
         data (get-request url)
