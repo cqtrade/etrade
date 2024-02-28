@@ -105,8 +105,17 @@
                                        "UNIUSDT"
                                        "DOTUSDT"
                                        "SANDUSDT"
-                                       "RUNEUSDT"]))]
-    (vec (set (str/split tickers-str #",")))))
+                                       "RUNEUSDT"]))
+        tickers-main (vec (set (str/split tickers-str #",")))]
+    (try
+      (let [api-key (System/getenv "API_KEY")
+            api-secret (System/getenv "API_SECRET")
+            tickers-pos (ohlc/current-positions api-key api-secret)]
+        (distinct (concat tickers-pos tickers-main)))
+      (catch Exception e
+        (discord/log
+         (str "EXCEPTION dynamic tickers: " (.getMessage e)))
+        tickers-main))))
 
 (defn get-dynamic-tickers-vol
   []
@@ -130,12 +139,11 @@
 
 (defn get-dynamic-tickers
   []
-  (let [tickers-main (get-tickers*)
-        api-key (System/getenv "API_KEY")
+  (let [api-key (System/getenv "API_KEY")
         api-secret (System/getenv "API_SECRET")
         tickers-pos (ohlc/current-positions api-key api-secret)
         tickers-vol (get-dynamic-tickers-vol)]
-    (distinct (concat tickers-main tickers-pos tickers-vol))))
+    (distinct (concat tickers-pos tickers-vol))))
 
 (comment
   (clojure.pprint/pprint (count (get-dynamic-tickers)))

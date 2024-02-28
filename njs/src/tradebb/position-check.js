@@ -17,11 +17,6 @@ const clientV5 = new RestClientV5({
   strict_param_validation: true,
 });
 
-// function getCurrentTime() {
-//   const d = new Date();
-//   return `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
-// }
-
 const pnl = (side, avgEntry, lastPrice) => {
   if (side === 'Buy') {
     return ((Math.floor(100 * (100 * (lastPrice - avgEntry) / avgEntry))) / 100);
@@ -49,7 +44,7 @@ const getActiveOrders = async (symbol) => {
 
 const hasActiveLimitTpOrders = async (position) => {
   const activeOrders = await getActiveOrders(position.symbol);
-  // console.log('activeOrders', activeOrders)
+
   const activeLimitTPOrders = activeOrders
     .filter((order) => {
       return order.orderType === 'Limit'
@@ -132,24 +127,6 @@ const setTPSL = async ({
         }
     );
 
-    // const r = await client.setTPSL(
-    //   takeProfit
-    //     ? {
-    //       positionIdx,
-    //       slTriggerBy,
-    //       stopLoss: String(stopLoss),
-    //       symbol,
-    //       takeProfit: String(takeProfit),
-    //       tpTriggerBy,
-    //     }
-    //     : {
-    //       positionIdx,
-    //       slTriggerBy,
-    //       stopLoss: String(stopLoss),
-    //       symbol,
-    //     }
-    // );
-
     if (r.retCode !== 0) {
       throw new Error(JSON.stringify(r));
     }
@@ -160,46 +137,10 @@ const setTPSL = async ({
   }
 };
 
-// const calcSlPercentage = (side, entryPriceString, percentage) => {
-//   const entryPrice = Number(entryPriceString)
-//   if (side === 'Buy') {
-//     return entryPrice - (entryPrice * percentage / 100);
-//   } else {
-//     return entryPrice + (entryPrice * percentage / 100);
-//   }
-// };
-
 const setPricePrecisionByTickSize = (price, tickSize) => {
   const precision = tickSize.toString().split('.')[1].length - 1;
   return Number(price).toFixed(precision);
 }
-
-// const handlePosSl = async (pos, p, instrumentInfo) => {
-//   const tickSize = instrumentInfo.priceFilter.tickSize;
-//   const currentSl = pos.stopLoss;
-//   const entryPrice = Number(pos.avgPrice) || Number(pos.entryPrice);
-//   const newSlRaw = calcSlPercentage(pos.side, entryPrice, p)
-//   const newSl = setPricePrecisionByTickSize(newSlRaw, tickSize);
-
-//   if (
-//     (pos.side === 'Buy' && Number(newSl) > Number(currentSl))
-//     ||
-//     (pos.side === 'Sell' && Number(newSl) < Number(currentSl))
-//   ) {
-
-//     await setTPSL({
-//       positionIdx: pos.positionIdx,
-//       symbol: pos.symbol,
-//       stopLoss: newSl,
-//     });
-
-//     logger.info('Trading positions SL changed ' + pos.symbol);
-//   }
-// };
-
-// function calcStepSize(qty, stepSize) {
-//   return Math.floor(Number(qty) / Number(stepSize)) * Number(stepSize);
-// }
 
 const handlePosition = async (pos) => {
   try {
@@ -265,10 +206,6 @@ const handlePosition = async (pos) => {
 const flow = async () => {
   try {
     const settleCoin = 'USDT';
-
-    // const { retMsg, result } = await client.getPositions({
-    //   settleCoin,
-    // });
     const { retMsg, result } = await clientV5.getPositionInfo({
       category: 'linear',
       settleCoin,
@@ -289,18 +226,6 @@ const flow = async () => {
     logger.error('trading getPositions request failed: ' + e.message);
   }
 };
-
-// module.exports.getPositions = getPositions;
-
-
-// const flow = async () => {
-//   try {
-//     await getPositions('USDT');
-//   } catch (e) {
-//     logger.error('flow request failed: ' + e.message);
-//     throw e;
-//   }
-// }
 
 function engine() {
   const interval = 2000;
