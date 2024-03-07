@@ -115,6 +115,7 @@ async function sell(sig) {
     const posSizeB4MinCmp = posSize
     if (posSize < (3 * qtyMin)) {
         posSize = (3 * qtyMin);
+        posSize = calcQtyPrecision(posSize, qtyStep);
     }
 
     let tpSize = calcQtyPrecision(posSize / 3, qtyStep);
@@ -185,7 +186,7 @@ async function buy(sig) {
 
     if (instrument.status === 'fulfilled') {
         const maxLeverage = instrument.value.leverageFilter.maxLeverage;
-        // console.log('instrument', instrument.value.symbol, maxLeverage);
+
         await reqs.setLeverage({
             symbol: sig.ticker,
             buyLeverage: maxLeverage,
@@ -228,6 +229,7 @@ async function buy(sig) {
     const posSizeB4MinCmp = posSize
     if (posSize < (3 * qtyMin)) {
         posSize = (3 * qtyMin);
+        posSize = calcQtyPrecision(posSize, qtyStep);
     }
 
     let tpSize = calcQtyPrecision(posSize / 3, qtyStep);
@@ -304,7 +306,6 @@ async function signalHandler(sig) {
             logger.debug(`Signal ${sig.ticker} ${sig.sig}`);
         }
 
-        // const position = await reqs.getPosition(sig.ticker, 'USDT');
         const { retMsg, result } = await clientV5.getPositionInfo({
             category: 'linear',
             symbol: sig.ticker,
@@ -387,9 +388,14 @@ async function signalHandler(sig) {
 module.exports.signalHandler = signalHandler;
 
 // signalHandler({
-//     "time": 1708905600000, "ticker": "STXUSDT",
-//     "risk": 0.5,
-//     "close": 2.9152, "atrtp": 0.22659635655563362, "atrsl": 0.45319271311126724,
-//     "sig": -2,
-//     "atr": 0.22659635655563362, "tdfi": 0.389025, "exchange": "BB"
+//     "time": 1709683200000,
+//     "ticker": "SOLUSDT",
+//     "risk": 1,
+//     "close": 130.848,
+//     "atrtp": 10.567587963113281,
+//     "atrsl": 21.135175926226562,
+//     "sig": 1,
+//     "atr": 10.567587963113281,
+//     "tdfi": 0.408194,
+//     "exchange": "BB"
 // }).catch(console.error);

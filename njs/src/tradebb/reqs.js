@@ -2,6 +2,7 @@ const {
     ContractClient,
     RestClientV5,
 } = require('bybit-api');
+const logger = require('../logger.js')
 
 const key = process.env.API_KEY;
 const secret = process.env.API_SECRET;
@@ -86,7 +87,10 @@ const submitOrder = async ({
             reduceOnly,
         });
         if (retMsg !== 'OK') {
-            throw new Error('ERROR submitOrder ' + symbol + ' qty ' + qty + retMsg);
+            const msg = (`ERROR submitOrder ${side} ${symbol} qty ${qty} : ${retMsg}`);
+            logger.info(msg);
+            throw new Error(msg);
+
         }
         return result;
     } catch (error) {
