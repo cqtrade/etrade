@@ -122,7 +122,7 @@
   (let [length (if (System/getenv "DYNAMIC_TICKERS_LENGTH")
                  (Integer/parseInt
                   (System/getenv "DYNAMIC_TICKERS_LENGTH"))
-                 13)
+                 30)
         tickers-vol-ms (ohlc/get-tickers-by-vol-desc length)]
     (try
       (discord/log (with-out-str
