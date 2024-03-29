@@ -10,22 +10,19 @@ const client = new USDMClient(
   {},
   true
 );
+const calculatePnlPercentage = (side, entryPrice, lastPrice) => {
+  const priceDifference =
+    side === "BUY" ? lastPrice - entryPrice : entryPrice - lastPrice;
+  const percentageChange = (priceDifference / entryPrice) * 100;
 
-const calculatePnl = (side, entryPrice, lastPrice) =>
-  Math.floor(
-    100 *
-      ((100 *
-        (side === "BUY" ? lastPrice - entryPrice : entryPrice - lastPrice)) /
-        entryPrice)
-  ) / 100;
+  return Math.floor(percentageChange * 100) / 100;
+};
 
 const getSymbolTicker = async (symbol) => {
   try {
-    const symbolPriceTicker = await client.getSymbolPriceTicker({ symbol });
-
-    return symbolPriceTicker;
+    return await client.getSymbolPriceTicker({ symbol });
   } catch (error) {
-    console.error("getSymbolPriceTicker failed: ", error);
+    console.error(`Failed to get price ticker for symbol ${symbol}:`, error);
     throw error;
   }
 };
@@ -33,7 +30,6 @@ const getSymbolTicker = async (symbol) => {
 const getExchangeInfoForSymbol = async (symbol) => {
   try {
     const exchangeInfo = await client.getExchangeInfo();
-
     const symbolInfo = exchangeInfo.symbols.find(
       (info) => info.symbol === symbol
     );
@@ -44,34 +40,32 @@ const getExchangeInfoForSymbol = async (symbol) => {
 
     return symbolInfo;
   } catch (error) {
-    console.error("getExchangeInfo failed: ", error);
+    console.error(`Failed to get exchange info for symbol ${symbol}:`, error);
     throw error;
   }
 };
 
 const getOpenOrders = async (symbol) => {
   try {
-    const allOpenOrders = await client.getAllOpenOrders({ symbol });
-
-    return allOpenOrders;
+    return await client.getAllOpenOrders({ symbol });
   } catch (error) {
-    console.error("getAllOpenOrders failed", error);
+    console.error("Failed to retrieve open orders:", error);
   }
 };
 
-const getOpenOrdersByType = async (position, orderType) => {
-  const openOrders = await getOpenOrders(position.symbol);
+const getOpenOrdersByType = async ({ symbol, side, orderType }) => {
+  const openOrders = await getOpenOrders(symbol);
 
   return openOrders.filter(
-    (order) => order.type === orderType && order.side !== position.side
+    (order) => order.type === orderType && order.side !== side
   );
 };
 
-const getOpenTpOrders = async (position) =>
-  getOpenOrdersByType(position, "TAKE_PROFIT_MARKET");
+const getOpenTpOrders = async ({ symbol, side }) =>
+  getOpenOrdersByType({ symbol, side, orderType: "TAKE_PROFIT_MARKET" });
 
-const getOpenSlOrders = async (position) =>
-  getOpenOrdersByType(position, "STOP_MARKET");
+const getOpenSlOrders = async ({ symbol, side }) =>
+  getOpenOrdersByType({ symbol, side, orderType: "STOP_MARKET" });
 
 const findLatestOrderByKey = (key, data) =>
   data.reduce(
@@ -88,14 +82,69 @@ const setPricePrecisionByTickSize = (price, tickSize) => {
   return Number(price).toFixed(precision);
 };
 
-const setTPSL = () => {
-  // TODO: implement
+const placeStopLossOrder = async ({ symbol, side, stopPrice, quantity }) => {
+  try {
+    await client.submitNewOrder({
+      symbol,
+      side: side === "BUY" ? "SELL" : "BUY",
+      positionSide: "BOTH",
+      type: "STOP_MARKET",
+      workingType: "MARK_PRICE",
+      stopPrice,
+      quantity,
+      timeInForce: "GTE_GTC",
+      priceProtect: true,
+      reduceOnly: true,
+    });
+  } catch (error) {
+    console.error("Failed to place stop loss order:", error);
+  }
+};
+
+// const placeTakeProfitOrder = async ({ symbol, side, stopPrice, quantity }) => {
+//   try {
+//     await client.submitNewOrder({
+//       symbol,
+//       side: side === "BUY" ? "SELL" : "BUY",
+//       positionSide: "BOTH",
+//       type: "TAKE_PROFIT_MARKET",
+//       workingType: "MARK_PRICE",
+//       stopPrice,
+//       quantity,
+//       timeInForce: "GTE_GTC",
+//       priceProtect: true,
+//       reduceOnly: true,
+//     });
+//   } catch (error) {
+//     console.error("Failed to place take profit order:", error);
+//   }
+// };
+
+const cancelOrders = async ({ symbol, orderIdList }) => {
+  try {
+    await client.cancelMultipleOrders({ symbol, orderIdList });
+  } catch (error) {
+    console.error("Failed to cancel orders:", error);
+  }
+};
+
+const closePosition = async ({ symbol, side, positionAmt }) => {
+  try {
+    await client.submitNewOrder({
+      symbol,
+      side: side === "BUY" ? "SELL" : "BUY",
+      quantity: positionAmt,
+      type: "MARKET",
+      reduceOnly: true,
+    });
+  } catch (error) {
+    console.error("Failed to close position:", error);
+  }
 };
 
 const handleActivePosition = async (position) => {
+  const { positionAmt, symbol, side, entryPrice } = position;
   try {
-    const { positionAmt, symbol } = position;
-
     if (positionAmt > 0) {
       const [ticker, exchangeInfo] = await Promise.allSettled([
         getSymbolTicker(symbol),
@@ -107,28 +156,24 @@ const handleActivePosition = async (position) => {
         (filter) => filter.filterType === "PRICE_FILTER"
       ).tickSize;
 
-      const currentPNL = calculatePnl(
-        position.side,
-        position.entryPrice,
-        lastPrice
-      );
+      const currentPNL = calculatePnlPercentage(side, entryPrice, lastPrice);
 
-      // Can there be more than 1 TP and SL order?
-      const openTpOrders = await getOpenTpOrders(position);
-      const openSlOrders = await getOpenSlOrders(position);
+      const openTpOrders = await getOpenTpOrders({ symbol, side });
+      const openSlOrders = await getOpenSlOrders({ symbol, side });
 
-      // TODO: if for some reason there is no SL in place, set it
+      if (!openSlOrders.length) {
+        await closePosition({ symbol, side, positionAmt });
+      }
 
-      let newSl;
-      const entryPrice = Number(position.entryPrice);
+      let newStopLoss;
 
-      if (position.side === "BUY") {
-        newSl = setPricePrecisionByTickSize(
+      if (side === "BUY") {
+        newStopLoss = setPricePrecisionByTickSize(
           entryPrice + entryPrice * 0.002,
           tickSize
         );
-      } else if (position.side === "SELL") {
-        newSl = setPricePrecisionByTickSize(
+      } else if (side === "SELL") {
+        newStopLoss = setPricePrecisionByTickSize(
           entryPrice - entryPrice * 0.002,
           tickSize
         );
@@ -137,26 +182,54 @@ const handleActivePosition = async (position) => {
       const latestSlOrder = findLatestOrderByKey("time", openSlOrders);
 
       if (!openTpOrders.length && currentPNL > 0.25) {
-        if (
-          position.side === "BUY" &&
-          Number(latestSlOrder.stopPrice) < Number(newSl)
-        ) {
-          // TODO: handle setting TP and SL
-          logger.info("Strategy sl changed " + position.symbol + " " + newSl);
+        if (side === "BUY" && Number(latestSlOrder.stopPrice) < newStopLoss) {
+          const orderIdList = openSlOrders.map(
+            (openSlOrder) => openSlOrder.orderId
+          );
+
+          await cancelOrders({
+            symbol,
+            orderIdList,
+          });
+
+          await placeStopLossOrder({
+            symbol,
+            side,
+            stopPrice: newStopLoss,
+            quantity: positionAmt,
+          });
+
+          logger.info(
+            `Stop loss updated for symbol ${symbol} to ${newStopLoss}`
+          );
         }
 
-        if (
-          position.side === "Sell" &&
-          Number(latestSlOrder.stopPrice) > Number(newSl)
-        ) {
-          // TODO: handle setting TP and SL
-          logger.info("Strategy sl changed " + position.symbol + " " + newSl);
+        if (side === "SELL" && Number(latestSlOrder.stopPrice) > newStopLoss) {
+          const orderIdList = openSlOrders.map(
+            (openSlOrder) => openSlOrder.orderId
+          );
+
+          await cancelOrders({
+            symbol,
+            orderIdList,
+          });
+
+          await placeStopLossOrder({
+            symbol,
+            side,
+            stopPrice: newStopLoss,
+            quantity: positionAmt,
+          });
+
+          logger.info(
+            `Stop loss updated for symbol ${symbol} to ${newStopLoss}`
+          );
         }
       }
     }
   } catch (error) {
     logger.error(
-      "trading handlePosition failed: " + position.symbol + error.message
+      `Failed to handle active position for symbol ${position.symbol}: ${error.message}`
     );
   }
 };
@@ -175,7 +248,7 @@ const getAndProcessActivePositions = async () => {
       .filter(({ positionAmt }) => Number(positionAmt) !== 0)
       .map((position) => ({
         ...position,
-        positionAmt: Number(position.positionAmt),
+        positionAmt: Math.abs(Number(position.positionAmt)),
         entryPrice: Number(position.entryPrice),
         breakEvenPrice: Number(position.breakEvenPrice),
         markPrice: Number(position.markPrice),
@@ -188,7 +261,9 @@ const getAndProcessActivePositions = async () => {
 
     await processActivePositions(activePositions);
   } catch (error) {
-    logger.error("trading getPositions request failed: " + error.message);
+    logger.error(
+      `Failed to retrieve and process active positions: ${error.message}`
+    );
     throw error;
   }
 };
@@ -197,18 +272,18 @@ const flow = async () => {
   try {
     await getAndProcessActivePositions();
   } catch (error) {
-    logger.error("flow request failed: " + error.message);
+    logger.error(`Flow execution failed: ${error.message}`);
     throw error;
   }
 };
 
 const engine = async () => {
-  const interval = 2000;
+  const interval = 5000;
 
   try {
     await flow();
-  } catch (e) {
-    logger.error("positions engine flow failed: " + e.message);
+  } catch (error) {
+    logger.error(`Engine execution failed: ${error.message}`);
   }
 
   setTimeout(engine, interval);
