@@ -10,6 +10,7 @@ const client = new USDMClient(
   {},
   true
 );
+
 const calculatePnlPercentage = (side, entryPrice, lastPrice) => {
   const priceDifference =
     side === "BUY" ? lastPrice - entryPrice : entryPrice - lastPrice;
@@ -22,7 +23,10 @@ const getSymbolTicker = async (symbol) => {
   try {
     return await client.getSymbolPriceTicker({ symbol });
   } catch (error) {
-    console.error(`Failed to get price ticker for symbol ${symbol}:`, error);
+    console.error(
+      `Failed to retrieve price ticker for symbol ${symbol}:`,
+      error
+    );
     throw error;
   }
 };
@@ -49,7 +53,10 @@ const getOpenOrders = async (symbol) => {
   try {
     return await client.getAllOpenOrders({ symbol });
   } catch (error) {
-    console.error("Failed to retrieve open orders:", error);
+    console.error(
+      `Failed to retrieve open orders for symbol ${symbol}:`,
+      error
+    );
   }
 };
 
@@ -97,7 +104,10 @@ const placeStopLossOrder = async ({ symbol, side, stopPrice, quantity }) => {
       reduceOnly: true,
     });
   } catch (error) {
-    console.error("Failed to place stop loss order:", error);
+    console.error(
+      `Failed to place stop loss order for symbol ${symbol}:`,
+      error
+    );
   }
 };
 
@@ -124,7 +134,7 @@ const cancelOrders = async ({ symbol, orderIdList }) => {
   try {
     await client.cancelMultipleOrders({ symbol, orderIdList });
   } catch (error) {
-    console.error("Failed to cancel orders:", error);
+    console.error(`Failed to cancel orders for symbol ${symbol}:`, error);
   }
 };
 
@@ -138,7 +148,7 @@ const closePosition = async ({ symbol, side, positionAmt }) => {
       reduceOnly: true,
     });
   } catch (error) {
-    console.error("Failed to close position:", error);
+    console.error(`Failed to close position for symbol ${symbol}:`, error);
   }
 };
 
@@ -229,7 +239,7 @@ const handleActivePosition = async (position) => {
     }
   } catch (error) {
     logger.error(
-      `Failed to handle active position for symbol ${position.symbol}: ${error.message}`
+      `Failed to handle active position for symbol ${symbol}: ${error.message}`
     );
   }
 };
