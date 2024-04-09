@@ -3,8 +3,11 @@
             [clj-http.client :as client]
             [clojure.string :as str])
   (:import (javax.crypto Mac)
+           [java.security MessageDigest]
            (javax.crypto.spec SecretKeySpec)
-           (org.apache.logging.log4j Level LogManager)))
+           (org.apache.logging.log4j Level LogManager))
+  (:import java.util.Base64
+           java.nio.charset.StandardCharsets))
 
 
 ;; https://github.com/dakrone/clj-http#logging
@@ -47,26 +50,106 @@
         .doFinal)))
 
 
-; https://bybit-exchange.github.io/docs/v3/intro
-;; # rule:
-;; timestamp+api_key+recv_window+queryString
 
-;; # param_str
-;; "1658384314791XXXXXXXXXX5000category=option&symbol=BTC-29JUL22-25000-C"
+#_(defn str->base64
+    [s]
+    (let [encoder (.withoutPadding (Base64/getUrlEncoder))]
+      (String. (.encode encoder (.getBytes s)))))
 
-;; # parse
-;; timestamp = "1658384314791"
-;; api_key = "XXXXXXXXXX"
-;; recv_window = "5000"
-;; queryString = "category=option&symbol=BTC-29JUL22-25000-C"
-;; GET /unified/v3/private/order/list?category=option&symbol=BTC-29JUL22-25000-C HTTP/1.1
-;; GET /contract/v3/private/position/list?category=linear HTTP/1.1
-;; Host: api-testnet.bybit.com
-;; X-BAPI-SIGN: XXXXX
-;; X-BAPI-API-KEY: XXXXX
-;; X-BAPI-TIMESTAMP: 1673421074950
-;; X-BAPI-RECV-WINDOW: 5000
-;; Content-Type: application/json
+#_(defn hexdigest
+    "Returns the hex digest of an object. Expects a string as input."
+    ([input] (hexdigest input "SHA-256"))
+    ([input hash-algo]
+     (if (string? input)
+       (let [hash (MessageDigest/getInstance hash-algo)]
+         (. hash update (.getBytes input))
+         (.digest hash)
+         #_(let [digest (.digest hash)]
+             (apply str (map #(format "%02x" (bit-and % 0xff)) digest))))
+       (do
+         (println "Invalid input! Expected string, got" (type input))
+         nil))))
+
+#_(defn hmac-sha512 [key input]
+    (let [mac (Mac/getInstance "HMACSHA512")
+          secretKey (secretKeyInst key mac)]
+      (-> (doto mac
+            (.init secretKey)
+            (.update input))
+          .doFinal)))
+
+#_(defn sign-request11 [endpoint nonce postData apiPrivateKey]
+    (let [message (str postData nonce endpoint)
+          hash (-> (MessageDigest/getInstance "SHA-256")
+                   (.digest (.getBytes message StandardCharsets/UTF_8)))
+          secretDecoded (.decode (Base64/getDecoder) apiPrivateKey)
+          hmacsha512 (Mac/getInstance "HmacSHA512")]
+    ;; (.init hmacsha512 (SecretKeySpec. secretDecoded "HmacSHA512"))
+      (let [;; hash2 (.doFinal hmacsha512 hash)
+            hash2 (hmac-sha512 secretDecoded hash)
+            encoded-hash (Base64/getEncoder)
+          ;; encoder (.withoutPadding (Base64/getUrlEncoder))
+            encoded-hash (.encodeToString hash2)
+          ;; encoded-hash (String. (.encode encoder hash2))
+            ]
+        encoded-hash)))
+
+#_(defn base64->string
+    [b64]
+    (String. (.decode (Base64/getUrlDecoder) b64)))
+
+(defn sign-message [endpoint nonce post-data api-private-key]
+  ; https://github.com/CryptoFacilities/REST-v3-Java/blob/master/Java/cfRestAPIv3/src/com/cryptofacilities/REST/v3/CfApiMethods.java#L82
+  ; https://github.com/CryptoFacilities/REST-v3-NodeJs/blob/master/cfRestApiV3.js#L545
+  (let [;; Step 1: concatenate postData, nonce + endpoint
+        message (str post-data nonce endpoint)
+        ;; Step 2: hash the result of step 1 with SHA256
+        msg (-> message (.getBytes "UTF-8"))
+        hash (MessageDigest/getInstance "SHA-256")
+        _ (. hash update msg)
+        hash (.digest hash)
+        ;; step 3: base64 decode apiPrivateKey
+        secret-decoded (.decode (Base64/getDecoder) (.getBytes api-private-key "UTF-8"))
+        ;; step 4: use result of step 3 to hash the result of step 2 with HMAC-SHA512
+        hmac-sha512 (javax.crypto.Mac/getInstance "HmacSHA512")
+        _ (.init hmac-sha512 (javax.crypto.spec.SecretKeySpec. secret-decoded "HmacSHA512"))
+        hash2 (.doFinal hmac-sha512 hash)
+        ;; step 5: base64 encode the result of step 4 and return
+        result (.encodeToString (java.util.Base64/getEncoder)  hash2)]
+    result))
+
+(defn get-open-positions-krakem
+  []
+  (let [p (System/getenv "API_KEY_KRAKEN")
+        s (System/getenv "API_SECRET_KRAKEN")
+        url "https://futures.kraken.com/derivatives/api/v3/openpositions"
+        endpoint "/api/v3/openpositions"
+        post-data ""
+        nonce (str (System/currentTimeMillis))
+        res (client/get
+             url
+             {:headers {:content-type "application/json"
+                        "APIKey" p
+                        "Authent" (sign-message endpoint nonce post-data s)
+                        "Nonce" nonce}
+              :throw-entire-message? true})]
+    (json/parse-string (:body res) true)))
+;; SEE https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
+(comment
+
+
+  {:result "success",
+   :openPositions [{:side "long",
+                    :symbol "PF_FILUSD",
+                    :price 10.834, :fillTime "2024-03-03T21:54:27.672Z",
+                    :size 1,
+                    :unrealizedFunding -5.936982239961012E-6,
+                    :pnlCurrency "USD"}],
+   :serverTime "2024-03-03T21:54:27.672Z"}
+
+
+  1)
+
 
 (defn get-bb-positions
   [api-key api-secret]
