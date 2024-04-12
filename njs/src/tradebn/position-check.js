@@ -169,10 +169,16 @@ const handleActivePosition = async (position) => {
       const currentPNL = calculatePnlPercentage(side, entryPrice, lastPrice);
 
       const openTpOrders = await getOpenTpOrders({ symbol, side });
-      const openSlOrders = await getOpenSlOrders({ symbol, side });
+      let openSlOrders = await getOpenSlOrders({ symbol, side });
 
       if (!openSlOrders.length) {
+        await sleep(5000);
+        openSlOrders = await getOpenSlOrders({ symbol, side });
+
+        if (!openSlOrders.length) {
+          logger.info(`No stop loss found, closing position`);
         await closePosition({ symbol, side, positionAmt });
+        }
       }
 
       let newStopLoss;
