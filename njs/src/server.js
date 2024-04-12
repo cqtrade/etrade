@@ -65,3 +65,5 @@ function bootServer() {
         console.log(`Server listening at ${address}`);
     });
 }
+
+module.exports.bootServer = bootServer;
