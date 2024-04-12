@@ -34,16 +34,18 @@
       (engine-daily/engine)
       (prn "DAILY SIGNALS DONE")
       (Thread/sleep 103))
-    (when daily-time?
-      (prn "4H SIGNALS START" t)
-      (engine-4hourly/engine)
-      (prn "4H SIGNALS DONE")
-      (Thread/sleep 103))
 
+    (when-not (System/getenv "SKIP_4H")
+      (when daily-time?
+        (prn "4H SIGNALS START" t)
+        (engine-4hourly/engine)
+        (prn "4H SIGNALS DONE")
+        (Thread/sleep 103))
 
-    (when hourly4-time?
-      (prn "4H SIGNALS" t)
-      (engine-4hourly/engine))
+      (when hourly4-time?
+        (prn "4H SIGNALS" t)
+        (engine-4hourly/engine)))
+
     (Thread/sleep 1000)
     (recur)))
 
@@ -51,6 +53,9 @@
   []
   (prn "############## START BOOT ##############")
   (d-envs/print-envs)
+  (d-envs/get-dynamic-tickers-vol)
+  (d-envs/log-boot-long)
+  (d-envs/log-boot-short)
   (h4-envs/print-envs)
   (async/go (discord/loop-messages))
   (worker))

@@ -39,16 +39,21 @@
               :throw-entire-message? true})]
     (json/parse-string (:body res) true)))
 
+(defn loop-messages*
+  "Loops through the queue and posts the messages to discord."
+  []
+  (let [webhook (System/getenv "DISCORD_WEBHOOK_URL")
+        message (pop-the-first the-queue)]
+    (when (and message webhook)
+      (post-to-discord webhook (str "```" message "```"))
+      (pp/pprint message))))
+
 (defn loop-messages
   "Loops through the queue and posts the messages to discord."
   []
   (async/go
     (try
-      (let [webhook (System/getenv "DISCORD_WEBHOOK_URL")
-            message (pop-the-first the-queue)]
-        (when (and message webhook)
-          (post-to-discord webhook (str "```" message "```"))
-          (pp/pprint message)))
+      (loop-messages*)
       (catch Exception e
         (pp/pprint
          (str "caught exception loop-messages : " (.getMessage e))))

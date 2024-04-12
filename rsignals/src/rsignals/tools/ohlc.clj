@@ -1,9 +1,12 @@
 (ns rsignals.tools.ohlc
-  (:require
-   [clj-http.client :as client]
-   [cheshire.core :as json])
-  (:import (org.apache.logging.log4j Level
-                                     LogManager)))
+  (:require [cheshire.core :as json]
+            [clj-http.client :as client]
+            [clojure.string :as str])
+  (:import (javax.crypto Mac)
+           (javax.crypto.spec SecretKeySpec)
+           (org.apache.logging.log4j Level LogManager)))
+
+
 ;; https://github.com/dakrone/clj-http#logging
 (defn change-log-level! [logger-name level]
   (let [ctx (LogManager/getContext false)
@@ -11,7 +14,6 @@
         logger-config (.getLoggerConfig config logger-name)]
     (.setLevel logger-config level)
     (.updateLoggers ctx)))
-
 (change-log-level! LogManager/ROOT_LOGGER_NAME Level/INFO)
 
 (def bound-values {"1h" 37
@@ -25,6 +27,119 @@
              {:headers {:content-type "application/json"}
               :throw-entire-message? true})]
     (json/parse-string (:body res) true)))
+
+(defn bytes->hex
+  [bytes]
+  (apply str (map #(format "%02x" %) bytes)))
+
+(defn bytes->hex* [bytes]
+  (apply str (map #(format "%x" %) bytes)))
+
+(defn secretKeyInst [key mac]
+  (SecretKeySpec. (.getBytes key) (.getAlgorithm mac)))
+
+(defn hmac-sha256 [key string]
+  (let [mac (Mac/getInstance "HMACSHA256")
+        secretKey (secretKeyInst key mac)]
+    (-> (doto mac
+          (.init secretKey)
+          (.update (.getBytes string)))
+        .doFinal)))
+
+
+; https://bybit-exchange.github.io/docs/v3/intro
+;; # rule:
+;; timestamp+api_key+recv_window+queryString
+
+;; # param_str
+;; "1658384314791XXXXXXXXXX5000category=option&symbol=BTC-29JUL22-25000-C"
+
+;; # parse
+;; timestamp = "1658384314791"
+;; api_key = "XXXXXXXXXX"
+;; recv_window = "5000"
+;; queryString = "category=option&symbol=BTC-29JUL22-25000-C"
+;; GET /unified/v3/private/order/list?category=option&symbol=BTC-29JUL22-25000-C HTTP/1.1
+;; GET /contract/v3/private/position/list?category=linear HTTP/1.1
+;; Host: api-testnet.bybit.com
+;; X-BAPI-SIGN: XXXXX
+;; X-BAPI-API-KEY: XXXXX
+;; X-BAPI-TIMESTAMP: 1673421074950
+;; X-BAPI-RECV-WINDOW: 5000
+;; Content-Type: application/json
+
+(defn get-bb-positions
+  [api-key api-secret]
+  (let [timestamp (System/currentTimeMillis)
+        recv-window 5000
+        query-string "category=linear&settleCoin=USDT"
+        message (str timestamp api-key recv-window query-string)
+        res (client/get
+             (str "https://api.bybit.com/v5/position/list?"
+                  query-string)
+             {:headers {:content-type "application/json"
+                        "X-BAPI-SIGN" (->> message
+                                           (hmac-sha256 api-secret)
+                                           bytes->hex)
+                        "X-BAPI-API-KEY" api-key
+                        "X-BAPI-RECV-WINDOW" recv-window
+                        "X-BAPI-TIMESTAMP" timestamp}
+              :throw-entire-message? true})]
+    (json/parse-string (:body res) true)))
+
+(defn handled-positions
+  [res]
+  (if (-> res :retCode zero?)
+    (->> res
+         :result
+         :list
+         (map :symbol))
+    (throw (Exception. (str "Error: " (:retMsg res))))))
+
+(defn current-positions
+  [api-key api-secret]
+  (handled-positions (get-bb-positions api-key api-secret)))
+
+
+(defn get-tickers-by-vol-desc
+  [length]
+  (->> "https://api.bybit.com/v5/market/tickers?category=linear"
+       get-request
+       :result
+       :list
+       (mapv
+        (fn [{:keys [volume24h turnover24h] :as m}]
+          (merge m {:volume24hDouble (Double/parseDouble volume24h)
+                    :turnover24hDouble (Double/parseDouble turnover24h)})))
+       (filter #(str/ends-with? (:symbol %) "USDT"))
+       (sort-by :turnover24hDouble >)
+       (take length)))
+
+(comment
+  (clojure.pprint/pprint
+   (map :symbol (get-tickers-by-vol-desc 55)))
+
+  (let [api-key (System/getenv "API_KEY")
+        api-secret (System/getenv "API_SECRET")
+        xs (current-positions api-key api-secret)]
+    (clojure.pprint/pprint xs))
+
+  (bytes->hex
+   (hmac-sha256
+    "key"
+    "The quick brown fox jumps over the lazy dog"))
+
+  (bytes->hex*
+   (hmac-sha256
+    "key"
+    "The quick brown fox jumps over the lazy dog"))
+
+  (println (hmac-sha256
+            "key"
+            "The quick brown fox jumps over the lazy dog"))
+
+  1)
+
 
 (defn prep-data
   [ticker interval coll]
@@ -126,7 +241,7 @@
   "Kline interval. 1,3,5,15,30,60,120,240,360,720,D,M,W"
   [interval ticker]
   (let [url (format
-             "https://api.bybit.com/v5/market/kline?category=linear&symbol=%s&interval=%s&limit=500"
+             "https://api.bybit.com/v5/market/kline?category=linear&symbol=%s&interval=%s&limit=200"
              ticker
              interval)
         data (get-request url)
@@ -203,3 +318,6 @@
      (take-last 2 (binance-spot interval ticker))))
 
   1)
+
+
+

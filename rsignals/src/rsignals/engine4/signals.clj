@@ -28,46 +28,7 @@
 (defn get-data
   []
   (let [interval "4h"
-        tickers (->> ["ARBUSDT"
-                      "CRVUSDT"
-
-                      "THETAUSDT"
-                      "IMXUSDT"
-                      "FLMUSDT"
-                      "STMXUSDT"
-                      "TRBUSDT"
-                      "KNCUSDT"
-                      "FRONTUSDT"
-                      "BLZUSDT"
-
-                      "BTCUSDT"
-                      "ETHUSDT"
-                      "XRPUSDT"
-                      "LTCUSDT"
-                      "ADAUSDT"
-                      "XLMUSDT"
-                      "BNBUSDT"
-
-                      "FTMUSDT"
-                      "LINKUSDT"
-                      "MATICUSDT"
-                      "DOGEUSDT"
-                      "COMPUSDT"
-                      "BCHUSDT"
-                      "HBARUSDT"
-
-                      "SOLUSDT"
-                      "AAVEUSDT"
-                      "MKRUSDT"
-                      "AVAXUSDT"
-                      "INJUSDT"
-                      "UNIUSDT"
-                      "DOTUSDT"
-                      "SANDUSDT"
-                      "RUNEUSDT"]
-                     set
-                     vec)
-        xss (get-quotas interval tickers)]
+        xss (get-quotas interval (envs/get-tickers))]
     (prn "Quotas 4h received" (count xss))
     xss))
 
@@ -90,6 +51,7 @@
                                           :tdfi :exchange :atr :close :time])))])))
 
 (comment
+  (envs/get-tickers)
   (let [sigs (get-signals)]
     (pprint/pprint sigs))
   1)

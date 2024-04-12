@@ -1,6 +1,5 @@
 (ns rsignals.engine.long
-  (:require [clojure.pprint :as pprint]
-            [rsignals.tools.crosses :as crosses]
+  (:require [rsignals.tools.crosses :as crosses]
             [rsignals.tools.ta :as ta]))
 
 (defn prep-datasets
@@ -16,22 +15,20 @@
          vals
          (mapv #(vec (sort-by :time %))))))
 
-(def skip-bars 200)
+(def skip-bars 34)
 
 (defn indicators
-  [{:keys [tdfi-p rex-p rex-sp conf-p tpcoef slcoef risk]} coll]
+  [{:keys [tdfi-p rex-p rex-sp tpcoef slcoef risk]} coll]
   (let [closes (mapv :close coll)
         tdfis (ta/tdfi tdfi-p closes)
         rexs (ta/rex-sma rex-p coll)
         rex-sigss (ta/sma rex-sp rexs)
-        confs (ta/ssl*-ema conf-p coll)
         atrs (ta/atr 14 coll)]
     (mapv
-     (fn [d tdfi rex rex-sig conf atr]
+     (fn [d tdfi rex rex-sig atr]
        (merge d {:tdfi tdfi
                  :rex rex
                  :rex-sig rex-sig
-                 :conf conf
                  :atr atr
                  :atrtp (* atr tpcoef)
                  :atrsl (* atr slcoef)
@@ -41,25 +38,25 @@
      tdfis
      rexs
      rex-sigss
-     confs
      atrs)))
 
 (defn strategy
-  [{:keys [tdfi-level conf-cross atr-multiple]} coll]
+  [{:keys [tdfi-level atr-multiple]} coll]
   (map-indexed
    (fn [idx curr]
      (if (< idx skip-bars)
        curr
        (try
          (let [exit-buy (crosses/crossunder0 :rex :rex-sig idx coll)
-               conf>0 (crosses/crossover :conf 0 conf-cross idx coll)
                tdfi>level (crosses/crossover0 :tdfi tdfi-level idx coll)
                trade-natural? (crosses/trade-natural? atr-multiple idx coll)
-               buy (and conf>0 trade-natural? tdfi>level)
+               buy (and (> (:rex curr) (:rex-sig curr))
+                        trade-natural?
+                        tdfi>level)
                sig (cond buy 1 exit-buy -2 :else 0)]
            (merge curr {:buy buy :exit-buy exit-buy :sig sig}))
-         (catch Exception e
-           (prn e (str "Exception d long strategy: " (.getMessage e)))
+         (catch Exception _
+           #_(prn e (str "Exception d long strategy: " (.getMessage e)))
            curr))))
    coll))
 
@@ -74,7 +71,7 @@
 (defn signals
   [t-args xss]
   (let [xss-prepped (->> xss
-                         (filter #(> (count %) 70))
+                         (filter #(> (count %) 30))
                          prep-datasets)]
     (doall (pmap #(e-indies % xss-prepped) [t-args]))))
 
@@ -85,6 +82,6 @@
                               (mapv (fn [x] (mapv last x)))
                               flatten
                               (remove #(nil? (:sig %))))]
-    (pprint/pprint prepared-signals)
+    ;; (pprint/pprint prepared-signals)
     (prn "Signals long processed" (count prepared-signals))
     prepared-signals))

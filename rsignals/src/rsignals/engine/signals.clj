@@ -28,53 +28,34 @@
 (defn get-data
   []
   (let [interval "D"
-        tickers (->> ["BTCUSDT"
-                      "ETHUSDT"
-                      "XRPUSDT"
-                      "LTCUSDT"
-                      "ADAUSDT"
-                      "XLMUSDT"
-                      "BNBUSDT"
-                
-                                     ; < x 1500
-                      "FTMUSDT"
-                      "LINKUSDT"
-                      "MATICUSDT"
-                      "DOGEUSDT"
-                      "COMPUSDT"
-                      "BCHUSDT"
-                      "HBARUSDT"
-                
-                                      ; < x 1000
-                      "SOLUSDT"
-                      "AAVEUSDT"
-                      "MKRUSDT"
-                      "AVAXUSDT"
-                      "INJUSDT"
-                      "UNIUSDT"
-                      "DOTUSDT"
-                      "SANDUSDT"
-                      "RUNEUSDT"]
-                     set
-                     vec)
-        xss (get-quotas interval tickers)]
+        xss (get-quotas interval (envs/get-tickers))]
     (prn "Quotas D received" (count xss))
     xss))
+
+(comment
+  (get-data)
+
+  1)
 
 (defn get-signals
   []
   (let [xss (get-data)]
     (flatten [(->> xss
+                   (filter #(> (count %) 50))
                    (engine.short/get-signals the-params-short)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
                                           :tdfi :exchange :atr :close :time])))
               (->> xss
+                   (filter #(> (count %) 50))
                    (engine.long/get-signals the-params-long)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
                                           :tdfi :exchange :atr :close :time])))])))
 
 (comment
-  (let [sigs (get-signals)]
-    (pprint/pprint sigs))
-  1)
 
+  (let [sigs (get-signals)]
+    (pprint/pprint (->> sigs
+                        (map #(-> [(:ticker %) (:sig %)]))
+                        (remove #(= 0 (second %))))))
+
+  1)

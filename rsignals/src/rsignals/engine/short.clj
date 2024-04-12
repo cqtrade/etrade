@@ -1,6 +1,5 @@
 (ns rsignals.engine.short
-  (:require [clojure.pprint :as pprint]
-            [rsignals.tools.crosses :as crosses]
+  (:require [rsignals.tools.crosses :as crosses]
             [rsignals.tools.ohlc :as ohlc]
             [rsignals.tools.ta :as ta]))
 
@@ -17,7 +16,7 @@
          vals
          (mapv #(vec (sort-by :time %))))))
 
-(def skip-bars 200)
+(def skip-bars 47)
 
 (defn indicators
   [{:keys [tdfi-p rex-p rex-sp conf-p tpcoef slcoef risk]} coll]
@@ -61,8 +60,8 @@
                exit-sell (crosses/crossover0 :rex :rex-sig idx coll)
                sig (cond sell -1 exit-sell 2 :else 0)]
            (merge curr {:sell sell :exit-sell exit-sell :sig sig}))
-         (catch Exception e
-           (prn e (str "Exception D short strategy: " (.getMessage e)))
+         (catch Exception _
+           #_(prn e (str "Exception D short strategy: " (.getMessage e)))
            curr))))
    coll))
 
@@ -77,7 +76,7 @@
 (defn signals
   [t-args xss]
   (let [xss-prepped (->> xss
-                         (filter #(> (count %) 70))
+                         (filter #(> (count %) 30))
                          prep-datasets)]
     (doall (pmap #(e-indies % xss-prepped) [t-args]))))
 
@@ -89,6 +88,5 @@
                               flatten
                               (map ohlc/validated-dates)
                               (remove #(nil? (:sig %))))]
-    (pprint/pprint prepared-signals)
     (prn "Signals short processed" (count prepared-signals))
     prepared-signals))

@@ -1,6 +1,15 @@
+const { RestClientV5 } = require('bybit-api')
 const reqs = require('./reqs.js')
 const logger = require('../logger.js')
 const { countDecimals, fixedDecimals } = require('../utils.js')
+
+const key = process.env.API_KEY;
+const secret = process.env.API_SECRET;
+const clientV5 = new RestClientV5({
+    key,
+    secret,
+    strict_param_validation: true,
+})
 
 function calculatePositionSize(
     risk,
@@ -99,13 +108,14 @@ async function sell(sig) {
     const qtyStep = instrument.value.lotSizeFilter.qtyStep;
     const qtyMin = instrument.value.lotSizeFilter.minTradingQty;
 
-    let posSizeB4Step = posSize;
+    const posSizeB4Step = posSize;
 
     posSize = calcQtyPrecision(posSize, qtyStep)
 
-    let posSizeB4MinCmp = posSize
+    const posSizeB4MinCmp = posSize
     if (posSize < (3 * qtyMin)) {
         posSize = (3 * qtyMin);
+        posSize = calcQtyPrecision(posSize, qtyStep);
     }
 
     let tpSize = calcQtyPrecision(posSize / 3, qtyStep);
@@ -174,6 +184,16 @@ async function buy(sig) {
         reqs.getInstrumentInfo({ category: 'linear', symbol: sig.ticker }),
     ]);
 
+    if (instrument.status === 'fulfilled') {
+        const maxLeverage = instrument.value.leverageFilter.maxLeverage;
+
+        await reqs.setLeverage({
+            symbol: sig.ticker,
+            buyLeverage: maxLeverage,
+            sellLeverage: maxLeverage
+        });
+    }
+
     const lastPrice = Number(ticker.value.lastPrice);
     const tickSize = instrument.value.priceFilter.tickSize;
 
@@ -203,12 +223,13 @@ async function buy(sig) {
     const qtyStep = instrument.value.lotSizeFilter.qtyStep;
     const qtyMin = instrument.value.lotSizeFilter.minTradingQty;
 
-    let posSizeB4Step = posSize;
+    const posSizeB4Step = posSize;
     posSize = calcQtyPrecision(posSize, qtyStep)
 
-    let posSizeB4MinCmp = posSize
+    const posSizeB4MinCmp = posSize
     if (posSize < (3 * qtyMin)) {
         posSize = (3 * qtyMin);
+        posSize = calcQtyPrecision(posSize, qtyStep);
     }
 
     let tpSize = calcQtyPrecision(posSize / 3, qtyStep);
@@ -285,12 +306,25 @@ async function signalHandler(sig) {
             logger.debug(`Signal ${sig.ticker} ${sig.sig}`);
         }
 
-        const position = await reqs.getPosition(sig.ticker, 'USDT');
+        const { retMsg, result } = await clientV5.getPositionInfo({
+            category: 'linear',
+            symbol: sig.ticker,
+            // settleCoin: 'USDT',
+        })
+        if (retMsg !== 'OK') {
+            throw new Error('getPositions failed during incoming signal ' + retMsg);
+        }
+
+        const [position] = result.list;
+
+        if (!position) {
+            throw new Error('ERROR no getPositionInfo for ' + sig.ticker);
+        }
 
         const side = position.side;
 
-        if (sig.sig === 1 && side === 'None') {
-            setTimeout(async () => {
+        if (sig.sig === 1 && (side === '' || side === 'None')) {
+            setTimeout(() => {
                 console.log('buy', sig.ticker);
                 logger.info(JSON.stringify(sig));
             }, 0);
@@ -299,8 +333,8 @@ async function signalHandler(sig) {
 
         }
 
-        if (sig.sig === -1 && side === 'None') {
-            setTimeout(async () => {
+        if (sig.sig === -1 && (side === '' || side === 'None')) {
+            setTimeout(() => {
                 console.log('sell', sig.ticker);
                 logger.debug(JSON.stringify(sig));
             }, 0);
@@ -324,7 +358,7 @@ async function signalHandler(sig) {
         }
 
         if (sig.sig === 1 && side === 'Sell') {
-            setTimeout(async () => {
+            setTimeout(() => {
                 logger.info('exit short and long' + sig.ticker)
                 logger.debug(JSON.stringify(sig))
             }, 0);
@@ -334,7 +368,7 @@ async function signalHandler(sig) {
         }
 
         if (sig.sig === -1 && side === 'Buy') {
-            setTimeout(async () => {
+            setTimeout(() => {
                 logger.info('exit long and short' + sig.ticker)
                 logger.debug(JSON.stringify(sig))
             }, 0);
@@ -342,9 +376,26 @@ async function signalHandler(sig) {
             await exitPosition(sig, position)
             return await sell(sig)
         }
+
+        console.log('no action', sig.ticker)
     } catch (error) {
+
+        console.log(`ERROR signalHandler ${error.message}`)
         logger.error(`ERROR signalHandler ${error.message}`)
     }
 }
 
 module.exports.signalHandler = signalHandler;
+
+// signalHandler({
+//     "time": 1709683200000,
+//     "ticker": "SOLUSDT",
+//     "risk": 1,
+//     "close": 130.848,
+//     "atrtp": 10.567587963113281,
+//     "atrsl": 21.135175926226562,
+//     "sig": 1,
+//     "atr": 10.567587963113281,
+//     "tdfi": 0.408194,
+//     "exchange": "BB"
+// }).catch(console.error);
