@@ -177,7 +177,7 @@ const handleActivePosition = async (position) => {
 
         if (!openSlOrders.length) {
           logger.info(`No stop loss found, closing position`);
-        await closePosition({ symbol, side, positionAmt });
+          await closePosition({ symbol, side, positionAmt });
         }
       }
 
@@ -293,16 +293,17 @@ const flow = async () => {
   }
 };
 
-const engine = async () => {
+const engine = () => {
   const interval = 5000;
-
-  try {
-    await flow();
-  } catch (error) {
-    logger.error(`Engine execution failed: ${error.message}`);
-  }
-
-  setTimeout(engine, interval);
+  
+  flow()
+    .then(() => {
+      setTimeout(engine, interval);
+    })
+    .catch((error) => {
+      logger.error(`Engine execution failed: ${error.message}`);
+      setTimeout(engine, interval);
+    });
 };
 
 module.exports.engine = engine;
