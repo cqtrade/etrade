@@ -1,5 +1,6 @@
 const fastify = require('fastify');
 const trade = require('./tradebb/index')
+// const tradeBn = require("./tradebn/index")
 const logger = require('./logger.js')
 const { sleep } = require('./utils.js')
 
@@ -19,6 +20,8 @@ server.post(
                     console.log('request.body', request.body);
                     if (request.body instanceof Array) {
                         for (const sig of request.body) {
+                            // TODO: Use correct signal handler
+                            // await tradeBn.signalHandler(sig)
                             await trade.signalHandler(sig);
                             await sleep(1000);
                         }

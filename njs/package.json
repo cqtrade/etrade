@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "binance": "^2.8.10",
     "bybit-api": "3.9.5",
     "dotenv": "^16.0.3",
     "fastify": "^4.12.0",
