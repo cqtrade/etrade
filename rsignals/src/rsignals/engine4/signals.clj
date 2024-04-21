@@ -27,9 +27,9 @@
 
 (defn get-data
   []
-  (let [interval "4h"
+  (let [interval "1d" ; TODO get from env
         xss (get-quotas interval (envs/get-tickers))]
-    (prn "Quotas 4h received" (count xss))
+    (prn "Quotas Binance received" (count xss))
     xss))
 
 (comment
