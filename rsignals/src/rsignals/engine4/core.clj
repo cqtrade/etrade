@@ -17,13 +17,13 @@
   []
   (try
     (let [url (if (System/getenv "APP_DOCKER")
-                "http://njs:3000/signal4"
-                "http://0.0.0.0:3000/signal4")
+                "http://njs:3000/signal"
+                "http://0.0.0.0:3000/signal")
           data (signals/get-signals)]
       (post-signals url data)
-      (discord/log-signals "4h" data))
+      (discord/log-signals "Binance signals" data))
     (catch Exception e
-      (prn (str "Exception engine 4h: " (.getMessage e))))))
+      (prn (str "Exception engine Binance signals: " (.getMessage e))))))
 
 (comment
 
