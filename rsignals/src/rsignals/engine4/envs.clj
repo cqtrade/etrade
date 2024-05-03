@@ -4,20 +4,8 @@
 
 (defn get-tickers
   []
-  (let [tickers-str (or (System/getenv "TICKERS_4H_BN")
-                        (str/join "," ["ARBUSDT"
-                                       "CRVUSDT"
-
-                                       "THETAUSDT"
-                                       "IMXUSDT"
-                                       "FLMUSDT"
-                                       "STMXUSDT"
-                                       "TRBUSDT"
-                                       "KNCUSDT"
-                                       "FRONTUSDT"
-                                       "BLZUSDT"
-
-                                       "BTCUSDT"
+  (let [tickers-str (or (System/getenv "TICKERS_BINANCE")
+                        (str/join "," ["BTCUSDT"
                                        "ETHUSDT"
                                        "XRPUSDT"
                                        "LTCUSDT"

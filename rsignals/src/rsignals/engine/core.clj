@@ -29,6 +29,6 @@
 
   (time
    (let [data (signals/get-signals)]
-     ('clojure.pprint/pprint data)))
+     (clojure.pprint/pprint data)))
 
   1)
