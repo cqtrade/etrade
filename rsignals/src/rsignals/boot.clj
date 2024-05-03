@@ -31,7 +31,7 @@
         daily-time? (the-daily-times c)
         #_#_hourly4-time? (the-4hourly-times c)]
 
-    (when (or (System/getenv "API_ENABLED")
+    (when (or (System/getenv "BB_SIG_ENABLED")
               true) ; TODO for now
       (when daily-time?
         (prn "BYBIT SIGNALS START" t)
@@ -39,7 +39,7 @@
         (prn "BYBIT SIGNALS DONE")
         (Thread/sleep 103)))
 
-    (when (System/getenv "BN_API_ENABLED")
+    (when (System/getenv "BN_SIG_ENABLED")
       (when daily-time?
         (prn "BINANCE SIGNALS START" t)
         (engine-binance/engine)
