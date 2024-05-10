@@ -34,7 +34,6 @@ server.post(
                             }
                         }
                         logger.info(`Signals received: ${request.body.length}`);
-                        return;
                     }
                 } catch (e) {
                     logger.error('signal handler error ' + e.message);

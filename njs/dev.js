@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 require('dotenv').config()
 
 const trade = require('./src/tradebb/index.js')
