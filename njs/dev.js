@@ -1,30 +1,29 @@
 /* eslint-disable no-unused-vars */
-require('dotenv').config()
+require('dotenv').config();
 
-const trade = require('./src/tradebb/index.js')
+const trade = require('./src/tradebb/index.js');
 
 function atrTp1Calc1(close, atr, tp1Coef) {
-    const atrTp1 = atr * tp1Coef;
-    const diff = parseFloat(100 * (1 - (close - atrTp1) / close));
-    const diffAllowedPerc = 0.3;
+	const atrTp1 = atr * tp1Coef;
+	const diff = parseFloat(100 * (1 - (close - atrTp1) / close));
+	const diffAllowedPerc = 0.3;
 
-    if (diff < diffAllowedPerc) {
-        return (close * diffAllowedPerc) / 100;
-    }
-    return atrTp1;
+	if (diff < diffAllowedPerc) {
+		return (close * diffAllowedPerc) / 100;
+	}
+	return atrTp1;
 }
 
 function atrTp1Calc(close, atrTp1) {
-    const diff = parseFloat(100 * (1 - (close - atrTp1) / close));
-    console.log(diff);
-    const minDiffAllowedPerc = 0.3;
+	const diff = parseFloat(100 * (1 - (close - atrTp1) / close));
+	console.log(diff);
+	const minDiffAllowedPerc = 0.3;
 
-    if (diff < minDiffAllowedPerc) {
-        return (close * minDiffAllowedPerc) / 100;
-    }
-    return atrTp1;
+	if (diff < minDiffAllowedPerc) {
+		return (close * minDiffAllowedPerc) / 100;
+	}
+	return atrTp1;
 }
-
 
 /*
 (comment
