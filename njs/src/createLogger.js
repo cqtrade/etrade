@@ -1,231 +1,231 @@
-const stringify = require('json-stable-stringify')
-const { sleep } = require('./utils.js')
+const stringify = require('json-stable-stringify');
+const { sleep } = require('./utils.js');
 
-const logQueue = []
-let isLogging = false
+const logQueue = [];
+let isLogging = false;
 
 function enqueueLog(level, message, data) {
-    logQueue.push({ level, message, data })
+	logQueue.push({ level, message, data });
 }
 
 function dequeueLog() {
-    if (logQueue.length) {
-        return logQueue.shift()
-    }
+	if (logQueue.length) {
+		return logQueue.shift();
+	}
 }
 
 function formatMessage(message) {
-    if (typeof message === 'object') {
-        try {
-            return stringify(message, { cycles: true })
-        } catch (error) {
-            console.error(`Failed to stringify object: ${error}`)
-        }
-    }
+	if (typeof message === 'object') {
+		try {
+			return stringify(message, { cycles: true });
+		} catch (error) {
+			console.error(`Failed to stringify object: ${error}`);
+		}
+	}
 
-    return message || ''
+	return message || '';
 }
 
 async function logToDiscord({
-    discordWebhookUrl,
-    additionalDiscordWebhookUrl,
-    additionalDiscordLogLevels,
-    level,
-    message,
-    data,
-    retryCount = 3,
+	discordWebhookUrl,
+	additionalDiscordWebhookUrl,
+	additionalDiscordLogLevels,
+	level,
+	message,
+	data,
+	retryCount = 3,
 }) {
-    const logColors = {
-        debug: 2201331,
-        info: 5025616,
-        warn: 16761095,
-        error: 16007990,
-    }
+	const logColors = {
+		debug: 2201331,
+		info: 5025616,
+		warn: 16761095,
+		error: 16007990,
+	};
 
-    const formattedData = data?.length
-        ? data.map((item) => '```\n' + formatMessage(item) + '\n```').join('\n')
-        : ''
+	const formattedData = data?.length
+		? data.map((item) => '```\n' + formatMessage(item) + '\n```').join('\n')
+		: '';
 
-    const formattedMessage = formatMessage(message)
+	const formattedMessage = formatMessage(message);
 
-    const logData = {
-        embeds: [
-            {
-                title: formattedMessage,
-                description: formattedData,
-                color: logColors[level],
-            },
-        ],
-    }
+	const logData = {
+		embeds: [
+			{
+				title: formattedMessage,
+				description: formattedData,
+				color: logColors[level],
+			},
+		],
+	};
 
-    let retry = 0
-    const retryDelay = 5000
+	let retry = 0;
+	const retryDelay = 5000;
 
-    const webhookUrl =
-        additionalDiscordWebhookUrl &&
-        additionalDiscordLogLevels?.includes(level)
-            ? additionalDiscordWebhookUrl
-            : discordWebhookUrl
+	const webhookUrl =
+		additionalDiscordWebhookUrl &&
+		additionalDiscordLogLevels?.includes(level)
+			? additionalDiscordWebhookUrl
+			: discordWebhookUrl;
 
-    while (retry <= retryCount) {
-        try {
-            const response = await fetch(webhookUrl, {
-                method: 'POST',
-                body: stringify(logData),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
+	while (retry <= retryCount) {
+		try {
+			const response = await fetch(webhookUrl, {
+				method: 'POST',
+				body: stringify(logData),
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
 
-            if (!response.ok) {
-                throw new Error(
-                    `Failed to send message to Discord: ${response.status} ${response.statusText}`
-                )
-            }
+			if (!response.ok) {
+				throw new Error(
+					`Failed to send message to Discord: ${response.status} ${response.statusText}`,
+				);
+			}
 
-            return
-        } catch (error) {
-            console.error(
-                `An error occurred while sending the message to Discord (retry ${retry}):`,
-                error
-            )
+			return;
+		} catch (error) {
+			console.error(
+				`An error occurred while sending the message to Discord (retry ${retry}):`,
+				error,
+			);
 
-            retry++
+			retry++;
 
-            await sleep(retryDelay)
-        }
-    }
+			await sleep(retryDelay);
+		}
+	}
 
-    console.error(
-        `Failed to send the message to Discord after ${retryCount} retries`
-    )
+	console.error(
+		`Failed to send the message to Discord after ${retryCount} retries`,
+	);
 }
 
 async function processLog({
-    level,
-    message,
-    data,
-    discordWebhookUrl,
-    discordLogLevels,
-    additionalDiscordWebhookUrl,
-    additionalDiscordLogLevels,
-    messageDelay,
+	level,
+	message,
+	data,
+	discordWebhookUrl,
+	discordLogLevels,
+	additionalDiscordWebhookUrl,
+	additionalDiscordLogLevels,
+	messageDelay,
 }) {
-    const timestamp = new Date().toISOString()
-    const formattedMessage = formatMessage(message)
-    const formattedData = data?.length
-        ? data.map((dataItem) => formatMessage(dataItem)).join(' ')
-        : ''
+	const timestamp = new Date().toISOString();
+	const formattedMessage = formatMessage(message);
+	const formattedData = data?.length
+		? data.map((dataItem) => formatMessage(dataItem)).join(' ')
+		: '';
 
-    console[level](
-        `[${timestamp}] [${level.toUpperCase()}] ${formattedMessage} ${formattedData}`
-    )
+	console[level](
+		`[${timestamp}] [${level.toUpperCase()}] ${formattedMessage} ${formattedData}`,
+	);
 
-    const shouldLogToDiscord =
-        discordLogLevels?.includes(level) ||
-        additionalDiscordLogLevels?.includes(level)
+	const shouldLogToDiscord =
+		discordLogLevels?.includes(level) ||
+		additionalDiscordLogLevels?.includes(level);
 
-    if (shouldLogToDiscord) {
-        enqueueLog(level, message, data)
+	if (shouldLogToDiscord) {
+		enqueueLog(level, message, data);
 
-        if (!isLogging) {
-            isLogging = true
+		if (!isLogging) {
+			isLogging = true;
 
-            try {
-                while (logQueue.length) {
-                    const { level, message, data } = dequeueLog()
+			try {
+				while (logQueue.length) {
+					const { level, message, data } = dequeueLog();
 
-                    setImmediate(() =>
-                        logToDiscord({
-                            discordWebhookUrl,
-                            additionalDiscordWebhookUrl,
-                            additionalDiscordLogLevels,
-                            level,
-                            message,
-                            data,
-                        })
-                    )
+					setImmediate(() =>
+						logToDiscord({
+							discordWebhookUrl,
+							additionalDiscordWebhookUrl,
+							additionalDiscordLogLevels,
+							level,
+							message,
+							data,
+						}),
+					);
 
-                    await sleep(messageDelay)
-                }
-            } catch (error) {
-                console.error(
-                    'An error occurred while processing the log queue',
-                    error
-                )
-            } finally {
-                isLogging = false
-            }
-        }
-    }
+					await sleep(messageDelay);
+				}
+			} catch (error) {
+				console.error(
+					'An error occurred while processing the log queue',
+					error,
+				);
+			} finally {
+				isLogging = false;
+			}
+		}
+	}
 }
 
 function hasMatchingValues(firstArray, secondArray) {
-    return firstArray.some((value) => secondArray.includes(value))
+	return firstArray.some((value) => secondArray.includes(value));
 }
 
 function createLogger({
-    discordWebhookUrl,
-    discordLogLevels = [],
-    additionalDiscordWebhookUrl,
-    additionalDiscordLogLevels = [],
-    messageDelay = 0,
+	discordWebhookUrl,
+	discordLogLevels = [],
+	additionalDiscordWebhookUrl,
+	additionalDiscordLogLevels = [],
+	messageDelay = 0,
 } = {}) {
-    if (hasMatchingValues(discordLogLevels, additionalDiscordLogLevels)) {
-        throw new Error('Duplicate log levels provided')
-    }
+	if (hasMatchingValues(discordLogLevels, additionalDiscordLogLevels)) {
+		throw new Error('Duplicate log levels provided');
+	}
 
-    if (discordLogLevels.length && !discordWebhookUrl) {
-        throw new Error('Discord webhook URL is required')
-    }
+	if (discordLogLevels.length && !discordWebhookUrl) {
+		throw new Error('Discord webhook URL is required');
+	}
 
-    if (additionalDiscordLogLevels.length && !additionalDiscordWebhookUrl) {
-        throw new Error('Additional Discord webhook URL is required')
-    }
+	if (additionalDiscordLogLevels.length && !additionalDiscordWebhookUrl) {
+		throw new Error('Additional Discord webhook URL is required');
+	}
 
-    const validLogLevels = ['debug', 'info', 'warn', 'error']
+	const validLogLevels = ['debug', 'info', 'warn', 'error'];
 
-    if (
-        [...discordLogLevels, ...additionalDiscordLogLevels].some(
-            (level) => !validLogLevels.includes(level)
-        )
-    ) {
-        throw new Error('Invalid log level provided')
-    }
+	if (
+		[...discordLogLevels, ...additionalDiscordLogLevels].some(
+			(level) => !validLogLevels.includes(level),
+		)
+	) {
+		throw new Error('Invalid log level provided');
+	}
 
-    if (typeof messageDelay !== 'number' || messageDelay < 0) {
-        throw new Error('Invalid message delay provided')
-    }
+	if (typeof messageDelay !== 'number' || messageDelay < 0) {
+		throw new Error('Invalid message delay provided');
+	}
 
-    function log(level, message, ...data) {
-        setImmediate(() =>
-            processLog({
-                level,
-                message,
-                data,
-                discordWebhookUrl,
-                discordLogLevels,
-                additionalDiscordWebhookUrl,
-                additionalDiscordLogLevels,
-                messageDelay,
-            })
-        )
-    }
+	function log(level, message, ...data) {
+		setImmediate(() =>
+			processLog({
+				level,
+				message,
+				data,
+				discordWebhookUrl,
+				discordLogLevels,
+				additionalDiscordWebhookUrl,
+				additionalDiscordLogLevels,
+				messageDelay,
+			}),
+		);
+	}
 
-    return {
-        debug(message, ...data) {
-            log('debug', message, ...data)
-        },
-        info(message, ...data) {
-            log('info', message, ...data)
-        },
-        warn(message, ...data) {
-            log('warn', message, ...data)
-        },
-        error(message, ...data) {
-            log('error', message, ...data)
-        },
-    }
+	return {
+		debug(message, ...data) {
+			log('debug', message, ...data);
+		},
+		info(message, ...data) {
+			log('info', message, ...data);
+		},
+		warn(message, ...data) {
+			log('warn', message, ...data);
+		},
+		error(message, ...data) {
+			log('error', message, ...data);
+		},
+	};
 }
 
-module.exports = createLogger
+module.exports = createLogger;
