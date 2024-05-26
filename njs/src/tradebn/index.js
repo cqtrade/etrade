@@ -73,10 +73,19 @@ const exitPosition = async (sig, position) => {
 };
 
 const buy = async (signal) => {
-	const [ticker, instrument] = await Promise.allSettled([
+	const [ticker, instrument, leverage] = await Promise.allSettled([
 		reqs.getSymbolTicker(signal.ticker),
 		reqs.getInstrumentInfo(signal.ticker),
+		reqs.getLeverageInfo(signal.ticker),
 	]);
+
+	if (leverage.status === 'fulfilled') {
+		const maxLeverage = leverage.value[0].brackets[0].initialLeverage;
+		await reqs.setLeverage({
+			symbol: signal.ticker,
+			leverage: maxLeverage,
+		});
+	}
 
 	const lastPrice = Number(ticker.value.lastPrice);
 	const tickSize = instrument.value.filters.find(
@@ -329,7 +338,7 @@ const signalHandler = async (sig) => {
 			}
 
 			const openPosition = position.find(
-				(position) => position.positionAmt !== '0.000',
+				(position) => parseFloat(position.positionAmt) !== 0,
 			);
 
 			const openPositionSide = openPosition

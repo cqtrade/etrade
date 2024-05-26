@@ -42,6 +42,22 @@ const getInstrumentInfo = async (symbol) => {
 
 module.exports.getInstrumentInfo = getInstrumentInfo;
 
+const getLeverageInfo = async (symbol) => {
+	try {
+		const result = await client.getNotionalAndLeverageBrackets({ symbol });
+
+		return result;
+	} catch (error) {
+		console.error(
+			'getNotionalAndLeverageBrackets failed: ',
+			errorFilter(error),
+		);
+		throw error;
+	}
+};
+
+module.exports.getLeverageInfo = getLeverageInfo;
+
 const setPricePrecisionByTickSize = (price, tickSize) => {
 	const precision = tickSize.toString().split('.')[1].length - 1;
 	return Number(price).toFixed(precision);
@@ -113,24 +129,17 @@ const submitOrder = async ({
 module.exports.submitOrder = submitOrder;
 
 // TODO implement this to tradeBN
-const setLeverage = async ({ symbol, buyLeverage, sellLeverage }) => {
+const setLeverage = async ({ symbol, leverage }) => {
 	try {
-		const { retMsg, result } = await client.setLeverage({
-			category: 'linear',
+		const result = await client.setLeverage({
 			symbol,
-			buyLeverage,
-			sellLeverage,
+			leverage,
 		});
-		if (retMsg !== 'OK') {
-			// TODO it shouldn't matter at this point if fails
-			// throw new Error('setLeverage failed ' + retMsg);
-			console.log('setLeverage failed: ', retMsg);
-		}
 
 		return result;
 	} catch (error) {
 		// TODO should be logged
-		console.log('setLeverage failed: ', error);
+		console.log('setLeverage failed: ', errorFilter(error));
 	}
 };
 
