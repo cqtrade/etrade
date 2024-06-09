@@ -52,6 +52,8 @@ const getExchangeInfoForSymbol = async (symbol) => {
 	}
 };
 
+module.exports.getExchangeInfoForSymbol = getExchangeInfoForSymbol;
+
 const getOpenOrders = async (symbol) => {
 	try {
 		return await client.getAllOpenOrders({ symbol });
