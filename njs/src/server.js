@@ -19,10 +19,10 @@ server.post('/signal', {}, async (request, reply) => {
 					for (const sig of request.body) {
 						const { exchange } = sig;
 
-						if (exchange === 'BB') {
+						if (exchange === 'BB' && process.env.API_ENABLED) {
 							await trade.signalHandler(sig);
 							await sleep(1000);
-						} else if (exchange === 'B') {
+						} else if (exchange === 'B' && process.env.BN_API_ENABLED) {
 							await tradeBn.signalHandler(sig);
 							await sleep(1000);
 						} else {
