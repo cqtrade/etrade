@@ -1,6 +1,6 @@
 const fastify = require('fastify');
-const trade = require('./tradebb/index');
-// const tradeBn = require("./tradebn/index")
+const trade = require('./tradebb/index.js');
+const tradeBn = require('./tradebn/index.js');
 const logger = require('./logger.js');
 const { sleep } = require('./utils.js');
 
@@ -22,20 +22,25 @@ server.post('/signal', {}, async (request, reply) => {
 						if (exchange === 'BB') {
 							await trade.signalHandler(sig);
 							await sleep(1000);
+						} else if (exchange === 'B') {
+							await tradeBn.signalHandler(sig);
+							await sleep(1000);
 						} else {
-							// TODO: Use correct signal handler fo Binance
-							// await tradeBn.signalHandler(sig)
 							try {
 								logger.info(
 									`Sig not handled: ${sig.exchange} ${sig.ticker} ${sig.sig}`,
 								);
-							} catch (error) {}
+							} catch (error) {
+								logger.error(
+									'signal handler error ' + error.message,
+								);
+							}
 						}
 					}
 					logger.info(`Signals received: ${request.body.length}`);
 				}
-			} catch (e) {
-				logger.error('signal handler error ' + e.message);
+			} catch (error) {
+				logger.error('signal handler error ' + error.message);
 			}
 		})().catch();
 	}, 0);
