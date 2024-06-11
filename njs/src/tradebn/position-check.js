@@ -2,14 +2,11 @@ const { USDMClient } = require('binance');
 const { sleep } = require('../utils.js');
 const logger = require('../logger.js');
 
-const client = new USDMClient(
-	{
-		api_key: '',
-		api_secret: '',
-	},
-	{},
-	true,
-);
+const client = new USDMClient({
+	api_key: process.env.BN_API_KEY,
+	api_secret: process.env.BN_API_SECRET,
+	strict_param_validation: true,
+});
 
 const calculatePnlPercentage = (side, entryPrice, lastPrice) => {
 	const priceDifference =
