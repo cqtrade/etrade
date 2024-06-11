@@ -98,7 +98,7 @@ const buy = async (signal) => {
 	const tpPrice = reqs.setPricePrecisionByTickSize(tp, tickSize);
 	const slPrice = reqs.setPricePrecisionByTickSize(sl, tickSize);
 
-	const equityUSD = Number(process.env.EQUITY);
+	const equityUSD = Number(process.env.EQUITY_BN);
 	const risk = signal.risk;
 	const atrSl = signal.atrsl;
 
@@ -216,7 +216,7 @@ const sell = async (signal) => {
 	const tpPrice = reqs.setPricePrecisionByTickSize(tp, tickSize);
 	const slPrice = reqs.setPricePrecisionByTickSize(sl, tickSize);
 
-	const equityUSD = Number(10); // Number(process.env.EQUITY);
+	const equityUSD = Number(process.env.EQUITY_BN);
 	const risk = signal.risk;
 	const atrSl = signal.atrsl;
 
