@@ -22,9 +22,10 @@ const calculatePositionSize = (risk, atrSl, lastPrice, equityUSD) => {
 	};
 };
 
-const calculateQuantityPrecision = (qty, stepSize) => {
-	const rawRes =
-		Math.floor(Number(qty) / Number(stepSize)) * Number(stepSize);
+const calculateQuantityPrecision = (qty, stepSize, positionUnderNotional) => {
+	const rawRes = positionUnderNotional
+		? Math.ceil(Number(qty) / Number(stepSize)) * Number(stepSize)
+		: Math.floor(Number(qty) / Number(stepSize)) * Number(stepSize);
 	const decimals = countDecimals(stepSize);
 
 	return fixedDecimals(rawRes, decimals);
@@ -109,26 +110,49 @@ const buy = async (signal) => {
 		equityUSD,
 	);
 
-	let posSize = positionSize;
-
 	const qtyStep = instrument.value.filters.find(
 		(filter) => filter.filterType === 'MARKET_LOT_SIZE',
 	).stepSize;
 	const qtyMin = instrument.value.filters.find(
 		(filter) => filter.filterType === 'MARKET_LOT_SIZE',
 	).minQty;
+	const minNotional = Number(
+		instrument.value.filters.find(
+			(filter) => filter.filterType === 'MIN_NOTIONAL',
+		).notional,
+	);
+
+	let posSize = positionSize;
+	let positionUnderNotional = false;
+
+	if (posSize * lastPrice < minNotional) {
+		positionUnderNotional = true;
+		posSize = minNotional / lastPrice;
+	}
 
 	const posSizeB4Step = posSize;
 
-	posSize = calculateQuantityPrecision(posSize, qtyStep);
+	posSize = calculateQuantityPrecision(
+		posSize,
+		qtyStep,
+		positionUnderNotional,
+	);
 
 	const posSizeB4MinCmp = posSize;
 	if (posSize < 3 * qtyMin) {
 		posSize = 3 * qtyMin;
-		posSize = calculateQuantityPrecision(posSize, qtyStep);
+		posSize = calculateQuantityPrecision(
+			posSize,
+			qtyStep,
+			positionUnderNotional,
+		);
 	}
 
-	let tpSize = calculateQuantityPrecision(posSize / 3, qtyStep);
+	let tpSize = calculateQuantityPrecision(
+		posSize / 3,
+		qtyStep,
+		positionUnderNotional,
+	);
 	if (tpSize < qtyMin) {
 		tpSize = qtyMin;
 	}
@@ -227,26 +251,49 @@ const sell = async (signal) => {
 		equityUSD,
 	);
 
-	let posSize = positionSize;
-
 	const qtyStep = instrument.value.filters.find(
 		(filter) => filter.filterType === 'MARKET_LOT_SIZE',
 	).stepSize;
 	const qtyMin = instrument.value.filters.find(
 		(filter) => filter.filterType === 'MARKET_LOT_SIZE',
 	).minQty;
+	const minNotional = Number(
+		instrument.value.filters.find(
+			(filter) => filter.filterType === 'MIN_NOTIONAL',
+		).notional,
+	);
+
+	let posSize = positionSize;
+	let positionUnderNotional = false;
+
+	if (posSize * lastPrice < minNotional) {
+		positionUnderNotional = true;
+		posSize = minNotional / lastPrice;
+	}
 
 	const posSizeB4Step = posSize;
 
-	posSize = calculateQuantityPrecision(posSize, qtyStep);
+	posSize = calculateQuantityPrecision(
+		posSize,
+		qtyStep,
+		positionUnderNotional,
+	);
 
 	const posSizeB4MinCmp = posSize;
 	if (posSize < 3 * qtyMin) {
 		posSize = 3 * qtyMin;
-		posSize = calculateQuantityPrecision(posSize, qtyStep);
+		posSize = calculateQuantityPrecision(
+			posSize,
+			qtyStep,
+			positionUnderNotional,
+		);
 	}
 
-	let tpSize = calculateQuantityPrecision(posSize / 3, qtyStep);
+	let tpSize = calculateQuantityPrecision(
+		posSize / 3,
+		qtyStep,
+		positionUnderNotional,
+	);
 	if (tpSize < qtyMin) {
 		tpSize = qtyMin;
 	}
