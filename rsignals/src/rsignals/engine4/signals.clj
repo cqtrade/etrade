@@ -27,7 +27,8 @@
 
 (defn get-data
   []
-  (let [interval "1d" ; TODO get from env
+  ; See https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Kline-Candlestick-Data
+  (let [interval "4h" ; TODO get from env 
         xss (get-quotas interval (envs/get-tickers))]
     (prn "Quotas Binance received" (count xss))
     xss))
