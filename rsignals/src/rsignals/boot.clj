@@ -11,8 +11,7 @@
   #{"235510"})
 
 (def the-4hourly-times
-  #{"235801"
-    "35613"
+  #{"35613"
     "75613"
     "115613"
     "155613"
@@ -25,11 +24,19 @@
         daily-time? (the-daily-times time-string)
         hourly4-time? (the-4hourly-times time-string)]
 
-    (when (System/getenv "API_ENABLED")
-      (when daily-time?
+    (when daily-time?
+
+      (when (System/getenv "API_ENABLED")
         (prn "BYBIT SIGNALS START" time-map)
         (engine-bybit/engine)
         (prn "BYBIT SIGNALS DONE")
+        ; wait for 3 minutes
+        (Thread/sleep (* 3 60 1000)))
+
+      (when (System/getenv "BN_API_ENABLED")
+        (prn "BINANCE SIGNALS START" time-map)
+        (engine-binance/engine)
+        (prn "BINANCE SIGNALS DONE")
         (Thread/sleep 103)))
 
     (when (System/getenv "BN_API_ENABLED")
