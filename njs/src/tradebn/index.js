@@ -170,14 +170,15 @@ const buy = async (signal) => {
 
 		try {
 			const tpOrderRes = await reqs.submitOrder({
-				side: 'SELL',
 				symbol: signal.ticker,
+				side: 'SELL',
 				quantity: tpSize,
-				type: 'TAKE_PROFIT',
-				timeInForce: 'GTC',
-				workingType: 'MARK_PRICE',
-				price: tpPrice,
 				stopPrice: tpPrice,
+				// price: tpPrice,
+				type: 'TAKE_PROFIT_MARKET',
+				workingType: 'MARK_PRICE',
+				timeInForce: 'GTE_GTC',
+				priceProtect: true,
 				reduceOnly: true,
 			});
 
@@ -311,15 +312,16 @@ const sell = async (signal) => {
 
 		try {
 			const tpOrderRes = await reqs.submitOrder({
-				side: 'BUY',
-				workingType: 'MARK_PRICE',
 				symbol: signal.ticker,
+				side: 'BUY',
 				quantity: tpSize,
-				type: 'TAKE_PROFIT',
-				timeInForce: 'GTC',
-				reduceOnly: true,
-				price: tpPrice,
 				stopPrice: tpPrice,
+				// price: tpPrice,
+				type: 'TAKE_PROFIT_MARKET',
+				workingType: 'MARK_PRICE',
+				timeInForce: 'GTE_GTC',
+				priceProtect: true,
+				reduceOnly: true,
 			});
 
 			logger.debug(`Sell ${signal.ticker} tpOrderRes res`, tpOrderRes);
