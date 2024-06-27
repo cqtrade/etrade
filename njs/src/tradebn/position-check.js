@@ -179,7 +179,9 @@ const handleActivePosition = async (position) => {
 			let openSlOrders = await getOpenSlOrders({ symbol, side });
 
 			if (!openSlOrders.length) {
-				const time = new Date().toLocaletring();
+				const time = new Date().toLocaletring('et-ee', {
+					timeZone: 'UTC',
+				});
 				logger.info(
 					`No stop loss found, closing position for symbol ${symbol} at ${time}`,
 				);
@@ -187,7 +189,9 @@ const handleActivePosition = async (position) => {
 				openSlOrders = await getOpenSlOrders({ symbol, side });
 
 				if (!openSlOrders.length) {
-					const time2 = new Date().toLocaletring();
+					const time2 = new Date().toLocaletring('et-ee', {
+						timeZone: 'UTC',
+					});
 					logger.info(
 						`No stop loss found, closing position for symbol ${symbol} at ${time2}`,
 					);
