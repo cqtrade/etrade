@@ -11,6 +11,7 @@ const client = new USDMClient({
 	api_key: process.env.BN_API_KEY,
 	api_secret: process.env.BN_API_SECRET,
 	strict_param_validation: true,
+	recvWindow: 20000, // 20 seconds
 });
 
 const getSymbolTicker = async (symbol) => {

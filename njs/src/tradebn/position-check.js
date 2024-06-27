@@ -6,6 +6,7 @@ const client = new USDMClient({
 	api_key: process.env.BN_API_KEY,
 	api_secret: process.env.BN_API_SECRET,
 	strict_param_validation: true,
+	recvWindow: 20000, // 20 seconds
 });
 
 const calculatePnlPercentage = (side, entryPrice, lastPrice) => {
@@ -178,11 +179,18 @@ const handleActivePosition = async (position) => {
 			let openSlOrders = await getOpenSlOrders({ symbol, side });
 
 			if (!openSlOrders.length) {
-				await sleep(5000);
+				const time = new Date().toLocaletring();
+				logger.info(
+					`No stop loss found, closing position for symbol ${symbol} at ${time}`,
+				);
+				await sleep(10000);
 				openSlOrders = await getOpenSlOrders({ symbol, side });
 
 				if (!openSlOrders.length) {
-					logger.info(`No stop loss found, closing position`);
+					const time2 = new Date().toLocaletring();
+					logger.info(
+						`No stop loss found, closing position for symbol ${symbol} at ${time2}`,
+					);
 					await closePosition({ symbol, side, positionAmt });
 				}
 			}
