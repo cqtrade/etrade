@@ -179,7 +179,7 @@ const handleActivePosition = async (position) => {
 			let openSlOrders = await getOpenSlOrders({ symbol, side });
 
 			if (!openSlOrders.length) {
-				const time = new Date().toLocaletring('et-ee', {
+				const time = new Date().toLocaleString('et-ee', {
 					timeZone: 'UTC',
 				});
 				logger.info(
@@ -189,7 +189,7 @@ const handleActivePosition = async (position) => {
 				openSlOrders = await getOpenSlOrders({ symbol, side });
 
 				if (!openSlOrders.length) {
-					const time2 = new Date().toLocaletring('et-ee', {
+					const time2 = new Date().toLocaleString('et-ee', {
 						timeZone: 'UTC',
 					});
 					logger.info(
