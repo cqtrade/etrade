@@ -86,7 +86,7 @@
                               (signals t-args)
                               (mapv (fn [x] (mapv last x)))
                               flatten
-                              (map ohlc/validated-dates)
+                              #_(map ohlc/validated-dates)
                               (remove #(nil? (:sig %))))]
     (prn "Signals short processed" (count prepared-signals))
     prepared-signals))

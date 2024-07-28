@@ -8,14 +8,15 @@
             [rsignals.utils :as utils]))
 
 (def the-daily-times
-  #{"235510"})
+  #{"0011"}) ; 11 seconds past midnight https://www.studytonight.com/post/set-time-to-start-of-day-or-midnight-in-java
+
 
 (def the-4hourly-times
-  #{"35613"
-    "75613"
-    "115613"
-    "155613"
-    "195613"})
+  #{"4011"
+    "8011"
+    "12011"
+    "16011"
+    "20011"})
 
 (defn worker
   []
