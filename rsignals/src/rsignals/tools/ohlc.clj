@@ -1,5 +1,6 @@
 (ns rsignals.tools.ohlc
   (:require [cheshire.core :as json]
+            [rsignals.tools.discord :as discord]
             [clj-http.client :as client]
             [clojure.string :as str])
   (:import (javax.crypto Mac)
@@ -155,6 +156,7 @@
            :volume (Double/parseDouble volume)
            :end end
            :end* (str (java.util.Date. end))
+           :endTime (str (java.util.Date. end))
            :market ticker
            :resolution interval
            :exchange "B"}))
@@ -250,7 +252,7 @@
                   :list
                   (sort-by first)
                   (mapv
-                   (fn [[start open high low close volume]]
+                   (fn [[start open high low close volume #_turnover]]
                      {:time (Long/valueOf start)
                       :startTime (str (java.util.Date. (Long/valueOf start)))
                       :open (Double/parseDouble open)
@@ -258,6 +260,8 @@
                       :low (Double/parseDouble low)
                       :close (Double/parseDouble close)
                       :volume (Double/parseDouble volume)
+                      ;; :end end
+                      ;; :endTime (str (java.util.Date. end))
                       :market ticker
                       :resolution interval
                       :exchange "BB"})))]
@@ -289,11 +293,22 @@
     (if (= today ts)
       x
       ; TODO log to DISCORD
-      (throw (Exception. "Date is not today")))))
+      (discord/log ["Date is not today" (:symbol x) today ts])
+      #_(prn "Date is not today" (:symbol x) today ts)
+
+      #_(throw (Exception. "Date is not today")))))
+
+#_(defn binance-spot* [interval ticker]
+    (let [url (format
+               "https://api.binance.com/api/v3/klines?limit=300&symbol=%s&interval=%s"
+               ticker
+               interval)
+          data (get-request url)]
+      (fin-data ticker interval data)))
 
 (defn binance-spot [interval ticker]
   (let [url (format
-             "https://api.binance.com/api/v3/klines?limit=300&symbol=%s&interval=%s"
+             "https://fapi.binance.com/fapi/v1/klines?limit=300&symbol=%s&interval=%s"
              ticker
              interval)
         data (get-request url)]
@@ -304,7 +319,7 @@
 
   (let [today (manual-ds (java.util.Date.))
         ts (manual-ds (java.util.Date. (Long/valueOf 1690761600000)))]
-    (validated-dates 1690675200000))
+    (validated-dates {:time 1690675200000}))
 
   (let [interval "240"
         ticker "XRPUSDT"]
@@ -313,11 +328,229 @@
 
 
   (let [interval "4h"
-        ticker "XRPUSDT"]
-    (clojure.pprint/pprint
-     (take-last 2 (binance-spot interval ticker))))
+        #_#_ticker "XRPUSDT"]
+    #_(clojure.pprint/pprint
+       (take-last 1 (binance-spot interval ticker)))
+
+
+
+    (map
+     (fn [ticker]
+       (let [res (binance-spot interval ticker)]
+         (prn (count res))
+         (clojure.pprint/pprint
+          (take-last 1 res))))
+     ["BTCUSDT"
+      "ETHUSDT"
+      "XRPUSDT"
+      "LTCUSDT"
+      "ADAUSDT"
+      "XLMUSDT"
+      "BNBUSDT"
+
+      "FTMUSDT"
+      "LINKUSDT"
+      "MATICUSDT"
+      "DOGEUSDT"
+      "COMPUSDT"
+      "BCHUSDT"
+      "HBARUSDT"
+
+      "SOLUSDT"
+      "AAVEUSDT"
+      "MKRUSDT"
+      "AVAXUSDT"
+      "INJUSDT"
+      "UNIUSDT"
+      "DOTUSDT"
+      "SANDUSDT"
+      "RUNEUSDT"]))
+
+
 
   1)
 
+(comment
+  (let [xs ["BTCUSDT"
+            "ETHUSDT"
+            "XRPUSDT"
+            "LTCUSDT"
+            "ADAUSDT"
+            "XLMUSDT"
+            "BNBUSDT"
+
+            "FTMUSDT"
+            "LINKUSDT"
+            "MATICUSDT"
+            "DOGEUSDT"
+            "COMPUSDT"
+            "BCHUSDT"
+            "HBARUSDT"
+
+            "SOLUSDT"
+            "AAVEUSDT"
+            "MKRUSDT"
+            "AVAXUSDT"
+            "INJUSDT"
+            "UNIUSDT"
+            "DOTUSDT"
+            "SANDUSDT"
+            "RUNEUSDT"
+
+                            ; https://www.coinglass.com/FundingRateHeatMap
+            ;; "BTCUSDT"
+            ;; "ETHUSDT"
+            ;; "BNBUSDT"
+            ;; "SOLUSDT"
+            ;; "XRPUSDT"
+            ;; "DOGEUSDT"
+            ;; "TONUSDT"
+            ;; "ADAUSDT"
+            ;; "TRXUSDT"
+            ;; "AVAXUSDT"
+            ;; "1000SHIBUSDT"
+            ;; "DOTUSDT"
+            ;; "LINKUSDT"
+            ;; "BCHUSDT"
+            ;; "NEARUSDT"
+            ;; "LTCUSDT"
+            ;; "MATICUSDT"
+            ;; "1000PEPEUSDT"
+            ;; "UNIUSDT"
+            ;; "ICPUSDT"
+            ;; "KASUSDT"
+            ;; "ETCUSDT"
+            ;; "FETUSDT"
+            ;; "APTUSDT"
+            ;; "XMRUSDT"
+
+                            ; OI
+
+            "BTCUSDT"
+            "ETHUSDT"
+            "SOLUSDT"
+            "XRPUSDT"
+            "DOGEUSDT"
+            "BNBUSDT"
+            "1000PEPEUSDT"
+            "WIFUSDT"
+            "1000BONKUSDT"
+            "AVAXUSDT"
+            "DOTUSDT"
+            "TONUSDT"
+            "WLDUSDT"
+            "BCHUSDT"
+            "LTCUSDT"
+            "ADAUSDT"
+            "LINKUSDT"
+            "NEARUSDT"
+            "ORDIUSDT"
+            "FILUSDT"
+            "MATICUSDT"
+            "NOTUSDT"
+            "ONDOUSDT"
+            "MKRUSDT"
+            "ARBUSDT"
+            "TIAUSDT"
+            "ENAUSDT"
+            "INJUSDT"
+            "FTMUSDT"]
+
+        ys (distinct xs)
+        tikcrs-str (str/join "," ys)]
+    (prn (count ys))
+    tikcrs-str)
+
+  (map
+   (fn [ticker]
+     (let [res (ohcl-bybit-v5 "D" ticker)]
+       (prn (count res))
+       (clojure.pprint/pprint
+        (take-last 1 res))))
+   ["BTCUSDT"
+    "ETHUSDT"
+    "XRPUSDT"
+    "LTCUSDT"
+    "ADAUSDT"
+    "XLMUSDT"
+    "BNBUSDT"
+
+    "FTMUSDT"
+    "LINKUSDT"
+    "MATICUSDT"
+    "DOGEUSDT"
+    "COMPUSDT"
+    "BCHUSDT"
+    "HBARUSDT"
+
+    "SOLUSDT"
+    "AAVEUSDT"
+    "MKRUSDT"
+    "AVAXUSDT"
+    "INJUSDT"
+    "UNIUSDT"
+    "DOTUSDT"
+    "SANDUSDT"
+    "RUNEUSDT"
+
+                             ; https://www.coinglass.com/FundingRateHeatMap
+             ;; "BTCUSDT"
+             ;; "ETHUSDT"
+             ;; "BNBUSDT"
+             ;; "SOLUSDT"
+             ;; "XRPUSDT"
+             ;; "DOGEUSDT"
+             ;; "TONUSDT"
+             ;; "ADAUSDT"
+             ;; "TRXUSDT"
+             ;; "AVAXUSDT"
+             ;; "1000SHIBUSDT"
+             ;; "DOTUSDT"
+             ;; "LINKUSDT"
+             ;; "BCHUSDT"
+             ;; "NEARUSDT"
+             ;; "LTCUSDT"
+             ;; "MATICUSDT"
+             ;; "1000PEPEUSDT"
+             ;; "UNIUSDT"
+             ;; "ICPUSDT"
+             ;; "KASUSDT"
+             ;; "ETCUSDT"
+             ;; "FETUSDT"
+             ;; "APTUSDT"
+             ;; "XMRUSDT"
+
+                             ; OI
+
+    "BTCUSDT"
+    "ETHUSDT"
+    "SOLUSDT"
+    "XRPUSDT"
+    "DOGEUSDT"
+    "BNBUSDT"
+    "1000PEPEUSDT"
+    "WIFUSDT"
+    "1000BONKUSDT"
+    "AVAXUSDT"
+    "DOTUSDT"
+    "TONUSDT"
+    "WLDUSDT"
+    "BCHUSDT"
+    "LTCUSDT"
+    "ADAUSDT"
+    "LINKUSDT"
+    "NEARUSDT"
+    "ORDIUSDT"
+    "FILUSDT"
+    "MATICUSDT"
+    "NOTUSDT"
+    "ONDOUSDT"
+    "MKRUSDT"
+    "ARBUSDT"
+    "TIAUSDT"
+    "ENAUSDT"
+    "INJUSDT"
+    "FTMUSDT"])
 
 
+  1)

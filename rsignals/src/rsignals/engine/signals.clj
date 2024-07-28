@@ -44,18 +44,19 @@
                    (filter #(> (count %) 50))
                    (engine.short/get-signals the-params-short)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
-                                          :tdfi :exchange :atr :close :time])))
+                                          :tdfi :exchange :atr :close :time :startTime])))
               (->> xss
                    (filter #(> (count %) 50))
                    (engine.long/get-signals the-params-long)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
-                                          :tdfi :exchange :atr :close :time])))])))
+                                          :tdfi :exchange :atr :close :time :startTime])))])))
 
 (comment
 
   (let [sigs (get-signals)]
     (pprint/pprint (->> sigs
-                        (map #(-> [(:ticker %) (:sig %)]))
-                        (remove #(= 0 (second %))))))
+                        #_(map #(-> [(:ticker %) (:sig %)]))))
+    (pprint/pprint (->> sigs
+                        (map #(-> [(:ticker %) (:sig %) (:startTime %)])))))
 
   1)
