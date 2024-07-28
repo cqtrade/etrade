@@ -45,11 +45,11 @@
     (flatten [(->> xss
                    (engine4.short/get-signals the-params-short)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
-                                          :tdfi :exchange :atr :close :time])))
+                                          :tdfi :exchange :atr :close :time :startTime])))
               (->> xss
                    (engine4.long/get-signals the-params-long)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
-                                          :tdfi :exchange :atr :close :time])))])))
+                                          :tdfi :exchange :atr :close :tim :startTime])))])))
 
 (comment
   (envs/get-tickers)

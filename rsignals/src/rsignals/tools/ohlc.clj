@@ -163,7 +163,9 @@
        (group-by :time)
        vals
        (mapv first)
-       (sort-by :time)))
+       (sort-by :time)
+       ; IMPORTANT! start in the beginning of the day
+       drop-last))
 
 (defn fin-data
   [ticker interval coll]
@@ -264,7 +266,12 @@
                       ;; :endTime (str (java.util.Date. end))
                       :market ticker
                       :resolution interval
-                      :exchange "BB"})))]
+                      :exchange "BB"}))
+                  (group-by :time)
+                  vals
+                  (mapv first)
+                  (sort-by :time)
+                  drop-last)]
     coll))
 
 (defn time-mappings
@@ -321,7 +328,7 @@
         ts (manual-ds (java.util.Date. (Long/valueOf 1690761600000)))]
     (validated-dates {:time 1690675200000}))
 
-  (let [interval "240"
+  (let [interval "D"
         ticker "XRPUSDT"]
     (clojure.pprint/pprint
      (take-last 2 (ohcl-bybit-v5 interval ticker))))
