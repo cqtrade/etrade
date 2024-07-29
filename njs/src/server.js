@@ -27,7 +27,7 @@ server.post('/signal', {}, async (request, reply) => {
 							await sleep(1000);
 						} else {
 							try {
-								logger.info(
+								console.log(
 									`Sig not handled: ${sig.exchange} ${sig.ticker} ${sig.sig}`,
 								);
 							} catch (error) {
