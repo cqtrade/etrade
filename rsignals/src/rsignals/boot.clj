@@ -31,8 +31,7 @@
         (prn "BYBIT SIGNALS START" time-map)
         (engine-bybit/engine)
         (prn "BYBIT SIGNALS DONE")
-        ; wait for 3 minutes
-        (Thread/sleep (* 3 60 1000)))
+        (Thread/sleep 103))
 
       (when (System/getenv "BN_API_ENABLED")
         (prn "BINANCE SIGNALS START" time-map)
