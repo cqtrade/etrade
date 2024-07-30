@@ -30,8 +30,7 @@
       (when (System/getenv "API_ENABLED")
         (prn "BYBIT SIGNALS START" time-map)
         (engine-bybit/engine)
-        (prn "BYBIT SIGNALS DONE")
-        (Thread/sleep 103))
+        (prn "BYBIT SIGNALS DONE"))
 
       (when (System/getenv "BN_API_ENABLED")
         (prn "BINANCE SIGNALS START" time-map)
@@ -39,8 +38,8 @@
         (prn "BINANCE SIGNALS DONE")
         (Thread/sleep 103)))
 
-    (when (System/getenv "BN_API_ENABLED")
-      (when hourly4-time?
+    (when hourly4-time?
+      (when  (System/getenv "BN_API_ENABLED")
         (prn "BINANCE SIGNALS START" time-map)
         (engine-binance/engine)
         (prn "BINANCE SIGNALS DONE")
