@@ -321,6 +321,15 @@
         data (get-request url)]
     (fin-data ticker interval data)))
 
+(defn binance-futures
+  [interval ticker]
+  (let [url (format
+             "https://fapi.binance.com/fapi/v1/klines?limit=400&symbol=%s&interval=%s"
+             ticker
+             interval)
+        data (get-request url)]
+    (fin-data ticker interval data)))
+
 (comment
   (quot (System/currentTimeMillis) 1000)
 

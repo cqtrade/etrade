@@ -11,30 +11,45 @@ server.get('/', async (request, reply) => '');
 
 server.post('/signal', {}, async (request, reply) => {
 	reply.code(201).send({ status: 'OK' });
+
 	setTimeout(() => {
 		(async () => {
 			try {
 				console.log('request.body', request.body);
 				if (request.body instanceof Array) {
 					for (const sig of request.body) {
-						const { exchange } = sig;
+						if (Number(sig.sig) === 0) {
+							continue;
+						}
 
-						if (exchange === 'BB' && process.env.API_ENABLED) {
+						// Signal service sends exchange agnostic signals
+
+						const { interval, ticker } = sig;
+						console.log('interval', interval);
+						console.log('ticker', ticker);
+
+						// atm ByBit tickers ticker
+
+
+						if (process.env.API_ENABLED) {
+							// if needed, map ticker to BB format
+							// TODO check if ticker exists in Binance
 							await trade.signalHandler(sig);
-							await sleep(1000);
-						} else if (exchange === 'B' && process.env.BN_API_ENABLED) {
+							await sleep(103);
+						}
+
+						if (process.env.BN_API_ENABLED) {
+							// if needed, map ticker to Binance format
+							// TODO check if ticker exists in Binance
 							await tradeBn.signalHandler(sig);
-							await sleep(1000);
-						} else {
-							try {
-								console.log(
-									`Sig not handled: ${sig.exchange} ${sig.ticker} ${sig.sig}`,
-								);
-							} catch (error) {
-								logger.error(
-									'signal handler error ' + error.message,
-								);
-							}
+							await sleep(103);
+						}
+
+						if (process.env.KRAKEN_API_ENABLED) {
+							// if needed, map ticker to Kraken format
+							// TODO check if ticker exists in Kraken
+							await tradeBn.signalHandler(sig);
+							await sleep(333);
 						}
 					}
 					logger.info(`Signals received: ${request.body.length}`);

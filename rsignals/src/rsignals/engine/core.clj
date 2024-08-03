@@ -19,16 +19,24 @@
     (let [url (if (System/getenv "APP_DOCKER")
                 "http://njs:3000/signal"
                 "http://0.0.0.0:3000/signal")
-          data (signals/get-signals)]
+          interval (if (= "4h" (System/getenv "C_INTERVAL"))
+                     "4h"
+                     "1d")
+          data (->> (signals/get-signals interval)
+                    (mapv #(merge % {:interval interval})))]
       (post-signals url data)
-      (discord/log-signals "1D" data))
+      (discord/log-signals interval data))
     (catch Exception e
       (prn (str "Exception engine 1D : " (.getMessage e))))))
 
 (comment
 
   (time
-   (let [data (signals/get-signals)]
+   (let [interval (if (= "4h" (System/getenv "C_INTERVAL"))
+                    "4h"
+                    "1d")
+         data (->> (signals/get-signals interval)
+                   (mapv #(merge % {:interval interval})))]
      (clojure.pprint/pprint data)))
 
   1)

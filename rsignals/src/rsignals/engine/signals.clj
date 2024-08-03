@@ -10,6 +10,21 @@
 
 (def the-params-long (envs/get-params-long))
 
+#_(defn get-quotas
+    [interval tickers]
+    (->> tickers
+         (mapv
+          (fn [ticker]
+            (Thread/sleep 133)
+            (try
+              (ohlc/ohcl-bybit-v5 interval ticker)
+              (catch Exception e
+                (println "error" ticker (-> e .getMessage))
+                (flush)
+                (Thread/sleep 1000)
+                []))))
+         (remove empty?)))
+
 (defn get-quotas
   [interval tickers]
   (->> tickers
@@ -17,7 +32,7 @@
         (fn [ticker]
           (Thread/sleep 133)
           (try
-            (ohlc/ohcl-bybit-v5 interval ticker)
+            (ohlc/binance-futures interval ticker)
             (catch Exception e
               (println "error" ticker (-> e .getMessage))
               (flush)
@@ -26,34 +41,35 @@
        (remove empty?)))
 
 (defn get-data
-  []
-  (let [interval "D"
-        xss (get-quotas interval (envs/get-tickers))]
+  [interval]
+  (let [xss (get-quotas interval (envs/get-tickers))]
     (prn "Quotas D received" (count xss))
     xss))
 
 (comment
-  (get-data)
+  (get-data "1d")
 
   1)
 
 (defn get-signals
-  []
-  (let [xss (get-data)]
+  [interval]
+  (let [xss (get-data interval)]
     (flatten [(->> xss
                    (filter #(> (count %) 50))
                    (engine.short/get-signals the-params-short)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
-                                          :tdfi :exchange :atr :close :time :startTime])))
+                                          :tdfi :exchange :atr :close
+                                          :time :startTime :endTime])))
               (->> xss
                    (filter #(> (count %) 50))
                    (engine.long/get-signals the-params-long)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
-                                          :tdfi :exchange :atr :close :time :startTime])))])))
+                                          :tdfi :exchange :atr :close
+                                          :time :startTime :endTime])))])))
 
 (comment
 
-  (let [sigs (get-signals)]
+  (let [sigs (get-signals "1d")]
     (pprint/pprint (->> sigs
                         #_(map #(-> [(:ticker %) (:sig %)]))))
     (pprint/pprint (->> sigs

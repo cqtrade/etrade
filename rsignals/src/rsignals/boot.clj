@@ -2,7 +2,6 @@
   (:require [clojure.core.async :as async]
             [rsignals.engine.core :as engine-bybit]
             [rsignals.engine.envs :as bybit-envs]
-            [rsignals.engine4.core :as engine-binance]
             [rsignals.engine4.envs :as binance-envs]
             [rsignals.tools.discord :as discord]
             [rsignals.utils :as utils]))
@@ -12,7 +11,8 @@
 
 
 (def the-4hourly-times
-  #{"4011"
+  #{"0011"
+    "4011"
     "8011"
     "12011"
     "16011"
@@ -22,31 +22,15 @@
   []
   (let [time-map (utils/getTimeInUTC)
         time-string (str (:h time-map) (:m time-map) (:s time-map))
-        daily-time? (the-daily-times time-string)
-        hourly4-time? (the-4hourly-times time-string)]
-
-    (when daily-time?
-
-      (when (System/getenv "API_ENABLED")
-        (prn "BYBIT SIGNALS START" time-map)
-        (engine-bybit/engine)
-        (prn "BYBIT SIGNALS DONE"))
-
-      (when (System/getenv "BN_API_ENABLED")
-        (prn "BINANCE SIGNALS START" time-map)
-        (engine-binance/engine)
-        (prn "BINANCE SIGNALS DONE")
-        (Thread/sleep 103)))
-
-    (when hourly4-time?
-      (when  (System/getenv "BN_API_ENABLED")
-        (prn "BINANCE SIGNALS START" time-map)
-        (engine-binance/engine)
-        (prn "BINANCE SIGNALS DONE")
-        (Thread/sleep 103)))
-
+        the-time? (if (= "4h" (System/getenv "C_INTERVAL"))
+                    (the-4hourly-times time-string)
+                    (the-daily-times time-string))]
+    (when the-time?
+      ; TODO should be binance instead of bybit
+      ; will become single engine and single signal set
+      ; signal receiver will spread the signals to the right exhanges
+      (engine-bybit/engine))
     (Thread/sleep 1000)
-
     (recur)))
 
 (defn start
