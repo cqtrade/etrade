@@ -2,7 +2,7 @@ const fastify = require('fastify');
 const trade = require('./tradebb/index.js');
 const tradeBn = require('./tradebn/index.js');
 const logger = require('./logger.js');
-const { sleep } = require('./utils.js');
+const { sleep, isTickerAvailableInKraken } = require('./utils.js');
 
 const server = fastify();
 
@@ -32,6 +32,7 @@ server.post('/signal', {}, async (request, reply) => {
 
 
 						if (process.env.API_ENABLED) {
+							await sleep(103);
 							// if needed, map ticker to BB format
 							// TODO check if ticker exists in Binance
 							await trade.signalHandler(sig);
@@ -48,8 +49,14 @@ server.post('/signal', {}, async (request, reply) => {
 						if (process.env.KRAKEN_API_ENABLED) {
 							// if needed, map ticker to Kraken format
 							// TODO check if ticker exists in Kraken
-							await tradeBn.signalHandler(sig);
-							await sleep(333);
+							const tickerName = await isTickerAvailableInKraken(ticker, "1d");
+							if (tickerName) {
+								sig.ticker = tickerName;
+								// await tradeBn.signalHandler(sig);
+								// Trade Kraken
+								await sleep(103);
+							}
+
 						}
 					}
 					logger.info(`Signals received: ${request.body.length}`);
