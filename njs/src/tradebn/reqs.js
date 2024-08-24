@@ -13,6 +13,7 @@ const client = new USDMClient({
 	strict_param_validation: true,
 	recvWindow: 20000, // 20 seconds
 });
+module.exports.client = client;
 
 const getSymbolTicker = async (symbol) => {
 	try {
