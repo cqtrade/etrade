@@ -99,7 +99,7 @@ const placeStopLossOrder = async ({ symbol, side, stopPrice, quantity }) => {
 			side: side === 'BUY' ? 'SELL' : 'BUY',
 			positionSide: 'BOTH',
 			type: 'STOP_MARKET',
-			workingType: 'MARK_PRICE',
+			workingType: 'CONTRACT_PRICE',
 			stopPrice,
 			quantity,
 			timeInForce: 'GTE_GTC',

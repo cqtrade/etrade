@@ -1,0 +1,58 @@
+{
+    "strategyType": "OTOCO",
+    "subOrderList": [
+        {
+            "strategySubId": 1,
+            "firstDrivenId": 0,
+            "secondDrivenId": 0,
+            "side": "SELL",
+            "positionSide": "BOTH",
+            "symbol": "ETHUSDT",
+            "type": "MARKET",
+            "quantity": 0.008,
+            "securityType": "USDT_FUTURES",
+            "reduceOnly": false
+        },
+        {
+            "side": "BUY",
+            "positionSide": "BOTH",
+            "symbol": "ETHUSDT",
+            "securityType": "USDT_FUTURES",
+            "firstTrigger": "PLACE_ORDER",
+            "firstDrivenOn": "PARTIALLY_FILLED_OR_FILLED",
+            "timeInForce": "GTE_GTC",
+            "reduceOnly": true,
+            "quantity": 0.008,
+            "strategySubId": 2,
+            "firstDrivenId": 1,
+            "secondDrivenId": 3,
+            "secondDrivenOn": "PARTIALLY_FILLED_OR_FILLED",
+            "secondTrigger": "CANCEL_ORDER",
+            "price": "2508.39",
+            "stopPrice": "2508.39",
+            "workingType": "CONTRACT_PRICE",
+            "type": "TAKE_PROFIT",
+            "priceProtect": true
+        },
+        {
+            "side": "BUY",
+            "positionSide": "BOTH",
+            "symbol": "ETHUSDT",
+            "securityType": "USDT_FUTURES",
+            "firstTrigger": "PLACE_ORDER",
+            "firstDrivenOn": "PARTIALLY_FILLED_OR_FILLED",
+            "timeInForce": "GTE_GTC",
+            "reduceOnly": true,
+            "quantity": 0.008,
+            "strategySubId": 3,
+            "firstDrivenId": 1,
+            "secondDrivenId": 2,
+            "secondDrivenOn": "PARTIALLY_FILLED_OR_FILLED",
+            "secondTrigger": "CANCEL_ORDER",
+            "stopPrice": "3065.82",
+            "workingType": "CONTRACT_PRICE",
+            "type": "STOP_MARKET",
+            "priceProtect": true
+        }
+    ]
+}

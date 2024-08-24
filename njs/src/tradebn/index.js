@@ -1,14 +1,16 @@
-const { USDMClient } = require('binance');
+// const { USDMClient } = require('binance');
 const reqs = require('./reqs.js');
 const logger = require('../logger.js');
 const { countDecimals, fixedDecimals } = require('../utils.js');
 
-const client = new USDMClient({
-	api_key: process.env.BN_API_KEY,
-	api_secret: process.env.BN_API_SECRET,
-	strict_param_validation: true,
-	recvWindow: 20000, // 20 seconds
-});
+// const client = new USDMClient({
+// 	api_key: process.env.BN_API_KEY,
+// 	api_secret: process.env.BN_API_SECRET,
+// 	strict_param_validation: true,
+// 	recvWindow: 20000, // 20 seconds
+// });
+
+const client = reqs.client;
 
 const calculatePositionSize = (risk, atrSl, lastPrice, equityUSD) => {
 	const slRisk = (atrSl * 100) / lastPrice;
@@ -170,32 +172,58 @@ const buy = async (signal) => {
 		logger.debug(`Buy ${signal.ticker} market order res`, marketOrderRes);
 
 		try {
-			const tpOrderRes = await reqs.submitOrder({
-				symbol: signal.ticker,
-				side: 'SELL',
-				quantity: tpSize,
-				stopPrice: tpPrice,
-				// price: tpPrice,
-				type: 'TAKE_PROFIT_MARKET',
-				workingType: 'MARK_PRICE',
-				timeInForce: 'GTE_GTC',
-				priceProtect: true,
-				reduceOnly: true,
-			});
+			const bulkOrdersRes = await client.submitMultipleOrders([
+				{
+					side: 'SELL',
+					symbol: signal.ticker,
+					type: 'STOP_MARKET',
+					workingType: 'CONTRACT_PRICE',
+					stopPrice: String(slPrice),
+					quantity: String(posSize),
+					closePosition: true,
+					reduceOnly: true,
+				}, {
+					symbol: signal.ticker,
+					side: 'SELL',
+					quantity: String(tpSize),
+					stopPrice: String(tpPrice),
+					// price: tpPrice,
+					type: 'TAKE_PROFIT_MARKET',
+					workingType: 'CONTRACT_PRICE',
+					timeInForce: 'GTE_GTC',
+					priceProtect: true,
+					reduceOnly: true,
+				}
+			]);
+			logger.info(`Buy ${signal.ticker} bulkOrdersRes res`, bulkOrdersRes);
 
-			logger.debug(`Buy ${signal.ticker} tpOrderRes res`, tpOrderRes);
+			// const slOrderRes = await reqs.submitOrder({
+			// 	side: 'SELL',
+			// 	symbol: signal.ticker,
+			// 	type: 'STOP_MARKET',
+			// 	workingType: 'MARK_PRICE',
+			// 	stopPrice: slPrice,
+			// 	quantity: posSize,
+			// 	closePosition: true,
+			// 	reduceOnly: true,
+			// });
 
-			const slOrderRes = await reqs.submitOrder({
-				side: 'SELL',
-				symbol: signal.ticker,
-				type: 'STOP_MARKET',
-				workingType: 'MARK_PRICE',
-				stopPrice: slPrice,
-				quantity: posSize,
-				closePosition: true,
-			});
+			// logger.debug(`Buy ${signal.ticker} slOrderRes res`, slOrderRes);
 
-			logger.debug(`Buy ${signal.ticker} slOrderRes res`, slOrderRes);
+			// const tpOrderRes = await reqs.submitOrder({
+			// 	symbol: signal.ticker,
+			// 	side: 'SELL',
+			// 	quantity: tpSize,
+			// 	stopPrice: tpPrice,
+			// 	// price: tpPrice,
+			// 	type: 'TAKE_PROFIT_MARKET',
+			// 	workingType: 'MARK_PRICE',
+			// 	timeInForce: 'GTE_GTC',
+			// 	priceProtect: true,
+			// 	reduceOnly: true,
+			// });
+
+			// logger.debug(`Buy ${signal.ticker} tpOrderRes res`, tpOrderRes);
 
 			const tpSizeUSD = tpSize * lastPrice;
 
@@ -312,32 +340,58 @@ const sell = async (signal) => {
 		logger.debug(`Sell ${signal.ticker} market order res`, marketOrderRes);
 
 		try {
-			const tpOrderRes = await reqs.submitOrder({
-				symbol: signal.ticker,
-				side: 'BUY',
-				quantity: tpSize,
-				stopPrice: tpPrice,
-				// price: tpPrice,
-				type: 'TAKE_PROFIT_MARKET',
-				workingType: 'MARK_PRICE',
-				timeInForce: 'GTE_GTC',
-				priceProtect: true,
-				reduceOnly: true,
-			});
+			const bulkOrdersRes = await client.submitMultipleOrders([
+				{
+					side: 'BUY',
+					workingType: 'MARK_PRICE',
+					symbol: signal.ticker,
+					type: 'STOP_MARKET',
+					stopPrice: String(slPrice),
+					quantity: String(posSize),
+					closePosition: true,
+					reduceOnly: true,
+				}, {
+					symbol: signal.ticker,
+					side: 'BUY',
+					quantity: String(tpSize),
+					stopPrice: String(tpPrice),
+					// price: tpPrice,
+					type: 'TAKE_PROFIT_MARKET',
+					workingType: 'MARK_PRICE',
+					timeInForce: 'GTE_GTC',
+					priceProtect: true,
+					reduceOnly: true,
+				}
+			]);
 
-			logger.debug(`Sell ${signal.ticker} tpOrderRes res`, tpOrderRes);
+			logger.info(`Sell ${signal.ticker} bulkOrdersRes res`, bulkOrdersRes);
 
-			const slOrderRes = await reqs.submitOrder({
-				side: 'BUY',
-				workingType: 'MARK_PRICE',
-				symbol: signal.ticker,
-				type: 'STOP_MARKET',
-				stopPrice: slPrice,
-				quantity: posSize,
-				closePosition: true,
-			});
+			// const tpOrderRes = await reqs.submitOrder({
+			// 	symbol: signal.ticker,
+			// 	side: 'BUY',
+			// 	quantity: tpSize,
+			// 	stopPrice: tpPrice,
+			// 	// price: tpPrice,
+			// 	type: 'TAKE_PROFIT_MARKET',
+			// 	workingType: 'MARK_PRICE',
+			// 	timeInForce: 'GTE_GTC',
+			// 	priceProtect: true,
+			// 	reduceOnly: true,
+			// });
 
-			logger.debug(`Sell ${signal.ticker} slOrderRes res`, slOrderRes);
+			// logger.debug(`Sell ${signal.ticker} tpOrderRes res`, tpOrderRes);
+
+			// const slOrderRes = await reqs.submitOrder({
+			// 	side: 'BUY',
+			// 	workingType: 'MARK_PRICE',
+			// 	symbol: signal.ticker,
+			// 	type: 'STOP_MARKET',
+			// 	stopPrice: slPrice,
+			// 	quantity: posSize,
+			// 	closePosition: true,
+			// });
+
+			// logger.debug(`Sell ${signal.ticker} slOrderRes res`, slOrderRes);
 
 			const tpSizeUSD = tpSize * lastPrice;
 
