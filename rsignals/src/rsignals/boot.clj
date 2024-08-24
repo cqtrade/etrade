@@ -1,7 +1,8 @@
 (ns rsignals.boot
   (:require [clojure.core.async :as async]
-            [rsignals.engine.core :as engine-bybit]
+            [rsignals.engine.core :as engine-daily]
             [rsignals.engine.envs :as bybit-envs]
+            [rsignals.engine4.core :as engine-four-hourly]
             [rsignals.engine4.envs :as binance-envs]
             [rsignals.tools.discord :as discord]
             [rsignals.utils :as utils]))
@@ -29,7 +30,10 @@
       ; TODO should be binance instead of bybit
       ; will become single engine and single signal set
       ; signal receiver will spread the signals to the right exhanges
-      (engine-bybit/engine))
+
+      (if (= "4h" (System/getenv "C_INTERVAL"))
+        (engine-four-hourly/engine)
+        (engine-daily/engine)))
     (Thread/sleep 1000)
     (recur)))
 
