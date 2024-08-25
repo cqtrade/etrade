@@ -1,11 +1,12 @@
 (ns rsignals.engine4.envs
   (:require [clojure.pprint :as pprint]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [rsignals.tools.discord :as discord]))
 
 (defn get-tickers
   []
   (let [tickers-str (or #_"FILUSDT,NOTUSDT,TIAUSDT,ENAUSDT"
-                        (System/getenv "TICKERS_D_BB")
+                     (System/getenv "TICKERS_D_BB")
                         "BTCUSDT,ETHUSDT,XRPUSDT,LTCUSDT,ADAUSDT,XLMUSDT,BNBUSDT,FTMUSDT,LINKUSDT,MATICUSDT,DOGEUSDT,COMPUSDT,BCHUSDT,HBARUSDT,SOLUSDT,AAVEUSDT,MKRUSDT,AVAXUSDT,INJUSDT,UNIUSDT,DOTUSDT,SANDUSDT,RUNEUSDT,1000PEPEUSDT,WIFUSDT,1000BONKUSDT,TONUSDT,WLDUSDT,NEARUSDT,ORDIUSDT,FILUSDT,NOTUSDT,ONDOUSDT,ARBUSDT,TIAUSDT,ENAUSDT"
                         (str/join "," ["BTCUSDT"
                                        "ETHUSDT"
@@ -147,6 +148,20 @@
      :slcoef slcoef
      :risk risk}))
 
+(defn get-dynamic-tickers-vol
+  []
+  (let [tickrs (get-tickers)]
+    (try
+      (discord/log (with-out-str
+                     (pprint/print-table
+                      (map-indexed
+                       (fn [idx x]
+                         {:idx (inc idx)
+                          :symbol x})
+                       tickrs))))
+      (catch Exception e
+        (prn (str "EXCEPTION dynamic tickers vol: " (.getMessage e)))))))
+
 (defn print-envs
   []
   (prn "########### 4H ###########")
@@ -154,6 +169,14 @@
   (pprint/pprint (get-params-long))
   (pprint/pprint (get-params-short))
   (prn "######################"))
+
+(defn log-boot-long
+  []
+  (discord/log ["LONG" (get-params-long)]))
+
+(defn log-boot-short
+  []
+  (discord/log ["SHORT" (get-params-short)]))
 
 (comment
 

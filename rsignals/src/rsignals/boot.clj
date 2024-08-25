@@ -40,11 +40,16 @@
 (defn start
   []
   (prn "############## START BOOT ##############")
-  (envs-daily/print-envs)
-  (envs-daily/get-dynamic-tickers-vol)
-  (envs-daily/log-boot-long)
-  (envs-daily/log-boot-short)
-  (envs-four-hourly/print-envs)
+  (if (= "4h" (System/getenv "C_INTERVAL"))
+    (do
+      (envs-four-hourly/print-envs)
+      (envs-four-hourly/get-dynamic-tickers-vol)
+      (envs-four-hourly/log-boot-long)
+      (envs-four-hourly/log-boot-short))
+    (do (envs-daily/print-envs)
+        (envs-daily/get-dynamic-tickers-vol)
+        (envs-daily/log-boot-long)
+        (envs-daily/log-boot-short)))
   (async/go (discord/loop-messages))
   (worker))
 
