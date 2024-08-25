@@ -10,7 +10,7 @@
 
 (def the-params-long (envs/get-params-long))
 
-(defn get-quotas
+#_(defn get-quotas
   [interval tickers]
   (->> tickers
        (mapv
@@ -25,23 +25,37 @@
               []))))
        (remove empty?)))
 
+(defn get-quotas
+  [interval tickers]
+  (->> tickers
+       (mapv
+        (fn [ticker]
+          (Thread/sleep 133)
+          (try
+            (ohlc/binance-futures interval ticker)
+            (catch Exception e
+              (println "error" ticker (-> e .getMessage))
+              (flush)
+              (Thread/sleep 1000)
+              []))))
+       (remove empty?)))
+
 (defn get-data
-  []
+  [interval]
   ; See https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Kline-Candlestick-Data
-  (let [interval "4h" ; TODO get from env 
-        xss (get-quotas interval (envs/get-tickers))]
-    (prn "Quotas Binance received" (count xss))
+  (let [xss (get-quotas interval (envs/get-tickers))]
+    (prn "Quotas" interval (count xss))
     xss))
 
 (comment
 
-  (get-data)
+  (get-data "4h")
 
   1)
 
 (defn get-signals
-  []
-  (let [xss (get-data)]
+  [interval]
+  (let [xss (get-data interval)]
     (flatten [(->> xss
                    (engine4.short/get-signals the-params-short)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
@@ -53,6 +67,7 @@
 
 (comment
   (envs/get-tickers)
-  (let [sigs (get-signals)]
-    (pprint/pprint sigs))
+  (let [sigs (get-signals "4h")]
+    (pprint/pprint sigs)
+    (count sigs))
   1)
