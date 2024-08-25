@@ -4,7 +4,8 @@
 
 (defn get-tickers
   []
-  (let [tickers-str (or (System/getenv "TICKERS_BINANCE")
+  (let [tickers-str (or #_"FILUSDT,NOTUSDT,TIAUSDT,ENAUSDT"
+                        (System/getenv "TICKERS_D_BB")
                         "BTCUSDT,ETHUSDT,XRPUSDT,LTCUSDT,ADAUSDT,XLMUSDT,BNBUSDT,FTMUSDT,LINKUSDT,MATICUSDT,DOGEUSDT,COMPUSDT,BCHUSDT,HBARUSDT,SOLUSDT,AAVEUSDT,MKRUSDT,AVAXUSDT,INJUSDT,UNIUSDT,DOTUSDT,SANDUSDT,RUNEUSDT,1000PEPEUSDT,WIFUSDT,1000BONKUSDT,TONUSDT,WLDUSDT,NEARUSDT,ORDIUSDT,FILUSDT,NOTUSDT,ONDOUSDT,ARBUSDT,TIAUSDT,ENAUSDT"
                         (str/join "," ["BTCUSDT"
                                        "ETHUSDT"
@@ -30,8 +31,9 @@
                                        "UNIUSDT"
                                        "DOTUSDT"
                                        "SANDUSDT"
-                                       "RUNEUSDT"]))]
-    (vec (set (str/split tickers-str #",")))))
+                                       "RUNEUSDT"]))
+        tickers-main (vec (distinct (str/split tickers-str #",")))]
+    tickers-main))
 
 (defn get-params-long
   []

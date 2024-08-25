@@ -1,9 +1,9 @@
 (ns rsignals.boot
   (:require [clojure.core.async :as async]
             [rsignals.engine.core :as engine-daily]
-            [rsignals.engine.envs :as bybit-envs]
+            [rsignals.engine.envs :as envs-daily]
             [rsignals.engine4.core :as engine-four-hourly]
-            [rsignals.engine4.envs :as binance-envs]
+            [rsignals.engine4.envs :as envs-four-hourly]
             [rsignals.tools.discord :as discord]
             [rsignals.utils :as utils]))
 
@@ -27,9 +27,9 @@
                     (the-4hourly-times time-string)
                     (the-daily-times time-string))]
     (when the-time?
-      ; TODO should be binance instead of bybit
-      ; will become single engine and single signal set
-      ; signal receiver will spread the signals to the right exhanges
+      ; TODO currently one set of signals but different engines
+      ; should be able to have on engine and based on envs the
+      ; strategies with env vars should be different
 
       (if (= "4h" (System/getenv "C_INTERVAL"))
         (engine-four-hourly/engine)
@@ -40,11 +40,11 @@
 (defn start
   []
   (prn "############## START BOOT ##############")
-  (bybit-envs/print-envs)
-  (bybit-envs/get-dynamic-tickers-vol)
-  (bybit-envs/log-boot-long)
-  (bybit-envs/log-boot-short)
-  (binance-envs/print-envs)
+  (envs-daily/print-envs)
+  (envs-daily/get-dynamic-tickers-vol)
+  (envs-daily/log-boot-long)
+  (envs-daily/log-boot-short)
+  (envs-four-hourly/print-envs)
   (async/go (discord/loop-messages))
   (worker))
 

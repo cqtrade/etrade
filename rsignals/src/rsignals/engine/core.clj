@@ -27,7 +27,7 @@
       (post-signals url data)
       (discord/log-signals interval data))
     (catch Exception e
-      (prn (str "Exception engine 1D : " (.getMessage e))))))
+      (prn (str "Exception engine signals:" (.getMessage e))))))
 
 (comment
 

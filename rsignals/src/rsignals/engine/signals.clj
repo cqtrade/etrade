@@ -43,7 +43,7 @@
 (defn get-data
   [interval]
   (let [xss (get-quotas interval (envs/get-tickers))]
-    (prn "Quotas D received" (count xss))
+    (prn "Quotas" interval (count xss))
     xss))
 
 (comment
