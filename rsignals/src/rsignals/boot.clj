@@ -7,35 +7,14 @@
             [rsignals.tools.discord :as discord]
             [rsignals.utils :as utils]))
 
-(def the-daily-times
-  #{"0011"}) ; 11 seconds past midnight https://www.studytonight.com/post/set-time-to-start-of-day-or-midnight-in-java
-
-
-(def the-4hourly-times
-  #{"0011"
-    "4011"
-    "8011"
-    "12011"
-    "16011"
-    "20011"})
-
 (defn worker
   []
-  (let [time-map (utils/getTimeInUTC)
-        time-string (str (:h time-map) (:m time-map) (:s time-map))
-        the-time? (if (= "4h" (System/getenv "C_INTERVAL"))
-                    (the-4hourly-times time-string)
-                    (the-daily-times time-string))]
-    (when the-time?
-      ; TODO currently one set of signals but different engines
-      ; should be able to have on engine and based on envs the
-      ; strategies with env vars should be different
-
-      (if (= "4h" (System/getenv "C_INTERVAL"))
-        (engine-four-hourly/engine)
-        (engine-daily/engine)))
-    (Thread/sleep 1000)
-    (recur)))
+  (when (utils/is-time)
+    (if (= "4h" (System/getenv "C_INTERVAL"))
+      (engine-four-hourly/engine)
+      (engine-daily/engine)))
+  (Thread/sleep 1000)
+  (recur))
 
 (defn start
   []
