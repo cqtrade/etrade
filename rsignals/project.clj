@@ -14,6 +14,8 @@
                  ;; [io.pedestal/pedestal.immutant "0.5.11-beta-1"]
                  ;; [io.pedestal/pedestal.tomcat "0.5.11-beta-1"]
                  
+                 [clojure.java-time/clojure.java-time "1.3.0"]
+                 
                  [org.apache.logging.log4j/log4j-api "2.11.0"]
                  [org.apache.logging.log4j/log4j-core "2.11.0"]
                  [org.apache.logging.log4j/log4j-1.2-api "2.11.0"]
