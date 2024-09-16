@@ -11,19 +11,19 @@
 (def the-params-long (envs/get-params-long))
 
 #_(defn get-quotas
-  [interval tickers]
-  (->> tickers
-       (mapv
-        (fn [ticker]
-          (Thread/sleep 133)
-          (try
-            (ohlc/binance-spot interval ticker)
-            (catch Exception e
-              (println "error" ticker (-> e .getMessage))
-              (flush)
-              (Thread/sleep 1000)
-              []))))
-       (remove empty?)))
+    [interval tickers]
+    (->> tickers
+         (mapv
+          (fn [ticker]
+            (Thread/sleep 133)
+            (try
+              (ohlc/binance-spot interval ticker)
+              (catch Exception e
+                (println "error" ticker (-> e .getMessage))
+                (flush)
+                (Thread/sleep 1000)
+                []))))
+         (remove empty?)))
 
 (defn get-quotas
   [interval tickers]
@@ -59,11 +59,13 @@
     (flatten [(->> xss
                    (engine4.short/get-signals the-params-short)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
-                                          :tdfi :exchange :atr :close :time :startTime])))
+                                          :tdfi :exchange :atr :close
+                                          :time :startTime :endTime])))
               (->> xss
                    (engine4.long/get-signals the-params-long)
                    (mapv #(select-keys % [:ticker :sig :risk :atrsl :atrtp
-                                          :tdfi :exchange :atr :close :tim :startTime])))])))
+                                          :tdfi :exchange :atr :close
+                                          :time :startTime :endTime])))])))
 
 (comment
   (envs/get-tickers)

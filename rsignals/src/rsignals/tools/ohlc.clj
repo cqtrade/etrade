@@ -274,68 +274,108 @@
                   drop-last)]
     coll))
 
-(defn time-mappings
-  [ts]
-  (let [{:keys [date month year time]} (bean ts)]
-    {:dt date
-     :mnth (inc month)
-     :yr (+ year 1900)
-     :unix-timestamp time}))
+;; (defn time-mappings
+;;   [ts]
+;;   (let [{:keys [date month year time]} (bean ts)]
+;;     {:dt date
+;;      :mnth (inc month)
+;;      :yr (+ year 1900)
+;;      :unix-timestamp time}))
 
-(defn- manual-ds
-  [ts]
-  (let [o (time-mappings ts)
-        d (if (< (:dt o) 10)
-            (str "0" (:dt o))
-            (:dt o))
-        m (if (< (:mnth o) 10)
-            (str "0" (:mnth o))
-            (:mnth o))]
-    (str (:yr o) "-" m "-" d)))
+;; (defn- manual-ds
+;;   [ts]
+;;   (let [o (time-mappings ts)
+;;         d (if (< (:dt o) 10)
+;;             (str "0" (:dt o))
+;;             (:dt o))
+;;         m (if (< (:mnth o) 10)
+;;             (str "0" (:mnth o))
+;;             (:mnth o))]
+;;     (str (:yr o) "-" m "-" d)))
 
-(defn validated-dates
-  [x]
-  (let [today (manual-ds (java.util.Date.))
-        ts (manual-ds (java.util.Date. (Long/valueOf (:time x))))]
-    (if (= today ts)
-      x
-      ; TODO log to DISCORD
-      (discord/log ["Date is not today" (:symbol x) today ts])
-      #_(prn "Date is not today" (:symbol x) today ts)
+;; (defn validated-dates
+;;   [x]
+;;   (let [today (manual-ds (java.util.Date.))
+;;         ts (manual-ds (java.util.Date. (Long/valueOf (:time x))))]
+;;     (if (= today ts)
+;;       x
+;;       ; TODO log to DISCORD
+;;       (discord/log ["Date is not today" (:symbol x) today ts])
+;;       #_(prn "Date is not today" (:symbol x) today ts)
 
-      #_(throw (Exception. "Date is not today")))))
+;;       #_(throw (Exception. "Date is not today")))))
 
-#_(defn binance-spot* [interval ticker]
+(defn binance-spot
+  [interval ticker]
+  (try
     (let [url (format
-               "https://api.binance.com/api/v3/klines?limit=300&symbol=%s&interval=%s"
+               "https://api.binance.com/api/v3/klines?limit=400&symbol=%s&interval=%s"
                ticker
                interval)
-          data (get-request url)]
-      (fin-data ticker interval data)))
+          data (get-request url)
+          date-today (.format (java.text.SimpleDateFormat. "yyyy/MM/dd")
+                              (new java.util.Date))
+          date-last (.format (java.text.SimpleDateFormat. "yyyy/MM/dd")
+                             (-> data last (nth 6) java.util.Date.))]
 
-(defn binance-spot [interval ticker]
-  (let [url (format
-             "https://fapi.binance.com/fapi/v1/klines?limit=300&symbol=%s&interval=%s"
-             ticker
-             interval)
-        data (get-request url)]
-    (fin-data ticker interval data)))
+      (if (= date-today date-last)
+        (fin-data ticker interval data)
+        (let [msg ["FREEZED binance-spot:"
+                   ticker
+                   interval
+                   date-today
+                   date-last]]
+          (prn msg)
+          (discord/log msg)
+          [])))
+    (catch Exception e
+      (prn "Error" e)
+      (discord/log ["ERROR binance-spot quote"
+                    ticker
+                    interval
+                    (.getMessage e)])
+      [])))
 
 (defn binance-futures
   [interval ticker]
-  (let [url (format
-             "https://fapi.binance.com/fapi/v1/klines?limit=400&symbol=%s&interval=%s"
-             ticker
-             interval)
-        data (get-request url)]
-    (fin-data ticker interval data)))
+  (try
+    (let [url (format
+               "https://fapi.binance.com/fapi/v1/klines?limit=400&symbol=%s&interval=%s"
+               ticker
+               interval)
+          data (get-request url)
+          date-today (.format (java.text.SimpleDateFormat. "yyyy/MM/dd")
+                              (new java.util.Date))
+          date-last (.format (java.text.SimpleDateFormat. "yyyy/MM/dd")
+                             (-> data last (nth 6) java.util.Date.))]
+      (if (= date-today date-last)
+        (fin-data ticker interval data)
+        (let [msg ["FREEZED binance-futures:"
+                   ticker
+                   interval
+                   date-today
+                   date-last]]
+          (prn msg)
+          (discord/log msg)
+          [])))
+    (catch Exception e
+      (prn "Error" e)
+      (discord/log ["ERROR binance-futures quote"
+                    ticker
+                    interval
+                    (.getMessage e)])
+      [])))
+
+
 
 (comment
+
+
+  (= "hello" (str "hel" "lo"))
+  (binance-futures "4h" "BTCUSDT")
   (quot (System/currentTimeMillis) 1000)
 
-  (let [today (manual-ds (java.util.Date.))
-        ts (manual-ds (java.util.Date. (Long/valueOf 1690761600000)))]
-    (validated-dates {:time 1690675200000}))
+
 
   (let [interval "D"
         ticker "XRPUSDT"]
