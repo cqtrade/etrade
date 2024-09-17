@@ -3,9 +3,24 @@
             [rsignals.tools.discord :as discord]
             [clj-http.client :as client]
             [clojure.string :as str])
-  (:import (javax.crypto Mac)
+  (:import (java.text SimpleDateFormat)
+           (java.util TimeZone Date)
+           (javax.crypto Mac)
            (javax.crypto.spec SecretKeySpec)
            (org.apache.logging.log4j Level LogManager)))
+
+(defn date-format-utc
+  [d]
+  (let [dfu (doto (SimpleDateFormat. "yyyy/MM/dd")
+              (.setTimeZone (TimeZone/getTimeZone "UTC")))]
+    (.format dfu d)))
+
+(comment
+
+  (date-format-utc (Date. 1692143999999))
+
+  1)
+
 
 
 ;; https://github.com/dakrone/clj-http#logging
@@ -274,37 +289,6 @@
                   drop-last)]
     coll))
 
-;; (defn time-mappings
-;;   [ts]
-;;   (let [{:keys [date month year time]} (bean ts)]
-;;     {:dt date
-;;      :mnth (inc month)
-;;      :yr (+ year 1900)
-;;      :unix-timestamp time}))
-
-;; (defn- manual-ds
-;;   [ts]
-;;   (let [o (time-mappings ts)
-;;         d (if (< (:dt o) 10)
-;;             (str "0" (:dt o))
-;;             (:dt o))
-;;         m (if (< (:mnth o) 10)
-;;             (str "0" (:mnth o))
-;;             (:mnth o))]
-;;     (str (:yr o) "-" m "-" d)))
-
-;; (defn validated-dates
-;;   [x]
-;;   (let [today (manual-ds (java.util.Date.))
-;;         ts (manual-ds (java.util.Date. (Long/valueOf (:time x))))]
-;;     (if (= today ts)
-;;       x
-;;       ; TODO log to DISCORD
-;;       (discord/log ["Date is not today" (:symbol x) today ts])
-;;       #_(prn "Date is not today" (:symbol x) today ts)
-
-;;       #_(throw (Exception. "Date is not today")))))
-
 (defn binance-spot
   [interval ticker]
   (try
@@ -344,10 +328,9 @@
                ticker
                interval)
           data (get-request url)
-          date-today (.format (java.text.SimpleDateFormat. "yyyy/MM/dd")
-                              (new java.util.Date))
-          date-last (.format (java.text.SimpleDateFormat. "yyyy/MM/dd")
-                             (-> data last (nth 6) java.util.Date.))]
+          date-today (date-format-utc (Date.))
+          end-timestamp (-> data last (nth 6))
+          date-last (date-format-utc (Date. end-timestamp))]
       (if (= date-today date-last)
         (fin-data ticker interval data)
         (let [msg ["FREEZED binance-futures:"
@@ -406,7 +389,6 @@
 
       "FTMUSDT"
       "LINKUSDT"
-      "MATICUSDT"
       "DOGEUSDT"
       "COMPUSDT"
       "BCHUSDT"
@@ -422,191 +404,6 @@
       "SANDUSDT"
       "RUNEUSDT"]))
 
-
-
-  1)
-
-(comment
-  (let [xs ["BTCUSDT"
-            "ETHUSDT"
-            "XRPUSDT"
-            "LTCUSDT"
-            "ADAUSDT"
-            "XLMUSDT"
-            "BNBUSDT"
-
-            "FTMUSDT"
-            "LINKUSDT"
-            "MATICUSDT"
-            "DOGEUSDT"
-            "COMPUSDT"
-            "BCHUSDT"
-            "HBARUSDT"
-
-            "SOLUSDT"
-            "AAVEUSDT"
-            "MKRUSDT"
-            "AVAXUSDT"
-            "INJUSDT"
-            "UNIUSDT"
-            "DOTUSDT"
-            "SANDUSDT"
-            "RUNEUSDT"
-
-                            ; https://www.coinglass.com/FundingRateHeatMap
-            ;; "BTCUSDT"
-            ;; "ETHUSDT"
-            ;; "BNBUSDT"
-            ;; "SOLUSDT"
-            ;; "XRPUSDT"
-            ;; "DOGEUSDT"
-            ;; "TONUSDT"
-            ;; "ADAUSDT"
-            ;; "TRXUSDT"
-            ;; "AVAXUSDT"
-            ;; "1000SHIBUSDT"
-            ;; "DOTUSDT"
-            ;; "LINKUSDT"
-            ;; "BCHUSDT"
-            ;; "NEARUSDT"
-            ;; "LTCUSDT"
-            ;; "MATICUSDT"
-            ;; "1000PEPEUSDT"
-            ;; "UNIUSDT"
-            ;; "ICPUSDT"
-            ;; "KASUSDT"
-            ;; "ETCUSDT"
-            ;; "FETUSDT"
-            ;; "APTUSDT"
-            ;; "XMRUSDT"
-
-                            ; OI
-
-            "BTCUSDT"
-            "ETHUSDT"
-            "SOLUSDT"
-            "XRPUSDT"
-            "DOGEUSDT"
-            "BNBUSDT"
-            "1000PEPEUSDT"
-            "WIFUSDT"
-            "1000BONKUSDT"
-            "AVAXUSDT"
-            "DOTUSDT"
-            "TONUSDT"
-            "WLDUSDT"
-            "BCHUSDT"
-            "LTCUSDT"
-            "ADAUSDT"
-            "LINKUSDT"
-            "NEARUSDT"
-            "ORDIUSDT"
-            "FILUSDT"
-            "MATICUSDT"
-            "NOTUSDT"
-            "ONDOUSDT"
-            "MKRUSDT"
-            "ARBUSDT"
-            "TIAUSDT"
-            "ENAUSDT"
-            "INJUSDT"
-            "FTMUSDT"]
-
-        ys (distinct xs)
-        tikcrs-str (str/join "," ys)]
-    (prn (count ys))
-    tikcrs-str)
-
-  (map
-   (fn [ticker]
-     (let [res (ohcl-bybit-v5 "D" ticker)]
-       (prn (count res))
-       (clojure.pprint/pprint
-        (take-last 1 res))))
-   ["BTCUSDT"
-    "ETHUSDT"
-    "XRPUSDT"
-    "LTCUSDT"
-    "ADAUSDT"
-    "XLMUSDT"
-    "BNBUSDT"
-
-    "FTMUSDT"
-    "LINKUSDT"
-    "MATICUSDT"
-    "DOGEUSDT"
-    "COMPUSDT"
-    "BCHUSDT"
-    "HBARUSDT"
-
-    "SOLUSDT"
-    "AAVEUSDT"
-    "MKRUSDT"
-    "AVAXUSDT"
-    "INJUSDT"
-    "UNIUSDT"
-    "DOTUSDT"
-    "SANDUSDT"
-    "RUNEUSDT"
-
-                             ; https://www.coinglass.com/FundingRateHeatMap
-             ;; "BTCUSDT"
-             ;; "ETHUSDT"
-             ;; "BNBUSDT"
-             ;; "SOLUSDT"
-             ;; "XRPUSDT"
-             ;; "DOGEUSDT"
-             ;; "TONUSDT"
-             ;; "ADAUSDT"
-             ;; "TRXUSDT"
-             ;; "AVAXUSDT"
-             ;; "1000SHIBUSDT"
-             ;; "DOTUSDT"
-             ;; "LINKUSDT"
-             ;; "BCHUSDT"
-             ;; "NEARUSDT"
-             ;; "LTCUSDT"
-             ;; "MATICUSDT"
-             ;; "1000PEPEUSDT"
-             ;; "UNIUSDT"
-             ;; "ICPUSDT"
-             ;; "KASUSDT"
-             ;; "ETCUSDT"
-             ;; "FETUSDT"
-             ;; "APTUSDT"
-             ;; "XMRUSDT"
-
-                             ; OI
-
-    "BTCUSDT"
-    "ETHUSDT"
-    "SOLUSDT"
-    "XRPUSDT"
-    "DOGEUSDT"
-    "BNBUSDT"
-    "1000PEPEUSDT"
-    "WIFUSDT"
-    "1000BONKUSDT"
-    "AVAXUSDT"
-    "DOTUSDT"
-    "TONUSDT"
-    "WLDUSDT"
-    "BCHUSDT"
-    "LTCUSDT"
-    "ADAUSDT"
-    "LINKUSDT"
-    "NEARUSDT"
-    "ORDIUSDT"
-    "FILUSDT"
-    "MATICUSDT"
-    "NOTUSDT"
-    "ONDOUSDT"
-    "MKRUSDT"
-    "ARBUSDT"
-    "TIAUSDT"
-    "ENAUSDT"
-    "INJUSDT"
-    "FTMUSDT"])
 
 
   1)

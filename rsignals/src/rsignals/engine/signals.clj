@@ -75,4 +75,8 @@
     (pprint/pprint (->> sigs
                         (map #(-> [(:ticker %) (:sig %) (:startTime %)])))))
 
+  (let [sigs (get-signals "1d")]
+    (pprint/pprint sigs)
+    (count sigs))
+
   1)
