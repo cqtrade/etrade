@@ -16,9 +16,31 @@ const clientV5 = new RestClientV5({
 	strict_param_validation: true,
 });
 
+const getSymbolTickerV5 = async (symbol) => {
+	try {
+		const { retMsg, result } = await clientV5.getTickers({
+			category: 'linear',
+			symbol
+		});
+		if (retMsg !== 'OK') {
+			throw new Error('getKline failed ' + retMsg);
+		}
+
+		const [tickerInfo] = result.list;
+		return tickerInfo;
+	} catch (error) {
+		console.error('getSymbolTicker failed: ', error);
+		throw error;
+	}
+};
+module.exports.getSymbolTickerV5 = getSymbolTickerV5;
+
 const getSymbolTicker = async (symbol) => {
 	try {
-		const { retMsg, result } = await client.getSymbolTicker('', symbol);
+		const { retMsg, result } = await clientV5.getTickers({
+			category: 'linear',
+			symbol
+		});
 		if (retMsg !== 'OK') {
 			throw new Error('getKline failed ' + retMsg);
 		}
