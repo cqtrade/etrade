@@ -1,15 +1,18 @@
-const { ContractClient, RestClientV5 } = require('bybit-api');
+const {
+	// ContractClient,
+	RestClientV5 } = require('bybit-api');
 const { sleep } = require('../utils.js');
 const logger = require('../logger.js');
+const reqs = require('./reqs.js');
 
 const key = process.env.API_KEY;
 const secret = process.env.API_SECRET;
 
-const client = new ContractClient({
-	key,
-	secret,
-	strict_param_validation: true,
-});
+// const client = new ContractClient({
+// 	key,
+// 	secret,
+// 	strict_param_validation: true,
+// });
 
 const clientV5 = new RestClientV5({
 	key,
@@ -55,41 +58,41 @@ const hasActiveLimitTpOrders = async (position) => {
 	return activeLimitTPOrders;
 };
 
-const getSymbolTicker = async (symbol) => {
-	try {
-		const { retMsg, result } = await client.getSymbolTicker('', symbol);
-		if (retMsg !== 'OK') {
-			throw new Error('getKline failed ' + retMsg);
-		}
+// const getSymbolTicker = async (symbol) => {
+// 	try {
+// 		const { retMsg, result } = await client.getSymbolTicker('', symbol);
+// 		if (retMsg !== 'OK') {
+// 			throw new Error('getKline failed ' + retMsg);
+// 		}
 
-		const [tickerInfo] = result.list;
-		return tickerInfo;
-	} catch (error) {
-		console.error('getSymbolTicker failed: ', error);
-		throw error;
-	}
-};
+// 		const [tickerInfo] = result.list;
+// 		return tickerInfo;
+// 	} catch (error) {
+// 		console.error('getSymbolTicker failed: ', error);
+// 		throw error;
+// 	}
+// };
 
-module.exports.getSymbolTicker = getSymbolTicker;
+// module.exports.getSymbolTicker = getSymbolTicker;
 
-const getInstrumentInfo = async ({ category, symbol }) => {
-	try {
-		const { retMsg, result } = await client.getInstrumentInfo({
-			category,
-			symbol,
-		});
-		if (retMsg !== 'OK') {
-			throw new Error('getInstrumentInfo failed ' + retMsg);
-		}
-		const [instrumentInfo] = result.list;
-		return instrumentInfo;
-	} catch (error) {
-		console.error('getInstrumentInfo failed: ', error);
-		throw error;
-	}
-};
+// const getInstrumentInfo = async ({ category, symbol }) => {
+// 	try {
+// 		const { retMsg, result } = await client.getInstrumentInfo({
+// 			category,
+// 			symbol,
+// 		});
+// 		if (retMsg !== 'OK') {
+// 			throw new Error('getInstrumentInfo failed ' + retMsg);
+// 		}
+// 		const [instrumentInfo] = result.list;
+// 		return instrumentInfo;
+// 	} catch (error) {
+// 		console.error('getInstrumentInfo failed: ', error);
+// 		throw error;
+// 	}
+// };
 
-module.exports.getInstrumentInfo = getInstrumentInfo;
+// module.exports.getInstrumentInfo = getInstrumentInfo;
 
 const setTPSL = async ({ positionIdx, stopLoss, symbol, takeProfit }) => {
 	// positionIdx: "0",
@@ -143,8 +146,8 @@ const handlePosition = async (pos) => {
 	try {
 		if (pos.size > 0) {
 			const [ticker, instrument] = await Promise.allSettled([
-				getSymbolTicker(pos.symbol),
-				getInstrumentInfo({ category: 'linear', symbol: pos.symbol }),
+				reqs.getSymbolTicker(pos.symbol),
+				reqs.getInstrumentInfo({ category: 'linear', symbol: pos.symbol }),
 			]);
 			const tickerInfo = ticker.value;
 			const instrumentInfo = instrument.value;
