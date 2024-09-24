@@ -1,14 +1,16 @@
-const { ContractClient, RestClientV5 } = require('bybit-api');
+const {
+	// ContractClient,
+	RestClientV5 } = require('bybit-api');
 const logger = require('../logger.js');
 
 const key = process.env.API_KEY;
 const secret = process.env.API_SECRET;
 
-const client = new ContractClient({
-	key,
-	secret,
-	strict_param_validation: true,
-});
+// const client = new ContractClient({
+// 	key,
+// 	secret,
+// 	strict_param_validation: true,
+// });
 
 const clientV5 = new RestClientV5({
 	key,
@@ -57,7 +59,7 @@ module.exports.getSymbolTicker = getSymbolTicker;
 
 const getInstrumentInfo = async ({ category, symbol }) => {
 	try {
-		const { retMsg, result } = await client.getInstrumentInfo({
+		const { retMsg, result } = await clientV5.getInstrumentsInfo({
 			category,
 			symbol,
 		});
