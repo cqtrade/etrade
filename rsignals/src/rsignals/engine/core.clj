@@ -39,4 +39,6 @@
                    (mapv #(merge % {:interval interval})))]
      (clojure.pprint/pprint data)))
 
+  (System/getenv "C_INTERVAL")
+
   1)

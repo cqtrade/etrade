@@ -1,39 +1,18 @@
 (ns rsignals.engine4.envs
   (:require [clojure.pprint :as pprint]
             [clojure.string :as str]
+            [rsignals.tickers :as tickers]
             [rsignals.tools.discord :as discord]))
 
 (defn get-tickers
   []
-  (let [tickers-str (or #_"FILUSDT,NOTUSDT,TIAUSDT,ENAUSDT"
-                     (System/getenv "TICKERS_D_BB")
-                        "BTCUSDT,ETHUSDT,XRPUSDT,LTCUSDT,ADAUSDT,XLMUSDT,BNBUSDT,FTMUSDT,LINKUSDT,DOGEUSDT,COMPUSDT,BCHUSDT,HBARUSDT,SOLUSDT,AAVEUSDT,MKRUSDT,AVAXUSDT,INJUSDT,UNIUSDT,DOTUSDT,SANDUSDT,RUNEUSDT,1000PEPEUSDT,WIFUSDT,1000BONKUSDT,TONUSDT,WLDUSDT,NEARUSDT,ORDIUSDT,FILUSDT,NOTUSDT,ONDOUSDT,ARBUSDT,TIAUSDT,ENAUSDT"
-                        (str/join "," ["BTCUSDT"
-                                       "ETHUSDT"
-                                       "XRPUSDT"
-                                       "LTCUSDT"
-                                       "ADAUSDT"
-                                       "XLMUSDT"
-                                       "BNBUSDT"
+  (tickers/get-tickers))
 
-                                       "FTMUSDT"
-                                       "LINKUSDT"
-                                       "DOGEUSDT"
-                                       "COMPUSDT"
-                                       "BCHUSDT"
-                                       "HBARUSDT"
+(comment
 
-                                       "SOLUSDT"
-                                       "AAVEUSDT"
-                                       "MKRUSDT"
-                                       "AVAXUSDT"
-                                       "INJUSDT"
-                                       "UNIUSDT"
-                                       "DOTUSDT"
-                                       "SANDUSDT"
-                                       "RUNEUSDT"]))
-        tickers-main (vec (distinct (str/split tickers-str #",")))]
-    tickers-main))
+  (count (get-tickers))
+
+  1)
 
 (defn get-params-long
   []
