@@ -10,21 +10,6 @@
 
 (def the-params-long (envs/get-params-long))
 
-#_(defn get-quotas
-    [interval tickers]
-    (->> tickers
-         (mapv
-          (fn [ticker]
-            (Thread/sleep 133)
-            (try
-              (ohlc/ohcl-bybit-v5 interval ticker)
-              (catch Exception e
-                (println "error" ticker (-> e .getMessage))
-                (flush)
-                (Thread/sleep 1000)
-                []))))
-         (remove empty?)))
-
 (defn get-quotas
   [interval tickers]
   (->> tickers

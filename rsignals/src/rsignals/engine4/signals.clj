@@ -51,6 +51,7 @@
 
   (get-data "4h")
 
+  (envs/get-tickers)
   1)
 
 (defn get-signals
