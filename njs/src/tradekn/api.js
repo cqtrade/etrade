@@ -89,7 +89,7 @@ const KrakenFuturesApiClient = ({
 		...(!isEmpty(data) && { data: qs.stringify(data) }),
 	});
 
-	const handleRequestError = (error, method, endpoint) => {
+	const throwRequestError = (error, method, endpoint) => {
 		const errorMessage =
 			error.response?.data || error.message || 'Unknown error occurred';
 
@@ -123,7 +123,7 @@ const KrakenFuturesApiClient = ({
 
 			return responseData;
 		} catch (error) {
-			handleRequestError(error, method, endpoint);
+			throwRequestError(error, method, endpoint);
 		}
 	};
 
@@ -131,32 +131,32 @@ const KrakenFuturesApiClient = ({
 		makeRequest({ method, endpoint, data, isPrivate: true });
 
 	// Public endpoints
-	const getTickers = () =>
+	const getTickers = async () =>
 		makeRequest({ endpoint: '/derivatives/api/v3/tickers' });
 
-	const getTickerBySymbol = (symbol) =>
+	const getTickerBySymbol = async (symbol) =>
 		makeRequest({ endpoint: `/derivatives/api/v3/tickers/${symbol}` });
 
-	const getInstruments = () =>
+	const getInstruments = async () =>
 		makeRequest({ endpoint: '/derivatives/api/v3/instruments' });
 
 	// Private endpoints
-	const getAccounts = () =>
+	const getAccounts = async () =>
 		makePrivateRequest({
 			endpoint: '/derivatives/api/v3/accounts',
 		});
 
-	const getOpenPositions = () =>
+	const getOpenPositions = async () =>
 		makePrivateRequest({
 			endpoint: '/derivatives/api/v3/openpositions',
 		});
 
-	const getOpenOrders = () =>
+	const getOpenOrders = async () =>
 		makePrivateRequest({
 			endpoint: '/derivatives/api/v3/openorders',
 		});
 
-	const sendOrder = ({
+	const sendOrder = async ({
 		processBefore,
 		orderType,
 		symbol,
@@ -193,7 +193,7 @@ const KrakenFuturesApiClient = ({
 			},
 		});
 
-	const batchOrder = ({ processBefore, batchOrderJson }) =>
+	const batchOrder = async ({ processBefore, batchOrderJson }) =>
 		makePrivateRequest({
 			method: 'POST',
 			endpoint: '/derivatives/api/v3/batchorder',
@@ -203,7 +203,7 @@ const KrakenFuturesApiClient = ({
 			},
 		});
 
-	const editOrder = ({
+	const editOrder = async ({
 		processBefore,
 		orderId,
 		cliOrdId,
@@ -228,33 +228,33 @@ const KrakenFuturesApiClient = ({
 			},
 		});
 
-	const cancelOrder = (orderId, cliOrdId) =>
+	const cancelOrder = async (orderId, cliOrdId) =>
 		makePrivateRequest({
 			method: 'POST',
 			endpoint: '/derivatives/api/v3/cancelorder',
 			data: { order_id: orderId, cliOrdId },
 		});
 
-	const cancelAllOrders = (symbol) =>
+	const cancelAllOrders = async (symbol) =>
 		makePrivateRequest({
 			method: 'POST',
 			endpoint: '/derivatives/api/v3/cancelallorders',
 			data: { symbol },
 		});
 
-	const cancelAllOrdersAfter = (timeoutInSeconds) =>
+	const cancelAllOrdersAfter = async (timeoutInSeconds) =>
 		makePrivateRequest({
 			method: 'POST',
 			endpoint: '/derivatives/api/v3/cancelallordersafter',
 			data: { timeout: timeoutInSeconds },
 		});
 
-	const getLeveragePreferences = () =>
+	const getLeveragePreferences = async () =>
 		makePrivateRequest({
 			endpoint: '/derivatives/api/v3/leveragepreferences',
 		});
 
-	const setLeveragePreferences = ({ symbol, maxLeverage }) =>
+	const setLeveragePreferences = async ({ symbol, maxLeverage }) =>
 		makePrivateRequest({
 			method: 'PUT',
 			endpoint: `/derivatives/api/v3/leveragepreferences`,
