@@ -127,7 +127,7 @@ const KrakenFuturesApiClient = ({
 		}
 	};
 
-	const makePrivateRequest = ({ method = 'GET', endpoint, data }) =>
+	const makePrivateRequest = async ({ method = 'GET', endpoint, data }) =>
 		makeRequest({ method, endpoint, data, isPrivate: true });
 
 	// Public endpoints
