@@ -1,77 +1,31 @@
 # etrade
 
-Trading bot. Consists of signal service and trading bot.
+Automated algorithmic cryptocurrency trading bot.
 
-```sh
+Consists of:
 
-sh scripts/reload.sh
-
-```
-
-```sh
- docker compose build
- docker compose down
- docker compose up
-```
-
-```sh
-docker logs etrade-njs-1 -f
-
-docker logs etrade-rsignals-1
-```
+- signal generation service (Clojure)
+- position management service (Nodejs)
+- UPCOMING: quantitave statistics service (Python)
 
 ## Deploy
 
+Prepare `njs/.env`
+
+
 ```sh
-docker compose build && docker compose down && docker compose up -d
+
+docker compose down && docker compose build && docker compose up -d
+
 ```
 
-## Architecutre
+## Basic structure
 
 ```sh
-├── README.md
+
 ├── docker-compose.yml
-├── njs                         # Node project njs
-│   ├── Dockerfile
-│   ├── _.env
-│   ├── dev.js
-│   ├── index.js
-│   ├── package-lock.json
-│   ├── package.json
-│   └── src
-│       ├── binance-bot
-│       ├── createLogger.js
-│       ├── index.js
-│       ├── log.js
-│       ├── logger.js
-│       ├── server.js
-│       ├── tradebb
-│       └── utils.js
-└── rsignals                    # Clojure(war JVM) project rsignals. Pedetal template
-    ├── Capstanfile
-    ├── Dockerfile
-    ├── README.md
-    ├── config
-    │   └── logback.xml
-    ├── resources
-    ├── src
-        └── rsignals
-            ├── engine          # generate trading signals
-            │   ├── core.clj
-            │   ├── dstats.clj
-            │   ├── long.clj
-            │   ├── ohlc.clj
-            │   ├── short.clj
-            │   ├── signals.clj
-            │   └── ta.clj
-            ├── envs.clj
-            ├── server.clj      # -main methods starts service
-            ├── service.clj
-            └── utils.clj
-
-    ├── target
-
-    └── test
-        └── rsignals
+├── njs                         # Node
+├── rsignals                    # Clojure
+└── pstats                      # Python
 
 ```
