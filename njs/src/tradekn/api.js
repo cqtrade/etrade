@@ -230,8 +230,8 @@ const KrakenFuturesApiClientV3 = ({
 			},
 		});
 
-	const batchOrder = async (orders) => {
-		return makePrivateRequest({
+	const batchOrder = async (orders) =>
+		makePrivateRequest({
 			method: 'POST',
 			endpoint: '/derivatives/api/v3/batchorder',
 			data: {
@@ -239,7 +239,6 @@ const KrakenFuturesApiClientV3 = ({
 			},
 			isBatch: true,
 		});
-	};
 
 	const editOrder = async ({
 		processBefore,
