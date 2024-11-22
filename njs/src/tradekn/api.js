@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const utf8 = require('utf8');
 const qs = require('qs');
 
-const KrakenFuturesApiClient = ({
+const KrakenFuturesApiClientV3 = ({
 	apiKey,
 	apiSecret,
 	isTestnet = false,
@@ -56,43 +56,58 @@ const KrakenFuturesApiClient = ({
 		return hmacSha512Hash.toString('base64');
 	};
 
-	const createHeaders = ({ isPrivate, method, endpoint, data }) => {
+	const prepareData = (data, isBatch = false) => {
+		if (isBatch) {
+			return `json=${JSON.stringify(data)}`;
+		} else {
+			return qs.stringify(data);
+		}
+	};
+
+	const createHeaders = ({ isPrivate, endpoint, data, isBatch = false }) => {
 		const nonce = isPrivate ? createNonce() : null;
 		const baseHeaders = { Accept: 'application/json' };
 		const hasData = !isEmpty(data);
+		const postData = hasData ? prepareData(data, isBatch) : '';
 
 		const privateHeaders = isPrivate
 			? {
 					APIKey: apiKey,
 					Nonce: nonce,
-					Authent: signRequest(
-						endpoint,
-						nonce,
-						hasData ? qs.stringify(data) : '',
-					),
+					Authent: signRequest(endpoint, nonce, postData),
 			  }
 			: {};
 
 		const contentTypeHeader = hasData
-			? { 'Content-Type': 'application/x-www-form-urlencoded' }
+			? {
+					'Content-Type': isBatch
+						? 'application/x-www-form-urlencoded'
+						: 'application/json',
+			  }
 			: {};
 
 		return { ...baseHeaders, ...privateHeaders, ...contentTypeHeader };
 	};
 
-	const createRequestConfig = ({ method, endpoint, headers, data }) => ({
+	const createRequestConfig = ({
+		method,
+		endpoint,
+		headers,
+		customHeaders,
+		data,
+		isBatch = false,
+	}) => ({
 		method,
 		maxBodyLength: Infinity,
 		url: `${BASE_URL}${endpoint}`,
-		headers,
+		headers: { ...headers, ...customHeaders },
 		timeout,
-		...(!isEmpty(data) && { data: qs.stringify(data) }),
+		...(!isEmpty(data) && { data: prepareData(data, isBatch) }),
 	});
 
 	const throwRequestError = (error, method, endpoint) => {
 		const errorMessage =
 			error.response?.data || error.message || 'Unknown error occurred';
-
 		throw new Error(
 			`Error during ${method} request to ${endpoint}: ${errorMessage}`,
 		);
@@ -102,24 +117,33 @@ const KrakenFuturesApiClient = ({
 		method = 'GET',
 		endpoint,
 		data,
+		customHeaders = {},
 		isPrivate = false,
+		isBatch = false,
 	}) => {
 		const headers = createHeaders({
 			isPrivate,
 			method,
 			endpoint,
 			data,
+			isBatch,
 		});
 
 		const config = createRequestConfig({
 			method,
 			endpoint,
 			headers,
+			customHeaders,
 			data,
+			isBatch,
 		});
 
 		try {
 			const { data: responseData } = await axios.request(config);
+
+			if (responseData.result === 'error') {
+				throw new Error(`API Error: ${responseData.error}`);
+			}
 
 			return responseData;
 		} catch (error) {
@@ -127,8 +151,21 @@ const KrakenFuturesApiClient = ({
 		}
 	};
 
-	const makePrivateRequest = async ({ method = 'GET', endpoint, data }) =>
-		makeRequest({ method, endpoint, data, isPrivate: true });
+	const makePrivateRequest = async ({
+		method = 'GET',
+		endpoint,
+		data,
+		isBatch = false,
+		customHeaders = {},
+	}) =>
+		makeRequest({
+			method,
+			endpoint,
+			data,
+			customHeaders,
+			isBatch,
+			isPrivate: true,
+		});
 
 	// Public endpoints
 	const getTickers = async () =>
@@ -193,15 +230,16 @@ const KrakenFuturesApiClient = ({
 			},
 		});
 
-	const batchOrder = async ({ processBefore, batchOrderJson }) =>
-		makePrivateRequest({
+	const batchOrder = async (orders) => {
+		return makePrivateRequest({
 			method: 'POST',
 			endpoint: '/derivatives/api/v3/batchorder',
 			data: {
-				processBefore,
-				json: batchOrderJson,
+				batchOrder: orders,
 			},
+			isBatch: true,
 		});
+	};
 
 	const editOrder = async ({
 		processBefore,
@@ -279,4 +317,4 @@ const KrakenFuturesApiClient = ({
 	};
 };
 
-module.exports = KrakenFuturesApiClient;
+module.exports = KrakenFuturesApiClientV3;
