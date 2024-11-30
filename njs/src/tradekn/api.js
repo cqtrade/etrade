@@ -80,9 +80,7 @@ const KrakenFuturesApiClientV3 = ({
 
 		const contentTypeHeader = hasData
 			? {
-					'Content-Type': isBatch
-						? 'application/x-www-form-urlencoded'
-						: 'application/json',
+					'Content-Type': 'application/x-www-form-urlencoded',
 			  }
 			: {};
 
@@ -106,10 +104,14 @@ const KrakenFuturesApiClientV3 = ({
 	});
 
 	const throwRequestError = (error, method, endpoint) => {
-		const errorMessage =
-			error.response?.data || error.message || 'Unknown error occurred';
+		const status = error.response?.status || 'N/A';
+		const errors = error.response?.data?.errors || [];
+		const message = error.message || 'Unknown error occurred';
+
 		throw new Error(
-			`Error during ${method} request to ${endpoint}: ${errorMessage}`,
+			`Error during ${method} request to ${endpoint}: Status ${status}, Errors: ${JSON.stringify(
+				errors,
+			)}, Message: ${message}`,
 		);
 	};
 
