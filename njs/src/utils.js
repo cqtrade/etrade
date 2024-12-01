@@ -20,41 +20,43 @@ const fixedDecimals = (num, decimalPlaces) =>
 
 module.exports.fixedDecimals = fixedDecimals;
 
-
 const isTickerAvailableInKraken = async (ticker, resolution) => {
 	try {
 		// if ticker starts with 1000, remove it
-		let tickerName = ticker
+		let tickerName = ticker;
 		if (ticker.startsWith('1000')) {
 			tickerName = ticker.replace('1000', '');
 		}
 
-		if (tickerName[tickerName.length - 1] === 'T') { // USDT- > USD
+		if (tickerName[tickerName.length - 1] === 'T') {
+			// USDT- > USD
 			tickerName = tickerName.substring(0, tickerName.length - 1);
 		}
 
 		tickerName = `PF_${tickerName}`;
-
 
 		const url = `https://futures.kraken.com/api/charts/v1/trade/${tickerName}/${resolution}?limit=1`;
 		const response = await fetch(url);
 		const data = await response.json();
 		if (data.error) {
 			console.log('ticker not available in Kraken', tickerName);
+
 			return false;
 		}
 		if (data.candles.length === 0) {
 			console.log('ticker not available in Kraken', tickerName);
+
 			return false;
 		}
 		console.log('data', data);
+
 		return tickerName;
 	} catch (error) {
 		console.log('error', error);
 	}
 
 	return false;
-}
+};
 
 module.exports.isTickerAvailableInKraken = isTickerAvailableInKraken;
 
@@ -75,8 +77,32 @@ const isTickerAvailableInByBit = async (ticker) => {
 	}
 
 	return false;
-}
+};
 
 module.exports.isTickerAvailableInByBit = isTickerAvailableInByBit;
 
 // isTickerAvailableInByBit('BTCUSDT1').catch(console.error);
+
+const calculatePnlPercentage = (side, entryPrice, lastPrice) => {
+	const normalizedSide = side.toUpperCase();
+	const priceDifference =
+		normalizedSide === 'BUY'
+			? lastPrice - entryPrice
+			: entryPrice - lastPrice;
+	const percentageChange = (priceDifference / entryPrice) * 100;
+
+	return Math.floor(percentageChange * 100) / 100;
+};
+
+module.exports.calculatePnlPercentage = calculatePnlPercentage;
+
+const findLatestOrderByKey = (key, data) =>
+	data.reduce(
+		(currentLatestOrder, currentOrder) =>
+			currentOrder[key] > currentLatestOrder[key]
+				? currentOrder
+				: currentLatestOrder,
+		data[0],
+	);
+
+module.exports.findLatestOrderByKey = findLatestOrderByKey;
