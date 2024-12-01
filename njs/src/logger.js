@@ -1,4 +1,4 @@
-const createLogger = require('./logger/createLogger.js');
+const createLogger = require('./createLogger.js');
 
 const logger = createLogger({
 	webhooks: [
