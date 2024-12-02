@@ -10,7 +10,6 @@ const client = KrakenFuturesApiClientV3({
 	apiKey: process.env.KN_API_KEY,
 	apiSecret: process.env.KN_API_SECRET,
 	timeout: 5000,
-	isTestnet: true,
 });
 
 const getSymbolTicker = async (symbol) => {
