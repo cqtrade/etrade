@@ -1,13 +1,13 @@
-const createLogger = require('./createLogger.js');
+const createLogger = require('../createLogger.js');
 
 const logger = createLogger({
 	webhooks: [
 		{
-			url: process.env.DISCORD_WEBHOOK_URL,
+			url: process.env.KN_DISCORD_WEBHOOK_UPDATES_URL,
 			logLevels: ['info', 'warn'],
 		},
 		{
-			url: process.env.DISCORD_ADDITIONAL_WEBHOOK_URL,
+			url: process.env.KN_DISCORD_WEBHOOK_ALERTS_URL,
 			logLevels: ['error'],
 		},
 	],
