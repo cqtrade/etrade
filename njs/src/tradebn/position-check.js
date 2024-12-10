@@ -1,5 +1,5 @@
 const { USDMClient } = require('binance');
-const { sleep } = require('../utils.js');
+const { sleep, findLatestOrderByKey } = require('../utils.js');
 const logger = require('../logger.js');
 
 const client = new USDMClient({
@@ -76,15 +76,6 @@ const getOpenTpOrders = async ({ symbol, side }) =>
 
 const getOpenSlOrders = async ({ symbol, side }) =>
 	getOpenOrdersByType({ symbol, side, orderType: 'STOP_MARKET' });
-
-const findLatestOrderByKey = (key, data) =>
-	data.reduce(
-		(currentLatestOrder, currentOrder) =>
-			currentOrder[key] > currentLatestOrder[key]
-				? currentOrder
-				: currentLatestOrder,
-		data[0],
-	);
 
 const setPricePrecisionByTickSize = (price, tickSize) => {
 	const precision = tickSize.toString().split('.')[1].length - 1;
