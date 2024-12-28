@@ -1,9 +1,8 @@
 import requests
-import os
-
+from envvars import evars
 
 def discord(message):
-    webhook_url = os.getenv('P_DISCORD_STATS')
+    webhook_url = evars.envdict['discord_channel']
     data = {
         "content": message
     }

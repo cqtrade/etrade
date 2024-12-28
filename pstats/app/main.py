@@ -6,32 +6,20 @@ from message import send_message
 from envvars import evars
 from cc import cc
 
+if not evars.envdict['stats_enabled']:
+    print("Stats not enabled")
+    exit()
+
 scheduler = BlockingScheduler(timezone=utc)
 
-def function_a():
-    send_message.discord("Function A executed")
-    print("Function A executed")
+def futures_premium():
+    send_message.discord(cc.get_stats().to_markdown())
 
 def function_b():
     print("Function B executed")
 
-print("Scheduler starting")
 
-# if os.getenv('STATS_ENABLED'):
-#     # Schedule function_a to run every minute
-#     scheduler.add_job(function_a, IntervalTrigger(minutes=1))
+# scheduler.add_job(function_a, IntervalTrigger(minutes=35))
 
-#     # Schedule function_b to run at 10:00 UTC and 22:00 UTC
-#     scheduler.add_job(function_b, CronTrigger(hour='10,22', minute=0, second=0, timezone=utc))
-#     scheduler.start()
-
-# # Schedule function_a to run every minute
-# scheduler.add_job(function_a, IntervalTrigger(minutes=1))
-# # Schedule function_b to run at 10:00 UTC and 22:00 UTC
-# scheduler.add_job(function_b, CronTrigger(hour='10,22', minute=0, second=0, timezone=utc))
-# scheduler.start()
-
-print(evars.envdict['stats_enabled'])
-print(evars.envdict['discord_channel'])
-
-print(cc.get_stats())
+scheduler.add_job(futures_premium, CronTrigger(hour='6,18', minute=33, second=33, timezone=utc))
+scheduler.start()
