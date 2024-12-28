@@ -19,13 +19,13 @@ services:
       - ./njs/.env
     # see https://docs.docker.com/config/containers/start-containers-automatically/ & https://www.baeldung.com/ops/docker-compose-restart-policies
     restart: always
-  p-data:
-    build:
-      context: ./pstats
-      target: program
-    container_name: pstats
-    restart: on-failure:5
-    environment:
-      - PYTHONUNBUFFERED=1
-    env_file:
-      - ./pstats/.env
+  # p-data:
+  #   build:
+  #     context: ./pstats
+  #     target: program
+  #   container_name: pstats
+  #   restart: on-failure:5
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #   env_file:
+  #     - ./pstats/.env
