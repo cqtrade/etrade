@@ -12,11 +12,10 @@ docker login
 
 docker build --target program -t sandermets/exploratory-stats .
 
-docker tag sandermets/exploratory-stats sandermets/exploratory-stats:v0.2
+docker tag sandermets/exploratory-stats sandermets/exploratory-stats:v0.x
 
-docker tag sandermets/exploratory-stats sandermets/exploratory-stats:latest
-
-docker push sandermets/exploratory-stats
+docker push sandermets/exploratory-stats:v0.x
+docker push sandermets/exploratory-stats:latest
 ```
 
 PS add `--no-cache` for `docker build` if there's a need to rebuild the image from scratch.

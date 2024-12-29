@@ -23,9 +23,9 @@ def futures_premium():
 
 # scheduler.add_job(function_a, IntervalTrigger(minutes=35))
 
-scheduler.add_job(futures_premium, IntervalTrigger(minutes=5))
+# scheduler.add_job(futures_premium, IntervalTrigger(minutes=5))
 
-# scheduler.add_job(futures_premium, CronTrigger(hour='6,18', minute=33, second=33, timezone=utc))
+scheduler.add_job(futures_premium, CronTrigger(hour='6,12,18', minute=33, second=33, timezone=utc))
 
 
 
