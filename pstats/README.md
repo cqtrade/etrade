@@ -1,5 +1,30 @@
 # pstats
 
+## Deploy
+
+This is temporary until we have a proper CI/CD pipeline.
+
+[See for more](https://stackoverflow.com/questions/51253987/building-a-multi-stage-dockerfile-with-target-flag-builds-all-stages-instead-o)
+
+```bash
+
+docker login
+
+docker build --target program -t sandermets/exploratory-stats .
+
+docker tag sandermets/exploratory-stats sandermets/exploratory-stats:v0.2
+
+docker tag sandermets/exploratory-stats sandermets/exploratory-stats:latest
+
+docker push sandermets/exploratory-stats
+```
+
+PS add `--no-cache` for `docker build` if there's a need to rebuild the image from scratch.
+
+NB! Set correct image tag in the docker compose file.
+
+```yaml
+
 ## Develop locally
 
 ```bash
