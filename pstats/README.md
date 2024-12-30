@@ -10,17 +10,16 @@ This is temporary until we have a proper CI/CD pipeline.
 
 docker login
 
-docker build --target program -t sandermets/exploratory-stats .
+docker build --target program --no-cache -t sandermets/exploratory-stats .
 
-docker tag sandermets/exploratory-stats sandermets/exploratory-stats:v0.x
+docker tag sandermets/exploratory-stats sandermets/exploratory-stats:v0.5
+docker tag sandermets/exploratory-stats sandermets/exploratory-stats:latest
 
-docker push sandermets/exploratory-stats:v0.x
+docker push sandermets/exploratory-stats:v0.5
 docker push sandermets/exploratory-stats:latest
 ```
 
-PS add `--no-cache` for `docker build` if there's a need to rebuild the image from scratch.
-
-NB! Set correct image tag in the docker compose file.
+Docker compose file uses latest tag.
 
 ```yaml
 
