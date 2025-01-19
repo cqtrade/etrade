@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+   p-data:
+     image: sandermets/exploratory-stats:latest
+     container_name: exploratory-stats-container
+     restart: on-failure:5
+     environment:
+       - PYTHONUNBUFFERED=1
+     env_file:
+       - ./.env
