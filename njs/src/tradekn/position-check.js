@@ -31,6 +31,8 @@ const getSymbolTicker = async (symbol) => {
 	}
 };
 
+module.exports.getSymbolTicker = getSymbolTicker;
+
 const getInstrumentBySymbol = async (symbol) => {
 	try {
 		const result = await client.getInstruments();
@@ -53,6 +55,8 @@ const getInstrumentBySymbol = async (symbol) => {
 		);
 	}
 };
+
+module.exports.getInstrumentBySymbol = getInstrumentBySymbol;
 
 const getOpenOrdersByType = async ({ symbol, side, orderType }) => {
 	try {
