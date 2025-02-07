@@ -24,20 +24,22 @@ def futures_premium():
 def funding_rates():
     send_message.discord(fr.latest_funding_rate().to_markdown())
 
-# def function_b():
-#     print("Function B executed")
-
-
-# scheduler.add_job(function_a, IntervalTrigger(minutes=35))
-
-# scheduler.add_job(futures_premium, IntervalTrigger(minutes=5))
-
 scheduler.add_job(futures_premium, CronTrigger(
     hour='6,18', minute=33, second=33, timezone=utc))
 
 scheduler.add_job(funding_rates, CronTrigger(
     hour='6,18', minute=34, second=33, timezone=utc))
 
+def fgold():
+    try:
+        b.bootstrap()
+        send_message.discord("FG bootstrap OK")
+    except Exception as e:
+        send_message.discord("bootstrap Error", e)
+        print(e)
+
+if evars.envdict['foolsgold']:
+    scheduler.add_job(fgold, IntervalTrigger(seconds=13))
 
 send_message.discord("Started stats bot!")
 
@@ -45,8 +47,5 @@ futures_premium()
 funding_rates()
 
 print("Starting scheduler")
-
-if evars.envdict['foolsgold']:
-    scheduler.add_job(b.bootstrap(), IntervalTrigger(seconds=6))
 
 scheduler.start()
