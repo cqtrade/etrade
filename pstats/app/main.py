@@ -6,6 +6,7 @@ from message import send_message
 from envvars import evars
 from cc import cc
 from fr import fr
+from foolsgold import b
 
 if not evars.envdict['stats_enabled']:
     print("Stats not enabled")
@@ -32,10 +33,10 @@ def funding_rates():
 # scheduler.add_job(futures_premium, IntervalTrigger(minutes=5))
 
 scheduler.add_job(futures_premium, CronTrigger(
-    hour='6,8,16,18', minute=33, second=33, timezone=utc))
+    hour='6,18', minute=33, second=33, timezone=utc))
 
 scheduler.add_job(funding_rates, CronTrigger(
-    hour='6,8,16,18', minute=34, second=33, timezone=utc))
+    hour='6,18', minute=34, second=33, timezone=utc))
 
 
 send_message.discord("Started stats bot!")
@@ -44,5 +45,8 @@ futures_premium()
 funding_rates()
 
 print("Starting scheduler")
+
+if evars.envdict['foolsgold']:
+    scheduler.add_job(b.bootstrap(), IntervalTrigger(seconds=6))
 
 scheduler.start()
