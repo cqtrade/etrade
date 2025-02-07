@@ -90,11 +90,12 @@ class Bybit:
         })
         df = df.sort_values("timestamp", ascending=True)
         df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
-        df["timestamp"] = df["timestamp"].dt.tz_localize(
-            "UTC").dt.tz_convert("Europe/Tallinn")
+        # df["timestamp"] = df["timestamp"].dt.tz_localize(
+        #     "UTC").dt.tz_convert("Europe/Tallinn")
         df = df.set_index("timestamp")
-        # TODO: Remove last row
-        # df = df[:-1]
+
+        df = df[:-1]
+
         self.df = df
         self.df['low1'] = self.df['low'].shift(1)
         self.df['high1'] = self.df['high'].shift(1)

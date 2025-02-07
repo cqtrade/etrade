@@ -1,5 +1,5 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
-from apscheduler.triggers.interval import IntervalTrigger
+# from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
 from pytz import utc
 from message import send_message
@@ -24,11 +24,13 @@ def futures_premium():
 def funding_rates():
     send_message.discord(fr.latest_funding_rate().to_markdown())
 
+
 scheduler.add_job(futures_premium, CronTrigger(
     hour='6,18', minute=33, second=33, timezone=utc))
 
 scheduler.add_job(funding_rates, CronTrigger(
     hour='6,18', minute=34, second=33, timezone=utc))
+
 
 def fgold():
     try:
@@ -38,10 +40,10 @@ def fgold():
         send_message.discord("bootstrap Error", e)
         print(e)
 
-if evars.envdict['foolsgold']:
-    scheduler.add_job(fgold, IntervalTrigger(seconds=13))
 
-send_message.discord("Started stats bot!")
+if evars.envdict['foolsgold']:
+    scheduler.add_job(fgold, CronTrigger(
+        minute=0, second=6, timezone=utc))
 
 futures_premium()
 funding_rates()
