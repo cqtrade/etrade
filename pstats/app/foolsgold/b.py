@@ -2,7 +2,9 @@ from pybit.unified_trading import HTTP
 import pandas as pd
 import talib as ta
 import time
-from envvars import evars
+# from envvars import evars
+from reqs import close_position, limit_order, market_order_with_sl, trailing_stop_order
+from utils import set_price_precision_by_tick_size, calc_qty_precision, find_pos_size
 
 adx_low = 23
 adx_high = 26
@@ -10,50 +12,14 @@ equity = 100
 risk = 30
 
 
-def fixed_decimals(num, decimal_places):
-    return round(num, decimal_places)
-
-
-def count_decimals(num):
-    num_as_string = str(num)
-    # Check if the number has a decimal point
-    if '.' in num_as_string:
-        return len(num_as_string.split('.')[1])
-    return 0
-
-
-def calc_qty_precision(qty, step_size):
-    raw_res = (qty / step_size) * step_size
-    decimals = count_decimals(step_size)
-    res = fixed_decimals(raw_res, decimals)
-    return res
-
-
-def calculate_position_size(risk, sl_price, last_price, equity_usd):
-    sl_risk = (sl_price * 100) / last_price
-    equity_leverage = risk / sl_risk
-    pos_size_usd = equity_usd * equity_leverage
-    position_size = pos_size_usd / last_price
-    return {
-        "position_size": float(position_size),
-        "equity_leverage": float(equity_leverage),
-        "pos_size_usd": float(pos_size_usd)
-    }
-
-
-def set_price_precision_by_tick_size(price, tick_size):
-    precision = len(str(tick_size).split('.')[1]) - 1
-    return f"{price:.{precision}f}"
-
-
 class Bybit:
-    def __init__(self):
-        api_key = evars.envdict['foolsgold_key'],
-        api_secret = evars.envdict['foolsgold_secret'],
-        api_key = api_key
-        api_secret = api_secret
-
-        self.instance = HTTP(
+    def __init__(self, api_key, api_secret, clogger=print):
+        # api_key = evars.envdict['foolsgold_key'],
+        # api_secret = evars.envdict['foolsgold_secret'],
+        # api_key = api_key
+        # api_secret = api_secret
+        self.clogger = clogger
+        self.api = HTTP(
             testnet=False,
             api_key=api_key,
             api_secret=api_secret,
@@ -61,7 +27,7 @@ class Bybit:
 
     def get_kline_data(self, symbol):
         # https://bybit-exchange.github.io/docs/v5/market/kline
-        kline_data = self.instance.get_kline(
+        kline_data = self.api.get_kline(
             category="linear",
             symbol=symbol,
             interval=60,
@@ -169,7 +135,7 @@ class Bybit:
         return self
 
     def get_position(self, symbol):
-        position = self.instance.get_positions(
+        position = self.api.get_positions(
             category="linear",
             symbol=symbol
         )
@@ -186,20 +152,12 @@ class Bybit:
             return
 
         if side == "Buy":
-            res = self.instance.place_order(
-                category="linear",
-                symbol=symbol,
-                side="Sell",
-                order_type="Market",
-                qty=size,
-                time_in_force="GoodTillCancel",
-                close_on_trigger=True
-            )
+            close_position(self.api, symbol, "Sell", size)
 
-        instrument = self.instance.get_instruments_info(
+        instrument = self.api.get_instruments_info(
             category="linear", symbol=symbol)["result"]["list"][0]
 
-        ticker = self.instance.get_tickers(category="linear", symbol=symbol)[
+        ticker = self.api.get_tickers(category="linear", symbol=symbol)[
             "result"]["list"][0]
 
         tick_size = instrument["priceFilter"]["tickSize"]
@@ -212,70 +170,32 @@ class Bybit:
         sl_price = float(set_price_precision_by_tick_size(sl, tick_size))
         print("sl_price", sl_price)
 
-        posdict = calculate_position_size(
-            risk,
-            sl_price,
-            last_price,
-            equity)
-        position_size = posdict["position_size"]
+        [pos_size, qty_step, min_qty] = find_pos_size(
+            instrument, risk, sl_price, last_price, equity)
 
-        qty_step = instrument["lotSizeFilter"]["qtyStep"]
-        qty_step_parts = qty_step.split(".")
-        qty_step = float(qty_step) if len(
-            qty_step_parts) > 1 else int(qty_step)
-        print("qty_step", qty_step)
-
-        min_qty = instrument["lotSizeFilter"]["minOrderQty"]
-        min_qty_parts = min_qty.split(".")
-        min_qty = float(min_qty) if len(min_qty_parts) > 1 else int(min_qty)
-        print("minOrderQty", min_qty)
-
-        print(position_size)
-        pos_size = position_size if position_size > (
-            3 * min_qty) else 3 * min_qty
-        pos_size = calc_qty_precision(pos_size, qty_step)
         print("final position_size", pos_size)
 
-        res = self.instance.place_order(
-            category="linear",
-            symbol=symbol,
-            side="Sell",
-            order_type="Market",
-            qty=str(pos_size),
-            time_in_force="ImmediateOrCancel",
-            stop_loss=str(sl_price),
-            sl_trigger_by="LastPrice",
-        )
+        res = market_order_with_sl(
+            self.api, symbol, "Sell", pos_size, sl_price)
         print(res)
-        tp = last_price - self.df.iloc[-1]['atr'] * 2
+        tp = last_price - self.df.iloc[-1]['atr'] * 1
         tp_price = float(set_price_precision_by_tick_size(tp, tick_size))
         print("tp_price", tp_price)
         tp_qty = calc_qty_precision(
             pos_size/3, qty_step) if pos_size/3 > min_qty else min_qty
 
         print("tp_qty", tp_qty)
-        res = self.instance.place_order(
-            category="linear",
-            symbol=symbol,
-            side="Buy",
-            order_type="Limit",
-            qty=str(tp_qty),
-            time_in_force="PostOnly",
-            price=str(tp_price),
-            reduce_only=True,
-        )
+
+        res = limit_order(self.api, symbol, "Buy", tp_qty, tp_price)
         print(res)
 
         trailing_stop = last_price - tp_price
         trailing_stop = set_price_precision_by_tick_size(
             trailing_stop, tick_size)
-        res = self.instance.set_trading_stop(
-            category="linear",
-            symbol=symbol,
-            active_price=str(tp_price),
-            trailing_stop=str(trailing_stop),
-        )
+
+        res = trailing_stop_order(self.api, symbol, tp_price, trailing_stop)
         print(res)
+        self.clogger(f"Short {symbol}")
 
     def buy(self, symbol):
         [side, size] = self.get_position(symbol)
@@ -283,20 +203,12 @@ class Bybit:
             return
 
         if side == "Sell":
-            res = self.instance.place_order(
-                category="linear",
-                symbol=symbol,
-                side="Buy",
-                order_type="Market",
-                qty=size,
-                time_in_force="GoodTillCancel",
-                close_on_trigger=True
-            )
+            close_position(self.api, symbol, "Buy", size)
 
-        instrument = self.instance.get_instruments_info(
+        instrument = self.api.get_instruments_info(
             category="linear", symbol=symbol)["result"]["list"][0]
 
-        ticker = self.instance.get_tickers(category="linear", symbol=symbol)[
+        ticker = self.api.get_tickers(category="linear", symbol=symbol)[
             "result"]["list"][0]
 
         tick_size = instrument["priceFilter"]["tickSize"]
@@ -309,72 +221,36 @@ class Bybit:
         sl_price = float(set_price_precision_by_tick_size(sl, tick_size))
         print("sl_price", sl_price)
 
-        posdict = calculate_position_size(
-            risk,
-            sl_price,
-            last_price,
-            equity)
-        position_size = posdict["position_size"]
+        [pos_size, qty_step, min_qty] = find_pos_size(
+            instrument, risk, sl_price, last_price, equity)
 
-        qty_step = instrument["lotSizeFilter"]["qtyStep"]
-        qty_step_parts = qty_step.split(".")
-        qty_step = float(qty_step) if len(
-            qty_step_parts) > 1 else int(qty_step)
-        print("qty_step", qty_step)
-
-        min_qty = instrument["lotSizeFilter"]["minOrderQty"]
-        min_qty_parts = min_qty.split(".")
-        min_qty = float(min_qty) if len(min_qty_parts) > 1 else int(min_qty)
-        print("minOrderQty", min_qty)
-
-        print(position_size)
-        pos_size = position_size if position_size > (
-            3 * min_qty) else 3 * min_qty
-        pos_size = calc_qty_precision(pos_size, qty_step)
         print("final position_size", pos_size)
 
-        res = self.instance.place_order(
-            category="linear",
-            symbol=symbol,
-            side="Buy",
-            order_type="Market",
-            qty=str(pos_size),
-            time_in_force="ImmediateOrCancel",
-            stop_loss=str(sl_price),
-            sl_trigger_by="LastPrice",
-        )
+        res = market_order_with_sl(self.api, symbol, "Buy", pos_size, sl_price)
+
         print(res)
-        tp = last_price + self.df.iloc[-1]['atr'] * 2
+        tp = last_price + self.df.iloc[-1]['atr'] * 1
         tp_price = float(set_price_precision_by_tick_size(tp, tick_size))
         print("tp_price", tp_price)
         tp_qty = calc_qty_precision(
             pos_size/3, qty_step) if pos_size/3 > min_qty else min_qty
 
         print("tp_qty", tp_qty)
-        res = self.instance.place_order(
-            category="linear",
-            symbol=symbol,
-            side="Sell",
-            order_type="Limit",
-            qty=str(tp_qty),
-            time_in_force="PostOnly",
-            price=str(tp_price),
-            reduce_only=True,
-        )
+
+        res = limit_order(self.api, symbol, "Sell", tp_qty, tp_price)
+
         print(res)
 
         trailing_stop = tp_price - last_price
         trailing_stop = set_price_precision_by_tick_size(
             trailing_stop, tick_size)
-        res = self.instance.set_trading_stop(
-            category="linear",
-            symbol=symbol,
-            active_price=str(tp_price),
-            trailing_stop=str(trailing_stop),
-        )
-        print(res)
 
-    def run(self, symbols="BTCUSDT,SOLUSDT,SUIUSDT,ETHUSDT"):
+        res = trailing_stop_order(self.api, symbol, tp_price, trailing_stop)
+
+        print(res)
+        self.clogger(f"Long {symbol}")
+
+    def run(self, symbols="SOLUSDT,SUIUSDT"):
         symbols = symbols.split(",")
         for symbol in symbols:
             self.get_signals(symbol)
@@ -389,25 +265,15 @@ class Bybit:
             time.sleep(1)
 
 
-def bootstrap():
-    b = Bybit()
-    b.run(symbols="BTCUSDT,SOLUSDT,SUIUSDT,ETHUSDT")
+def bootstrap(api_key, api_secret, clogger, symbols="BTCUSDT,SOLUSDT,SUIUSDT,ETHUSDT"):
+    b = Bybit(api_key, api_secret, clogger)
+    b.run(symbols=symbols)
     print("Foolsgold run done!")
 
-# df = b.get_signals(symbol="SOLUSDT").df
+
+symbol = "SOLUSDT"
+b = Bybit("", "", print)
+df = b.get_signals(symbol).df
 # print(df)
-
-# print(b.get_latest_signal())
-# latest_signal = b.get_latest_signal()
-# print(latest_signal['buy'])
-
-# a = calculate_position_size(risk,
-#                             200,
-#                             100,
-#                             equity)
-
-# print(a["position_size"])
-# b.buy("SOLUSDT")
-
-# b.get_position(symbol)
-# b.sell(symbol=symbol)
+b.buy(symbol)
+# b.sell(symbol)

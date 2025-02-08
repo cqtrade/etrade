@@ -34,10 +34,15 @@ scheduler.add_job(funding_rates, CronTrigger(
 
 def fgold():
     try:
-        b.bootstrap()
-        send_message.discord("FG bootstrap OK")
+        api_key = evars.envdict['foolsgold_key']
+        api_secret = evars.envdict['foolsgold_secret']
+        clogger = send_message.discord
+        symbols = (evars.envdict['foolsgold_symbols']
+                   if evars.envdict['foolsgold_symbols']
+                   else "BTCUSDT,SOLUSDT,SUIUSDT,ETHUSDT")
+        b.bootstrap(api_key, api_secret, clogger, symbols)
     except Exception as e:
-        send_message.discord("bootstrap Error", e)
+        send_message.discord("ERROR Foolsgold", e)
         print(e)
 
 
