@@ -84,8 +84,3 @@ def prepare_df(data_list):
     df = add_dmi(df)
     # df = heikin_ashi(df)
     return df
-
-
-# heikin ashi for numba
-# https://stackoverflow.com/questions/40613480/heiken-ashi-using-pandas-python
-

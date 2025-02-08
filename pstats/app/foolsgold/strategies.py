@@ -1,8 +1,5 @@
 import pandas as pd
 
-# see for more https://stackoverflow.com/questions/1769403/what-is-the-purpose-and-use-of-kwargs
-
-
 def mom_long(df: pd.DataFrame, **kwargs) -> pd.DataFrame:
     return ((df['plus_di'] > df['adx'])
             & (df['adx'] > kwargs['adx_low'])
