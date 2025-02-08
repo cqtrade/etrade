@@ -12,10 +12,10 @@ docker login
 
 docker build --target program --no-cache -t sandermets/exploratory-stats .
 
-docker tag sandermets/exploratory-stats sandermets/exploratory-stats:v0.9
+docker tag sandermets/exploratory-stats sandermets/exploratory-stats:v0.10
 docker tag sandermets/exploratory-stats sandermets/exploratory-stats:latest
 
-docker push sandermets/exploratory-stats:v0.9
+docker push sandermets/exploratory-stats:v0.10
 docker push sandermets/exploratory-stats:latest
 ```
 
@@ -24,6 +24,17 @@ Docker compose file uses latest tag.
 ```yaml
 
 ## Develop locally
+
+It should be possible to run modules independently.
+
+e.g.
+
+```bash
+
+python app/foolsgold/b.py
+
+```
+
 
 ```bash
 
