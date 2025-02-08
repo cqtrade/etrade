@@ -1,18 +1,14 @@
 from pybit.unified_trading import HTTP
-import pandas as pd
-import talib as ta
 import time
-# from envvars import evars
-from strategies import mom_long, mom_short
-from prep_data import prepare_df
-from reqs import close_position, limit_order, market_order_with_sl, trailing_stop_order
-from utils import set_price_precision_by_tick_size, calc_qty_precision, find_pos_size
+from foolsgold.strategies import mom_long, mom_short
+from foolsgold.prep_data import prepare_df
+from foolsgold.reqs import close_position, limit_order, market_order_with_sl, trailing_stop_order
+from foolsgold.utils import set_price_precision_by_tick_size, calc_qty_precision, find_pos_size
 
 adx_low = 23
 adx_high = 26
 equity = 100
 risk = 30
-
 
 class Bybit:
     def __init__(self, api_key, api_secret, clogger=print):
@@ -36,7 +32,7 @@ class Bybit:
 
     def signals(self, **kwargs):
         if kwargs["strategy"] == "mom":
-            self.df['buy'] = mom_long(self.df, **kwargs)        
+            self.df['buy'] = mom_long(self.df, **kwargs)
             self.df['sell'] = mom_short(self.df, **kwargs)
 
     def get_position(self, symbol):
