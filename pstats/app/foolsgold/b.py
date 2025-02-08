@@ -3,6 +3,8 @@ import pandas as pd
 import talib as ta
 import time
 # from envvars import evars
+from strategies import mom_long, mom_short
+from prep_data import prepare_df
 from reqs import close_position, limit_order, market_order_with_sl, trailing_stop_order
 from utils import set_price_precision_by_tick_size, calc_qty_precision, find_pos_size
 
@@ -14,10 +16,6 @@ risk = 30
 
 class Bybit:
     def __init__(self, api_key, api_secret, clogger=print):
-        # api_key = evars.envdict['foolsgold_key'],
-        # api_secret = evars.envdict['foolsgold_secret'],
-        # api_key = api_key
-        # api_secret = api_secret
         self.clogger = clogger
         self.api = HTTP(
             testnet=False,
@@ -25,114 +23,21 @@ class Bybit:
             api_secret=api_secret,
         )
 
-    def get_kline_data(self, symbol):
+    def prepare_df(self, symbol):
         # https://bybit-exchange.github.io/docs/v5/market/kline
-        kline_data = self.api.get_kline(
+        data_list = self.api.get_kline(
             category="linear",
             symbol=symbol,
             interval=60,
-            limit=1000
-
-        )["result"]
-
-        # Getting 0 element from list
-        data_list = kline_data["list"]
-        df = pd.DataFrame(data_list,
-                          columns=["timestamp",
-                                   "open",
-                                   "high",
-                                   "low",
-                                   "close",
-                                   "volume",
-                                   "turnover"])
-        df = df.astype({
-            "timestamp": int,
-            "open": float,
-            "high": float,
-            "low": float,
-            "close": float,
-            "volume": float,
-            "turnover": float,
-        })
-        df = df.sort_values("timestamp", ascending=True)
-        df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
-        # df["timestamp"] = df["timestamp"].dt.tz_localize(
-        #     "UTC").dt.tz_convert("Europe/Tallinn")
-        df = df.set_index("timestamp")
-
-        df = df[:-1]
-
-        self.df = df
-        self.df['low1'] = self.df['low'].shift(1)
-        self.df['high1'] = self.df['high'].shift(1)
-        return df
-
-    def add_atr(self, period=14):
-        self.df['atr'] = ta.ATR(self.df['high'],
-                                self.df['low'],
-                                self.df['close'],
-                                timeperiod=period)
-
-    def add_dmi(self, period=14):
-        self.df['adx'] = ta.ADX(self.df['high'],
-                                self.df['low'],
-                                self.df['close'],
-                                timeperiod=period)
-
-        self.df['adx1'] = self.df['adx'].shift(1)
-
-        self.df['adxr'] = ta.ADXR(self.df['high'],
-                                  self.df['low'],
-                                  self.df['close'],
-                                  timeperiod=period)
-        self.df['adxr1'] = self.df['adxr'].shift(1)
-
-        self.df['plus_di'] = ta.PLUS_DI(self.df['high'],
-                                        self.df['low'],
-                                        self.df['close'],
-                                        timeperiod=period)
-
-        self.df['minus_di'] = ta.MINUS_DI(self.df['high'],
-                                          self.df['low'],
-                                          self.df['close'],
-                                          timeperiod=period)
-
-    def signals(self):
-        self.df['buy'] = ((self.df['plus_di'] > self.df['adx'])
-                          & (self.df['adx'] > adx_low)
-                          & (self.df['adx'] < adx_high)
-                          & (self.df['adx'] > self.df['adx1'])
-                          & (self.df['adxr'] > self.df['adxr1']))
-        self.df['sell'] = ((self.df['minus_di'] > self.df['adx'])
-                           & (self.df['adx'] > adx_low)
-                           & (self.df['adx'] < adx_high)
-                           & (self.df['adx'] > self.df['adx1'])
-                           & (self.df['adxr'] > self.df['adxr1']))
-
-    def get_latest_signal(self):
-        return self.df.iloc[-1]
-
-    def prepare_sl(self, symbol):
-        latest_signal = self.get_latest_signal()
-        if latest_signal['buy']:
-            sl = latest_signal['low1'] - latest_signal['atr']
-            return sl
-        elif latest_signal['sell']:
-            sl = latest_signal['high1'] + latest_signal['atr']
-            return sl
-
-    def prepare_sl_sell(self, symbol):
-        latest_signal = self.get_latest_signal()
-        if latest_signal['sell']:
-            sl = latest_signal['high1'] + latest_signal['atr']
-            return sl
-
-    def get_signals(self, symbol):
-        self.get_kline_data(symbol)
-        self.add_atr()
-        self.add_dmi()
-        self.signals()
+            limit=100,
+        )["result"]["list"]
+        self.df = prepare_df(data_list)
         return self
+
+    def signals(self, **kwargs):
+        if kwargs["strategy"] == "mom":
+            self.df['buy'] = mom_long(self.df, **kwargs)        
+            self.df['sell'] = mom_short(self.df, **kwargs)
 
     def get_position(self, symbol):
         position = self.api.get_positions(
@@ -241,9 +146,10 @@ class Bybit:
 
         print(res)
 
-        trailing_stop = tp_price - last_price
         trailing_stop = set_price_precision_by_tick_size(
-            trailing_stop, tick_size)
+            tp_price - last_price,
+            tick_size,
+        )
 
         res = trailing_stop_order(self.api, symbol, tp_price, trailing_stop)
 
@@ -253,8 +159,11 @@ class Bybit:
     def run(self, symbols="SOLUSDT,SUIUSDT"):
         symbols = symbols.split(",")
         for symbol in symbols:
-            self.get_signals(symbol)
-            latest_signal = self.get_latest_signal()
+            symbol = symbol.strip()
+            self.prepare_df(symbol)
+            self.signals(strategy="mom", adx_low=adx_low, adx_high=adx_high)
+            latest_signal = self.df.iloc[-1]
+
             print(symbol)
             print(latest_signal)
 
@@ -271,9 +180,16 @@ def bootstrap(api_key, api_secret, clogger, symbols="BTCUSDT,SOLUSDT,SUIUSDT,ETH
     print("Foolsgold run done!")
 
 
-symbol = "SOLUSDT"
-b = Bybit("", "", print)
-df = b.get_signals(symbol).df
-# print(df)
-b.buy(symbol)
+# symbol = "SOLUSDT"
+# b = Bybit("", "", print)
+# b.prepare_df(symbol)
+# b.signals(strategy="mom", adx_low=adx_low, adx_high=adx_high)
+# print(b.df)
 # b.sell(symbol)
+# b.sell(symbol)
+# bootstrap(
+#     "",
+#     "",
+#     print,
+#     symbols="BTCUSDT,SOLUSDT",
+# )

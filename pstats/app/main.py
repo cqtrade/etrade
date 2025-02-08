@@ -41,6 +41,7 @@ def fgold():
                    if evars.envdict['foolsgold_symbols']
                    else "BTCUSDT,SOLUSDT,SUIUSDT,ETHUSDT")
         b.bootstrap(api_key, api_secret, clogger, symbols)
+        print("fgold OK")
     except Exception as e:
         send_message.discord("ERROR Foolsgold", e)
         print(e)
