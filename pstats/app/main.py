@@ -43,8 +43,9 @@ def fgold():
         b.bootstrap(api_key, api_secret, clogger, symbols)
         print("fgold OK")
     except Exception as e:
-        send_message.discord("ERROR Foolsgold", e)
         print(e)
+        print(str(e))
+        send_message.discord("ERROR Foolsgold", str(e))
 
 
 if evars.envdict['foolsgold']:
