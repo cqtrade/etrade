@@ -36,7 +36,7 @@ def fgold():
     try:
         api_key = evars.envdict['foolsgold_key']
         api_secret = evars.envdict['foolsgold_secret']
-        clogger = send_message.discord
+        clogger = send_message.discord_flash
         symbols = (evars.envdict['foolsgold_symbols']
                    if evars.envdict['foolsgold_symbols']
                    else "BTCUSDT,SOLUSDT,SUIUSDT,ETHUSDT")
@@ -45,7 +45,7 @@ def fgold():
     except Exception as e:
         print(e)
         print(str(e))
-        send_message.discord("ERROR Foolsgold", str(e))
+        send_message.discord_flash(f"ERROR Foolsgold {str(e)}")
 
 
 if evars.envdict['foolsgold']:
