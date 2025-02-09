@@ -75,3 +75,20 @@ docker rm testp1
 [Heikin ashi](https://stackoverflow.com/questions/40613480/heiken-ashi-using-pandas-python)
 
 [kwargs](https://stackoverflow.com/questions/1769403/what-is-the-purpose-and-use-of-kwargs)
+
+
+## Roadmap
+
+- [x] Simple funding rate stats periodic logging
+- [x] Simple trading bot to forward test ideas
+- [x] Simple backtesting framework to test ideas
+- [x] Separate flash logging
+- [ ] Mom long strategy
+- [ ] Mom short strategy
+- [ ] Mean reversion sort strategy
+- [ ] Mean reversion sort strategy 
+- [ ] Flash stats for cash and carry
+- [ ] Flash stats oversold conditions
+- [ ] Flash stats overbought conditions
+- [ ] Analyse historical funding rates
+- [ ] HL interface

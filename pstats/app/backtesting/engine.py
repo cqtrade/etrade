@@ -3,7 +3,11 @@ import talib
 import vectorbt as vbt
 import os
 from multiprocessing.pool import Pool
-# import backtesting.indicators as inds
+
+
+# 0.01 = 1%. 0.007 = 0.7%
+tp_stop = 0.007
+sl_stop = 0.01
 
 
 def work_signals(f, inputs):
@@ -58,9 +62,8 @@ def compute_portfolio_metrics(args):
                                     short_exits=short_exits,
                                     init_cash=1000,
                                     fees=0.001,
-                                    # 0.01 = 1%. 0.005 = 0.5%
-                                    tp_stop=0.005,
-                                    sl_stop=0.01,
+                                    tp_stop=tp_stop,
+                                    sl_stop=sl_stop,
                                     # freq="1D",
                                     # adjust_sl_func_nb=inds.adjust_sl_func_nb,
                                     # adjust_sl_args=tuple(
@@ -117,10 +120,10 @@ def compute_portfolio(args):
                                     short_exits=short_exits,
                                     init_cash=1000,
                                     fees=0.001,
-                                    
-                                    tp_stop=0.005,
-                                    sl_stop=0.01,
-                                    
+
+                                    tp_stop=tp_stop,
+                                    sl_stop=sl_stop,
+
                                     # freq="1D",
                                     # adjust_sl_func_nb=inds.adjust_sl_func_nb,
                                     # adjust_sl_args=tuple(

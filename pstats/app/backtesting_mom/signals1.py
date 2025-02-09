@@ -8,9 +8,9 @@ import talib
 
 
 def params_long() -> dict:
-    adx_p = np.arange(10, 20 + 1, step=2, dtype=int)
-    adx_low = np.arange(20, 26 + 1, step=2)
-    adx_high = np.arange(28, 34 + 1, step=2)
+    adx_p = np.arange(14, 22 + 1, step=1, dtype=int)
+    adx_low = np.arange(16, 26 + 1, step=2)
+    adx_high = np.arange(26, 36 + 1, step=2)
 
     # tdfi_p = np.arange(10, 20 + 1, step=5, dtype=int)
     # tdfi_level = np.arange(10, 100 + 1, step=10) / 100
@@ -152,9 +152,9 @@ def compute_signals_long(args: tuple):
     return symbol, entries, exits, short_entries, short_exits
 
 def params_short() -> dict:
-    adx_p = np.arange(10, 20 + 1, step=2, dtype=int)
-    adx_low = np.arange(20, 26 + 1, step=2)
-    adx_high = np.arange(28, 34 + 1, step=2)
+    adx_p = np.arange(14, 22 + 1, step=1, dtype=int)
+    adx_low = np.arange(16, 26 + 1, step=2)
+    adx_high = np.arange(26, 36 + 1, step=2)
 
     # tdfi_p = np.arange(10, 20 + 1, step=5, dtype=int)
     # tdfi_level = np.arange(10, 100 + 1, step=10) / 100
