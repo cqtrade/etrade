@@ -4,17 +4,7 @@ const {
 	findLatestOrderByKey,
 } = require('../utils.js');
 const logger = require('../logger.js');
-const KrakenFuturesApiClientV3 = require('./api.js');
-
-let client = {};
-
-if (process.env.KN_API_ENABLED) {
-	client = KrakenFuturesApiClientV3({
-		apiKey: process.env.KN_API_KEY,
-		apiSecret: process.env.KN_API_SECRET,
-		timeout: 5000,
-	});
-}
+const { client } = require('./client.js');
 
 const getSymbolTicker = async (symbol) => {
 	try {
@@ -222,13 +212,13 @@ const handleOpenPosition = async (position) => {
 			const newStopLoss =
 				positionSide === 'buy'
 					? adjustPriceToTickSize(
-						entryPrice + priceAdjustment,
-						tickSize,
-					)
+							entryPrice + priceAdjustment,
+							tickSize,
+						)
 					: adjustPriceToTickSize(
-						entryPrice - priceAdjustment,
-						tickSize,
-					);
+							entryPrice - priceAdjustment,
+							tickSize,
+						);
 
 			const latestSlOrder = findLatestOrderByKey(
 				'receivedTime', // or lastUpdateTime

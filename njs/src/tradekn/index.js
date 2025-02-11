@@ -2,14 +2,7 @@ const { countDecimals, fixedDecimals, sleep } = require('../utils.js');
 const logger = require('./logger.js');
 const posCheck = require('./position-check');
 const tickers = require('../../tickers.json');
-const KrakenFuturesApiClientV3 = require('./api.js');
-
-const client = KrakenFuturesApiClientV3({
-	apiKey: process.env.KN_API_KEY,
-	apiSecret: process.env.KN_API_SECRET,
-	isTestnet: false,
-	timeout: 5000,
-});
+const { client } = require('./client.js');
 
 const calculatePositionSize = (risk, atrSl, lastPrice, equityUSD) => {
 	const slRisk = (atrSl * 100) / lastPrice;
