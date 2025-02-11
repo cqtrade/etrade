@@ -1,7 +1,7 @@
 const { countDecimals, fixedDecimals, sleep } = require('../utils.js');
 const logger = require('./logger.js');
 const posCheck = require('./position-check');
-const { tickerForKraken } = require('./tickers.js');
+const tickers = require('../../tickers.json');
 const KrakenFuturesApiClientV3 = require('./api.js');
 
 const client = KrakenFuturesApiClientV3({
@@ -79,8 +79,8 @@ const minSize = (tickSize, precision) => {
 	return tickSize / multiplier;
 };
 
-const exitPosition = async (sig, position) => {
-	const krakenTicker = tickerForKraken(sig.ticker);
+const exitPosition = async (signal, position) => {
+	const krakenTicker = tickers[signal.ticker].kraken;
 
 	if (position.side === 'long') {
 		const res = await client.sendOrder({
@@ -108,7 +108,7 @@ const exitPosition = async (sig, position) => {
 };
 
 const buy = async (signal) => {
-	const krakenTicker = tickerForKraken(signal.ticker);
+	const krakenTicker = tickers[signal.ticker].kraken;
 
 	const [ticker, instrument] = await Promise.allSettled([
 		posCheck.getSymbolTicker(krakenTicker),
@@ -243,7 +243,7 @@ const buy = async (signal) => {
 };
 
 const sell = async (signal) => {
-	const krakenTicker = tickerForKraken(signal.ticker);
+	const krakenTicker = tickers[signal.ticker].kraken;
 
 	const [ticker, instrument] = await Promise.allSettled([
 		posCheck.getSymbolTicker(krakenTicker),
@@ -404,7 +404,7 @@ const signalHandler = async (sig) => {
 			const openPosition = position.openPositions.find(
 				(position) =>
 					parseFloat(position.size) !== 0 &&
-					position.symbol === tickerForKraken(sig.ticker),
+					position.symbol === tickers[sig.ticker].kraken,
 			);
 
 			const openPositionSide = openPosition?.side;
