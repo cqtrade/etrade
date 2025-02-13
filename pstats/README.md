@@ -12,10 +12,10 @@ docker login
 
 docker build --target program --no-cache -t sandermets/exploratory-stats .
 
-docker tag sandermets/exploratory-stats sandermets/exploratory-stats:v0.12
+docker tag sandermets/exploratory-stats sandermets/exploratory-stats:v0.13
 docker tag sandermets/exploratory-stats sandermets/exploratory-stats:latest
 
-docker push sandermets/exploratory-stats:v0.12
+docker push sandermets/exploratory-stats:v0.13
 docker push sandermets/exploratory-stats:latest
 ```
 
@@ -67,3 +67,28 @@ docker run --name=pstats1 --rm -it pstats1
 
 docker rm testp1
 ```
+
+## Study references
+
+[Adjust sl](https://stackoverflow.com/questions/76328503/how-to-set-a-stoploss-in-vectorbt-based-on-the-number-of-ticks-or-price-per-cont)
+
+[Heikin ashi](https://stackoverflow.com/questions/40613480/heiken-ashi-using-pandas-python)
+
+[kwargs](https://stackoverflow.com/questions/1769403/what-is-the-purpose-and-use-of-kwargs)
+
+
+## Roadmap
+
+- [x] Simple funding rate stats periodic logging
+- [x] Simple trading bot to forward test ideas
+- [x] Simple backtesting framework to test ideas
+- [x] Separate flash logging
+- [ ] Mom long strategy
+- [ ] Mom short strategy
+- [ ] Mean reversion sort strategy
+- [ ] Mean reversion sort strategy 
+- [ ] Flash stats for cash and carry
+- [ ] Flash stats oversold conditions
+- [ ] Flash stats overbought conditions
+- [ ] Analyse historical funding rates
+- [ ] HL interface
