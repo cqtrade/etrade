@@ -6,9 +6,15 @@ from foolsgold.reqs import close_position, limit_order, market_order_with_sl, tr
 from foolsgold.utils import set_price_precision_by_tick_size, calc_qty_precision, find_pos_size
 
 adx_low = 23
+l_adx_low = 16
+s_adx_low = 26
 adx_high = 26
+l_adx_high = 36
+s_adx_high = 36
+
 equity = 100
 risk = 30
+
 
 class Bybit:
     def __init__(self, api_key, api_secret, clogger=print):
@@ -66,7 +72,8 @@ class Bybit:
         last_price = float(ticker["lastPrice"])
         print("last_price", last_price)
 
-        sl = max(self.df.iloc[-1]['high'], self.df.iloc[-1]['high1'])
+        # sl = max(self.df.iloc[-1]['high'], self.df.iloc[-1]['high1'])
+        sl = last_price + last_price*0.01
 
         sl_price = float(set_price_precision_by_tick_size(sl, tick_size))
         print("sl_price", sl_price)
@@ -79,7 +86,10 @@ class Bybit:
         res = market_order_with_sl(
             self.api, symbol, "Sell", pos_size, sl_price)
         print(res)
-        tp = last_price - self.df.iloc[-1]['atr'] * 1
+
+        # tp = last_price - self.df.iloc[-1]['atr'] * 1
+
+        tp = last_price - last_price*0.005
         tp_price = float(set_price_precision_by_tick_size(tp, tick_size))
         print("tp_price", tp_price)
         tp_qty = calc_qty_precision(
@@ -88,13 +98,16 @@ class Bybit:
         print("tp_qty", tp_qty)
 
         res = limit_order(self.api, symbol, "Buy", tp_qty, tp_price)
+
         print(res)
 
-        trailing_stop = last_price - tp_price
         trailing_stop = set_price_precision_by_tick_size(
-            trailing_stop, tick_size)
+            last_price - tp_price,
+            tick_size,
+        )
 
         res = trailing_stop_order(self.api, symbol, tp_price, trailing_stop)
+
         print(res)
         self.clogger(f"Short {symbol}")
 
@@ -117,7 +130,8 @@ class Bybit:
         last_price = float(ticker["lastPrice"])
         print("last_price", last_price)
 
-        sl = min(self.df.iloc[-1]['low'], self.df.iloc[-1]['low1'])
+        # sl = min(self.df.iloc[-1]['low'], self.df.iloc[-1]['low1'])
+        sl = last_price - last_price*0.01
 
         sl_price = float(set_price_precision_by_tick_size(sl, tick_size))
         print("sl_price", sl_price)
@@ -130,7 +144,10 @@ class Bybit:
         res = market_order_with_sl(self.api, symbol, "Buy", pos_size, sl_price)
 
         print(res)
-        tp = last_price + self.df.iloc[-1]['atr'] * 1
+
+        # tp = last_price + self.df.iloc[-1]['atr'] * 1
+        tp = last_price + last_price*0.005
+
         tp_price = float(set_price_precision_by_tick_size(tp, tick_size))
         print("tp_price", tp_price)
         tp_qty = calc_qty_precision(
@@ -157,7 +174,12 @@ class Bybit:
         for symbol in symbols:
             symbol = symbol.strip()
             self.prepare_df(symbol)
-            self.signals(strategy="mom", adx_low=adx_low, adx_high=adx_high)
+            self.signals(strategy="mom",
+                         l_adx_high=l_adx_high,
+                         s_adx_high=s_adx_high,
+                         l_adx_low=l_adx_low,
+                         s_adx_low=s_adx_low,
+                         )
             latest_signal = self.df.iloc[-1]
 
             print(symbol)
@@ -176,16 +198,23 @@ def bootstrap(api_key, api_secret, clogger, symbols="BTCUSDT,SOLUSDT,SUIUSDT,ETH
     print("Foolsgold run done!")
 
 
-# symbol = "SOLUSDT"
-# b = Bybit("", "", print)
+# FOOLSGOLD_KEY = ""
+# FOOLSGOLD_SECRET = ""
+
+# symbol = "ETHUSDT"
+# b = Bybit(FOOLSGOLD_KEY, FOOLSGOLD_SECRET, print)
 # b.prepare_df(symbol)
-# b.signals(strategy="mom", adx_low=adx_low, adx_high=adx_high)
+# b.signals(strategy="mom",
+#           l_adx_high=l_adx_high,
+#           s_adx_high=s_adx_high,
+#           l_adx_low=l_adx_low,
+#           s_adx_low=s_adx_low,)
 # print(b.df)
-# b.sell(symbol)
+# b.buy(symbol)
 # b.sell(symbol)
 # bootstrap(
-#     "",
-#     "",
+#     FOOLSGOLD_KEY,
+#     FOOLSGOLD_SECRET,
 #     print,
 #     symbols="BTCUSDT,SOLUSDT",
 # )
