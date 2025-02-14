@@ -1,0 +1,114 @@
+{
+    "BTCUSDT": {
+        "bybit": "BTCUSDT",
+        "kraken": "PF_XBTUSD"
+    },
+    "ETHUSDT": {
+        "bybit": "ETHUSDT",
+        "kraken": "PF_ETHUSD"
+    },
+    "BNBUSDT": {
+        "bybit": "BNBUSDT",
+        "kraken": "PF_BNBUSD"
+    },
+    "SOLUSDT": {
+        "bybit": "SOLUSDT",
+        "kraken": "PF_SOLUSD"
+    },
+    "XRPUSDT": {
+        "bybit": "XRPUSDT",
+        "kraken": "PF_XRPUSD"
+    },
+    "DOGEUSDT": {
+        "bybit": "DOGEUSDT",
+        "kraken": "PF_DOGEUSD"
+    },
+    "ADAUSDT": {
+        "bybit": "ADAUSDT",
+        "kraken": "PF_ADAUSD"
+    },
+    "AVAXUSDT": {
+        "bybit": "AVAXUSDT",
+        "kraken": "PF_AVAXUSD"
+    },
+    "TRXUSDT": {
+        "bybit": "TRXUSDT",
+        "kraken": "PF_TRXUSD"
+    },
+    "1000SHIBUSDT": {
+        "bybit": "1000SHIBUSDT",
+        "kraken": "PF_SHIBUSD"
+    },
+    "LINKUSDT": {
+        "bybit": "LINKUSDT",
+        "kraken": "PF_LINKUSD"
+    },
+    "DOTUSDT": {
+        "bybit": "DOTUSDT",
+        "kraken": "PF_DOTUSD"
+    },
+    "BCHUSDT": {
+        "bybit": "BCHUSDT",
+        "kraken": "PF_BCHUSD"
+    },
+    "NEARUSDT": {
+        "bybit": "NEARUSDT",
+        "kraken": "PF_NEARUSD"
+    },
+    "LTCUSDT": {
+        "bybit": "LTCUSDT",
+        "kraken": "PF_LTCUSD"
+    },
+    "SUIUSDT": {
+        "bybit": "SUIUSDT",
+        "kraken": "PF_SUIUSD"
+    },
+    "ICPUSDT": {
+        "bybit": "ICPUSDT",
+        "kraken": "PF_ICPUSD"
+    },
+    "TAOUSDT": {
+        "bybit": "TAOUSDT",
+        "kraken": "PF_TAOUSD"
+    },
+    "UNIUSDT": {
+        "bybit": "UNIUSDT",
+        "kraken": "PF_UNIUSD"
+    },
+    "APTUSDT": {
+        "bybit": "APTUSDT",
+        "kraken": "PF_APTUSD"
+    },
+    "FETUSDT": {
+        "bybit": "FETUSDT",
+        "kraken": "PF_FETUSD"
+    },
+    "RENDERUSDT": {
+        "bybit": "RENDERUSDT",
+        "kraken": "PF_RENDERUSD"
+    },
+    "1000PEPEUSDT": {
+        "bybit": "1000PEPEUSDT",
+        "kraken": "PF_PEPEUSD"
+    },
+    "WIFUSDT": {
+        "bybit": "WIFUSDT",
+        "kraken": "PF_WIFUSD"
+    },
+    "INJUSDT": {
+        "bybit": "INJUSDT",
+        "kraken": "PF_INJUSD"
+    },
+    "FILUSDT": {
+        "bybit": "FILUSDT",
+        "kraken": "PF_FILUSD"
+    },
+    "ORDIUSDT": {
+        "bybit": "ORDIUSDT",
+        "kraken": "PF_ORDIUSD"
+    },
+    "ONDOUSDT": {
+        "bybit": "ONDOUSDT",
+        "kraken": "PF_ONDOUSD"
+    }
+}

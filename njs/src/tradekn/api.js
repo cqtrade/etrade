@@ -75,13 +75,13 @@ const KrakenFuturesApiClientV3 = ({
 					APIKey: apiKey,
 					Nonce: nonce,
 					Authent: signRequest(endpoint, nonce, postData),
-			  }
+				}
 			: {};
 
 		const contentTypeHeader = hasData
 			? {
 					'Content-Type': 'application/x-www-form-urlencoded',
-			  }
+				}
 			: {};
 
 		return { ...baseHeaders, ...privateHeaders, ...contentTypeHeader };
