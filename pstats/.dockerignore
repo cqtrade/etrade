@@ -1,5 +1,7 @@
 pdata/
 
+*.ipynb
+
 # Git
 .git
 .gitignore

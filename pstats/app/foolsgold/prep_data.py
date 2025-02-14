@@ -42,30 +42,66 @@ def add_atr(df, period=14):
     return df
 
 
-def add_dmi(df, period=14):
-    df['adx'] = ta.ADX(df['high'],
-                       df['low'],
-                       df['close'],
-                       timeperiod=period)
+def add_dmi(df, period=14, l_period=20, s_period=18):
+    # df['adx'] = ta.ADX(df['high'],
+    #                    df['low'],
+    #                    df['close'],
+    #                    timeperiod=period)
+    # df['l_adx'] = ta.ADX(df['high'],
+    #                      df['low'],
+    #                      df['close'],
+    #                      timeperiod=l_period)
+    # df['s_adx'] = ta.ADX(df['high'],
+    #                      df['low'],
+    #                      df['close'],
+    #                      timeperiod=s_period)
 
-    df['adx1'] = df['adx'].shift(1)
+    # df['adx1'] = df['adx'].shift(1)
+    # df['l_adx1'] = df['l_adx'].shift(1)
+    # df['s_adx1'] = df['s_adx'].shift(1)
 
-    df['adxr'] = ta.ADXR(df['high'],
-                         df['low'],
-                         df['close'],
-                         timeperiod=period)
+    # df['adxr'] = ta.ADXR(df['high'],
+    #                      df['low'],
+    #                      df['close'],
+    #                      timeperiod=period)
+    df['l_adxr'] = ta.ADXR(df['high'],
+                           df['low'],
+                           df['close'],
+                           timeperiod=l_period)
+    df['s_adxr'] = ta.ADXR(df['high'],
+                           df['low'],
+                           df['close'],
+                           timeperiod=s_period)
 
-    df['adxr1'] = df['adxr'].shift(1)
+    # df['adxr1'] = df['adxr'].shift(1)
+    df['l_adxr1'] = df['l_adxr'].shift(1)
+    df['s_adxr1'] = df['s_adxr'].shift(1)
 
-    df['plus_di'] = ta.PLUS_DI(df['high'],
-                               df['low'],
-                               df['close'],
-                               timeperiod=period)
-
-    df['minus_di'] = ta.MINUS_DI(df['high'],
+    # df['plus_di'] = ta.PLUS_DI(df['high'],
+    #                            df['low'],
+    #                            df['close'],
+    #                            timeperiod=period)
+    df['l_plus_di'] = ta.PLUS_DI(df['high'],
                                  df['low'],
                                  df['close'],
-                                 timeperiod=period)
+                                 timeperiod=l_period)
+    df['s_plus_di'] = ta.PLUS_DI(df['high'],
+                                 df['low'],
+                                 df['close'],
+                                 timeperiod=s_period)
+
+    # df['minus_di'] = ta.MINUS_DI(df['high'],
+    #                              df['low'],
+    #                              df['close'],
+    #                              timeperiod=period)
+    df['l_minus_di'] = ta.MINUS_DI(df['high'],
+                                   df['low'],
+                                   df['close'],
+                                   timeperiod=l_period)
+    df['s_minus_di'] = ta.MINUS_DI(df['high'],
+                                   df['low'],
+                                   df['close'],
+                                   timeperiod=s_period)
     return df
 
 
