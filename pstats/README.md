@@ -1,5 +1,13 @@
 # pstats
 
+## Prepare for nodebook development
+
+```bash
+
+pip install -r requirements.txt
+
+```
+
 ## Deploy
 
 This is temporary until we have a proper CI/CD pipeline.
