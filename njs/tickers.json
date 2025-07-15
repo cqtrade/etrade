@@ -110,5 +110,17 @@
     "ONDOUSDT": {
         "bybit": "ONDOUSDT",
         "kraken": "PF_ONDOUSD"
+    },
+    "PENGUUSDT": {
+        "bybit": "PENGUUSDT",
+        "kraken": "PF_PENGUUSDT"
+    },
+    "XLMUSDT": {
+        "bybit": "XLMUSDT",
+        "kraken": "PF_XLMUSDT"
+    },
+    "HBARUSDT": {
+        "bybit": "HBARUSDT",
+        "kraken": "PF_HBARUSDT"
     }
 }
