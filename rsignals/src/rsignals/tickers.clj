@@ -13,7 +13,6 @@
    "ADAUSDT"
    "AVAXUSDT"
    "TRXUSDT"
-   "1000SHIBUSDT"
    "LINKUSDT"
    "DOTUSDT"
    "BCHUSDT"
@@ -31,6 +30,9 @@
    "INJUSDT"
    "FILUSDT"
    "ORDIUSDT"
+   "XLMUSDT"
+   "HBARUSDT"
+   "PENGUUSDT"
    "ONDOUSDT"])
 
 
